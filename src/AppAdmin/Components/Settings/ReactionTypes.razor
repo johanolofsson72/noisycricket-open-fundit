@@ -1,0 +1,181 @@
+
+@inject SharedService SharedService
+
+<style>
+    div.k-grid tbody tr{
+        height: 40px !important;
+        white-space: nowrap!important;
+    }
+    div.k-grid th a, .k-virtual-scrollable-wrap td {
+        white-space: nowrap!important;
+    }
+    #grid th a, .k-virtual-scrollable-wrap td {
+        white-space: nowrap!important;
+    }
+</style>
+
+<h5>@LocalizationService.StringFromResource("Settings-21")</h5>
+
+<TelerikGrid @ref="GridRef" 
+             Data="@Items"
+             Pageable="true"
+             PageSize="12"
+             ConfirmDelete="true"
+             EditMode="@GridEditMode.Popup"
+             OnUpdate="@UpdateHandler"
+             OnDelete="@DeleteHandler"
+             OnModelInit="@(() => new ReactionTypeDto())">
+    <GridToolBarTemplate>
+        <GridCommandButton Enabled="@Enabled" Command="Add" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Settings-2")</GridCommandButton>
+    </GridToolBarTemplate>
+    <GridSettings>
+        <GridPopupEditSettings Width="550px" MaxHeight="95vh" MaxWidth="95vw"></GridPopupEditSettings>
+        <GridPopupEditFormSettings Context="formContext">
+            <FormTemplate>
+                @{
+                    EditItem = formContext.Item as ReactionTypeDto;
+                    if (EditItem is null) return;
+                    <TelerikForm Model="@EditItem"
+                                 ColumnSpacing="20px"
+                                 Columns="2"
+                                 ButtonsLayout="@FormButtonsLayout.Stretch"
+                                 OnValidSubmit="@UpdateHandler">
+                        <FormItems>
+                            <FormItem LabelText="@LocalizationService.StringFromResource("Settings-3")" Enabled="@(!RequiredItems.Contains(EditItem.Id))">
+                                <Template>
+                                    @{
+                                    var index = SharedService.IndexByCulture();
+                                    <InputText @bind-Value="@EditItem.Names[index]"/>
+                                    }
+                                </Template>
+                            </FormItem>
+                            <FormItem LabelText="@LocalizationService.StringFromResource("Settings-36")" Enabled="@(!RequiredItems.Contains(EditItem.Id))">
+                                <Template>
+                                    @{
+                                        var index = SharedService.IndexByCulture();
+                                        <InputText @bind-Value="@EditItem.Messages[index]"/>
+                                    }
+                                </Template>
+                            </FormItem>
+                        </FormItems>
+                        <FormButtons>
+                            <TelerikButton Enabled="@Enabled" Icon="@nameof(SvgIcon.Save)">@LocalizationService.StringFromResource("Settings-4")</TelerikButton>
+                            <TelerikButton Enabled="@Enabled" Icon="@nameof(SvgIcon.Cancel)" ButtonType="@ButtonType.Button" @onclick="CancelHandler">@LocalizationService.StringFromResource("Settings-5")</TelerikButton>
+                        </FormButtons>
+                    </TelerikForm>
+                }
+            </FormTemplate>
+        </GridPopupEditFormSettings>
+    </GridSettings>
+    <GridColumns>
+        <GridColumn Field="@nameof(ReactionTypeDto.Id)" Title="@LocalizationService.StringFromResource("Settings-6")" />
+        <GridColumn Field="@nameof(ReactionTypeDto.Names)" Title="@LocalizationService.StringFromResource("Settings-7")">
+            <Template>
+                @{
+                if (context is not ReactionTypeDto item) return;
+                <span>@SharedService.ValueByCulture(item.Names)</span>
+                }
+            </Template>
+        </GridColumn>
+        <GridCommandColumn Context="item" Width="200px">
+            <GridCommandButton Enabled="@Enabled" Command="Edit" Icon="@SvgIcon.Pencil" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Settings-8")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Settings-9")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" Command="Save" Icon="SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" ShowInEdit="true">@LocalizationService.StringFromResource("Settings-10")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" Command="Cancel" Icon="SvgIcon.Cancel" ShowInEdit="true">@LocalizationService.StringFromResource("Settings-11")</GridCommandButton>
+        </GridCommandColumn>
+    </GridColumns>
+</TelerikGrid>
+
+@code {
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    private TelerikGrid<ReactionTypeDto> GridRef { get; set; } = new();
+    private List<ReactionTypeDto> Items { get; set; } = default!;
+    private ReactionTypeDto? EditItem { get; set; } = new();
+    private List<int> RequiredItems { get; set; } = Enumerable.Range(1, 10).ToList();
+    private string SharedType { get; set; } = "reactionTypes";
+    private bool Enabled { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var result = await SharedService.GetAllReactionTypesAsync();
+        
+        if (!result.IsOk) return;
+        
+        Items = result.Value.ToList() ?? [];
+    }
+
+    private async Task UpdateHandler()
+    {
+        var item = EditItem;
+        
+        if (item is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        if (item.Id == 0)
+        {
+            var result = await SharedService.CreateReactionTypeAsync(new CreateReactionTypeDto()
+            {
+                Names = item.Names
+            }, new CancellationToken());
+        }
+        else
+        {
+            var result = await SharedService.UpdateReactionTypeAsync(item.Id, new UpdateReactionTypeDto()
+            {
+                Names = item.Names
+            }, new CancellationToken());
+        }
+        
+        await SharedService.ExecuteTranslationJob();
+        await LoadData();
+        await ExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task DeleteHandler(GridCommandEventArgs args)
+    {
+        var item = (ReactionTypeDto)args.Item;
+
+        if (RequiredItems.Contains(item.Id)) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await SharedService.DeleteReactionTypeAsync(item.Id, new CancellationToken());
+        
+        await LoadData();
+        await ExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CancelHandler()
+    {
+        await ExitEditAsync();
+    }
+    
+    private async Task ExitEditAsync()
+    {
+        var state = GridRef.GetState();
+        state.OriginalEditItem = null!;
+        state.EditItem = null!;
+        state.InsertedItem = null!;
+        await GridRef.SetStateAsync(state);
+    }
+
+
+}

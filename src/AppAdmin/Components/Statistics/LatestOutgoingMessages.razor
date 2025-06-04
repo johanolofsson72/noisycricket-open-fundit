@@ -1,0 +1,89 @@
+@using System.Net
+@using global::Shared.Extensions
+@using Newtonsoft.Json
+
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+
+@if (Items.Any())
+{
+<ol>
+    @foreach (var item in Items)
+    {
+    <li>
+        <a href="/messages">
+            <div style="display: flex; flex-direction: row; cursor: pointer;">
+                <div style="width: 1.9vw; margin-top: -1px;"><TelerikSvgIcon Icon="@SvgIcon.Envelope" Size="@ThemeConstants.SvgIcon.Size.Large" ThemeColor="@ThemeConstants.Window.ThemeColor.Primary"/></div>
+                <div style="width: 6vw; font-style: italic; font-size: 0.85vw;">@item.Date</div>
+                <div style="width: 15vw; font-size: 0.85vw;">@item.Company</div>
+                <div style="font-size: 0.85vw;">@item.Title</div>
+            </div>
+        </a>
+    </li>
+    }
+</ol>
+}
+
+@code 
+{
+    [Parameter] public List<List<string>> Data { get; set; } = [];
+    private List<(string Title, string Company, string Date)> Items { get; set; } = [];
+
+    protected override void OnParametersSet()
+    {
+        Items = [];
+        foreach (var dataRow in Data)
+        {
+            var title = WebUtility.HtmlDecode(dataRow[0].TruncateAtWord(35, true));
+            var company = WebUtility.HtmlDecode(dataRow[1].TruncateAtWord(40, true));
+            _ = System.DateTime.TryParse(dataRow[2], out var date);
+
+            var dataValues = (title, company, date.ToString("yyyy-MM-dd"));
+            Items.Add(dataValues);
+        }
+
+        if (Items.Any()) return;
+        
+        var catalog = JsonConvert.DeserializeObject<MovieCatalog>(System.IO.File.ReadAllText(Configuration.GetValue<string>("GeneratedMovieTitles")!));
+        var rnd = new Random();
+        if (catalog == null) return;
+        
+        var index1 = rnd.Next(catalog.movies.Count);
+        var index2 = rnd.Next(catalog.movies.Count);
+        var index3 = rnd.Next(catalog.movies.Count);
+            
+        Items =
+        [
+            new ValueTuple<string, string, string>()
+            {
+                Item1 = catalog.movies[index1].title,
+                Item2 = new Bogus.Faker().Company.CompanyName(),
+                Item3 = new Bogus.Faker().Date.Between(DateTime.UtcNow.AddMonths(-6), DateTime.UtcNow).ToString("yyyy-MM-dd")
+            },
+            new ValueTuple<string, string, string>()
+            {
+                Item1 = catalog.movies[index2].title,
+                Item2 = new Bogus.Faker().Company.CompanyName(),
+                Item3 = new Bogus.Faker().Date.Between(DateTime.UtcNow.AddMonths(-6), DateTime.UtcNow).ToString("yyyy-MM-dd")
+            },
+            new ValueTuple<string, string, string>()
+            {
+                Item1 = catalog.movies[index3].title,
+                Item2 = new Bogus.Faker().Company.CompanyName(),
+                Item3 = new Bogus.Faker().Date.Between(DateTime.UtcNow.AddMonths(-6), DateTime.UtcNow).ToString("yyyy-MM-dd")
+            }
+        ];
+    }
+    
+    private class MovieCatalog
+    {
+        public List<Movie> movies { get; set; } = [];
+    }
+    
+    private class Movie
+    {
+        public int id { get; set; }
+        public string title { get; set; } = "";
+    }
+
+}

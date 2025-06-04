@@ -1,0 +1,793 @@
+@using AppAdmin.State
+@using global::Shared.Documents.DTOs
+@using global::Shared.Documents.Entities
+@using global::Shared.Messages.Services
+@using global::Shared.Milestones.DTOs
+@using global::Shared.Milestones.Services
+@using HeyRed.Mime
+@inject NavigationManager NavigationManager
+@inject ApplicationService ApplicationService
+@inject IConfiguration Configuration
+@inject MilestoneService MilestoneService
+@inject NotificationService NotificationService
+@inject DocumentService DocumentService
+@inject MessageService MessageService
+@inject IHttpClientFactory HttpClientFactory
+@inject SharedService SharedService
+
+<style>
+    .littlemargin {
+        margin-left: 4px
+    }
+
+    .buttonwidth {
+        width: 80px 
+    }
+</style>
+
+@if (ApplicationId > 0 && Index > 0 && MilestoneId > 0 && Application is not null && DocumentDeliveryTypes is not null && RequirementTypes is not null)
+{
+    <label style="font-size: 14px;width:100%">@LocalizationService.StringFromResource("Projects-58") @Index</label>
+    <div style='border: 1px solid @(SelectedMilestone.ExpireDate < DateTime.UtcNow ? "red" : SelectedMilestone.Requirements.All(x => x.IsApproved == true) ? "#A1C152" : "#009FFD"); padding: 3px; border-radius: 2px; width: 100%'>
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 30%; vertical-align: top; padding: 10px">
+                    <label style="font-size: 14px; width: 100%">
+                        @LocalizationService.StringFromResource("Projects-59")
+                        <TelerikNumericTextBox Format="0.00" Decimals="2" Value="MilestoneAmount" ValueExpression="@(() => MilestoneAmount)" ValueChanged="@((decimal value) => MilestoneAmountChanged(value))" Enabled="@(!MilestoneLocked)" />
+                    </label>
+                    <br /><br />
+                    <label style="font-size: 14px; width: 100%">
+                        @LocalizationService.StringFromResource("Projects-60")
+                        <TelerikDatePicker Format="yyyy-MM-dd" Min="@DateTime.UtcNow" Value="MilestoneExpires" ValueExpression="@(() => MilestoneExpires)" ValueChanged="@((DateTime value) => MilestoneExpiredChanged(value))" Enabled="@(!MilestoneLocked)" />
+                    </label>
+                    <br /><br />
+                    <label style="font-size: 14px; width: 100%">
+                        @LocalizationService.StringFromResource("Projects-61")
+                        <TelerikNumericTextBox Decimals="2" Value="MilestonePercent" ValueExpression="@(() => MilestonePercent)" ValueChanged="@((decimal value) => MilestonePercentChanged(value))" Enabled="@(!MilestoneLocked)" />
+                    </label>
+                    <br/>
+                    <br/>
+                    @if (MilestoneLocked)
+                    {
+                        <TelerikButton Enabled="@Enabled" Class="buttonwidth" OnClick="OnUnlock" Icon="@SvgIcon.Lock" ThemeColor="@ThemeConstants.Button.ThemeColor.Success">@LocalizationService.StringFromResource("Projects-62")</TelerikButton>
+                    }
+                    else
+                    {
+                        <div style="display: flex; justify-content: flex-start; align-items: flex-start; gap: 10px">
+                            <TelerikButton Enabled="@Enabled" Class="buttonwidth" OnClick="OnLock" Icon="@SvgIcon.Unlock" ThemeColor="@ThemeConstants.Button.ThemeColor.Warning">@LocalizationService.StringFromResource("Projects-63")</TelerikButton>
+                            <TelerikButton Enabled="@Enabled" Class="buttonwidth" OnClick="OnDelete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Projects-68")</TelerikButton>
+                        </div>
+                    }
+                </td>
+                <td style="width: 70%; vertical-align: top; padding: 10px; position: relative;">
+                    @if (MilestoneLocked)
+                    {
+                        <label style="width: 100%">
+                            <div style="display: flex; flex-direction: row; margin-left: 3px; margin-right: 3px">
+                                <div style="width: 50%">@LocalizationService.StringFromResource("Projects-64")</div>
+                                <div style="width: 15%">@LocalizationService.StringFromResource("Projects-65")</div>
+                                <div style="flex-grow: 1; text-align: right">&nbsp;</div>
+                            </div>
+                            <div style="border: #EBEBEB solid 1px; margin-top: 0px; min-height: 37px">
+                                <TelerikListView Data="RequirementTypesListViewValue" @ref="@RequirementTypesListViewRef">
+                                    <Template>
+                                        <div style="display: flex; flex-direction: row; margin: 3px;">
+                                            <div style="width: 50%; margin-top: 3px;">
+                                                @{
+                                                    var index = SharedService.IndexByCulture();
+                                                    <span>@RequirementTypes.FirstOrDefault(x => x.Id == context.RequirementTypeId)?.Names[index]</span>
+                                                }
+                                            </div>
+                                            <div style='width: 15%; margin-top: 3px; color: @((context.IsDelivered ? "#008000" : "#ff0000"));'>@(context.IsDelivered ? @LocalizationService.StringFromResource("Projects-81") : @LocalizationService.StringFromResource("Projects-82"))</div>
+                                            <div style="flex-grow: 1; text-align: right">
+                                                <TelerikButton Enabled="@(!context.IsDelivered && !context.IsApproved && Enabled)" OnClick="@((args) => HandleUpload(args, context.RequirementTypeId))" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Upload">@LocalizationService.StringFromResource("Projects-80")</TelerikButton>
+                                                <TelerikButton Enabled="@(!context.IsApproved && Enabled)" OnClick="@((args) => HandleApprove(args, context.RequirementTypeId))" ThemeColor="@ThemeConstants.Button.ThemeColor.Success" Icon="@SvgIcon.ApplyFormat">@LocalizationService.StringFromResource("Projects-66")</TelerikButton>
+                                            </div>
+                                        </div>
+                                    </Template>
+                                </TelerikListView>
+
+                            </div>
+                        </label>
+                        <br />
+                        <br />
+                        <label style="width: 100%">
+                            <div style="display: flex; flex-direction: row; margin-left: 3px; margin-right: 3px">
+                                <div style="width: 40%">@LocalizationService.StringFromResource("Projects-74")</div>
+                                <div style="width: 15%">@LocalizationService.StringFromResource("Projects-75")</div>
+                                <div style="width: 10%">@LocalizationService.StringFromResource("Projects-76")</div>
+                                <div style="flex-grow: 1; text-align: right">&nbsp;</div>
+                            </div>
+                            <div style="border: #EBEBEB solid 1px; margin-top: 0px; min-height: 37px">
+                                <TelerikListView Data="ListViewPayment" @ref="@ListViewPaymentRef" OnDelete="@OnPaymentDelete">
+                                    <Template>
+                                        <div style="display: flex; flex-direction: row; margin: 3px;">
+                                            <div style="width: 40%; margin-top: 3px;">@context.Note</div>
+                                            <div style="width: 15%; margin-top: 3px;">@context.Amount.ToString("0.00", new CultureInfo("sv-SE"))</div>
+                                            <div style="width: 10%; margin-top: 3px;">@context.CreatedDate.ToString("yyy-MM-dd")</div>
+                                            <div style="flex-grow: 1; text-align: right">
+                                                <ListViewCommandButton Enabled="@Enabled" Command="Delete" ThemeColor="@ThemeConstants.Button.ThemeColor.Error" Icon="@SvgIcon.Trash" >@LocalizationService.StringFromResource("Projects-68")</ListViewCommandButton>
+                                            </div>
+                                        </div>
+                                    </Template>
+                                </TelerikListView>
+                            </div>
+                        </label>
+                        <br />
+                        <br />
+                        <div style="display: flex; flex-direction: row;">
+                            <label style="font-size: 14px; width: 20%; margin-right: 20px">
+                                @LocalizationService.StringFromResource("Projects-77")
+                                <TelerikNumericTextBox Format="0.00" Decimals="2" Value="PaymentAmount" ValueExpression="@(() => PaymentAmount)" ValueChanged="@((decimal value) => PaymentAmount = value)" />
+                            </label>
+
+                            <label style="font-size: 14px; width: 60%; margin-right: 20px">
+                                @LocalizationService.StringFromResource("Projects-78")
+                                <TelerikTextBox @bind-Value="PaymentNote" />
+                            </label>
+                            
+                            <label style="font-size: 14px; width: 20%">
+                                &nbsp;
+                                <div style="text-align: right">
+                                    <TelerikButton Enabled="@(PaymentAmount > 0 && PaymentNote.Length > 0 && Enabled)" OnClick="OnPaymentAdd" Icon="@SvgIcon.Plus" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Projects-79")</TelerikButton>
+                                </div>
+                            </label>
+                        </div>
+                    }
+                    else
+                    {
+                        <label style="width: 100%">@LocalizationService.StringFromResource("Projects-64")
+                            <div style="border: #EBEBEB solid 1px; margin-top: 0px; min-height: 37px">
+                                <TelerikListView Data="RequirementTypesListViewValue" OnDelete="@OnRequirementDelete" @ref="@RequirementTypesListViewRef">
+                                    <Template>
+                                        <div style="display: flex; flex-direction: row; margin: 3px;">
+                                            <div style="width: 90%; margin-top: 3px;">
+                                                @{
+                                                    var index = SharedService.IndexByCulture();
+                                                    <span>@RequirementTypes.FirstOrDefault(x => x.Id == context.RequirementTypeId)?.Names[index]</span>
+                                                }
+                                            </div>
+                                            <div style="flex-grow: 1; text-align: right">
+                                                <ListViewCommandButton Enabled="@Enabled" Command="Delete" ThemeColor="@ThemeConstants.Button.ThemeColor.Error" Icon="@SvgIcon.Trash" >@LocalizationService.StringFromResource("Projects-68")</ListViewCommandButton>
+                                            </div>
+                                        </div>
+                                    </Template>
+                                </TelerikListView>
+                            
+                            </div>
+                        </label>
+                        <br />
+                        <div style="bottom: 0; right: 0; width: 100%; padding: 10px;">
+
+                            <label style="font-size: 14px; width: 100%;">
+                                @LocalizationService.StringFromResource("Projects-69")<br/>
+                                <TelerikDropDownList Data="@RequirementTypes"
+                                                     TextField="@nameof(MilestoneRequirementTypeDto.Names)"
+                                                     ValueField="@nameof(MilestoneRequirementTypeDto.Id)"
+                                                     Context="pop"
+                                                     @bind-Value="@SelectedRequirementTypeId" Width="500px">
+                                    <ItemTemplate>
+                                        @{
+                                        var index = SharedService.IndexByCulture();
+                                        @pop.Names[index]
+                                        ;
+                                        }
+                                    </ItemTemplate>
+                                    <ValueTemplate>
+                                        @{
+                                        var index = SharedService.IndexByCulture();
+                                        @pop.Names[index]
+                                        ;
+                                        }
+                                    </ValueTemplate>
+                                </TelerikDropDownList>
+                            </label>
+                            <br />
+                            <label style="font-size: 14px; width: 100%;">
+                                @LocalizationService.StringFromResource("Projects-73")<br/>
+                                <TelerikDropDownList Data="@DocumentDeliveryTypes"
+                                                     TextField="@nameof(DocumentDeliveryTypeDto.Names)"
+                                                     ValueField="@nameof(DocumentDeliveryTypeDto.Id)"
+                                                     Context="pop"
+                                                     @bind-Value="@SelectedDocumentDeliveryTypeId" Width="500px">
+                                    <ItemTemplate>
+                                        @{
+                                        var index = SharedService.IndexByCulture();
+                                        @pop.Names[index]
+                                        ;
+                                        }
+                                    </ItemTemplate>
+                                    <ValueTemplate>
+                                        @{
+                                        var index = SharedService.IndexByCulture();
+                                        @pop.Names[index]
+                                        ;
+                                        }
+                                    </ValueTemplate>
+                                </TelerikDropDownList>
+                            </label>
+                            <br />
+                            <div style="text-align: right; margin-top: 10px">
+                                <TelerikButton Enabled="@(SelectedRequirementTypeId > 0 && SelectedDocumentDeliveryTypeId > 0 && Enabled)" OnClick="OnRequirementAdd" Icon="@SvgIcon.Plus" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Projects-70")</TelerikButton>
+                            </div>
+                        </div>
+                    }
+                </td>
+            </tr>
+        </table>
+    </div>
+}
+
+<TelerikDialog @bind-Visible="@DialogVisible" Width="320px" Title="@LocalizationService.StringFromResource("Projects-72")">
+    <DialogContent>
+        <TelerikUpload SaveUrl="upload/save"
+                       RemoveUrl="upload/remove"
+                       Multiple="false"
+                       OnUpload="@OnUploadHandler"
+                       OnRemove="@OnRemoveHandler"
+                       OnSuccess="@OnUploadSuccess" />
+    </DialogContent>
+    <DialogButtons>
+        <TelerikButton OnClick="@(() => { DialogVisible = false; })">@LocalizationService.StringFromResource("Projects-71")</TelerikButton>
+    </DialogButtons>
+</TelerikDialog>
+
+@code
+{
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public int ApplicationId { get; set; }
+    [Parameter] public int Index { get; set; }
+    [Parameter] public int MilestoneId { get; set; } 
+    [Parameter] public EventCallback<int> OnUpdated { get; set; }
+    
+    private MiniApplicationDto? Application { get; set; }
+    private MilestoneDto SelectedMilestone { get; set; } = new();
+    private decimal MilestoneAmount { get; set; }
+    private decimal PaymentAmount { get; set; }
+    private string PaymentNote { get; set; } = string.Empty;
+    private DateTime MilestoneExpires { get; set; } = DateTime.UtcNow;
+    private decimal MilestonePercent { get; set; }
+    private TelerikListView<MilestoneRequirementDto> RequirementTypesListViewRef { get; set; } = new();
+    private TelerikListView<MilestonePaymentDto> ListViewPaymentRef { get; set; } = new();
+    private List<MilestoneRequirementDto> RequirementTypesListViewValue { get; set; } = new();
+    private List<MilestonePaymentDto> ListViewPayment { get; set; } = new();
+    
+    private List<MilestoneRequirementTypeDto>? RequirementTypes { get; set; }
+    private MilestoneRequirementTypeDto SelectedRequirementType { get; set; } = null!;
+    private int SelectedRequirementTypeId { get; set; } = 0;
+    
+    private List<DocumentDeliveryTypeDto>? DocumentDeliveryTypes { get; set; }
+    private DocumentDeliveryTypeDto SelectedDocumentDeliveryType { get; set; } = null!;
+    private int SelectedDocumentDeliveryTypeId { get; set; } = 0;
+    private int UploadRequirementId { get; set; } = 0;
+    
+    private bool MilestoneLocked { get; set; }
+    private bool DialogVisible { get; set; }
+    private string TempPath { get; set; } = string.Empty;
+    private bool Enabled { get; set; } = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        try
+        {
+            if (ApplicationId < 1)
+            {
+                NotificationService.Error("ApplicationId < 1");
+                return;
+            }
+            if (MilestoneId < 1)
+            {
+                NotificationService.Error("MilestoneId < 1");
+                return;
+            }
+            if (Index < 1)
+            {
+                NotificationService.Error("Index < 1");
+                return;
+            }
+        
+            var result = await ApplicationService.MiniApplicationByIdAsync(ApplicationId, new CancellationToken());
+            if (!result.IsOk)
+            {
+                NotificationService.Error(result.Error.ToString());
+                return;
+            }
+
+            Application = result.Value;
+            DocumentDeliveryTypes = AppState.DocumentDeliveryTypes.Where(x => x.OrganizationDocumentDeliveryTypeIdentifier > 1).Select(x => new DocumentDeliveryTypeDto(){ Id = x.OrganizationDocumentDeliveryTypeIdentifier, Names = x.Names }).ToList();
+            RequirementTypes = AppState.MilestoneRequirementTypes.Select(x => new MilestoneRequirementTypeDto(){ Id = x.OrganizationMilestoneRequirementTypeIdentifier, Names = x.Names }).ToList();
+            
+            await LoadMilestone();
+            await LoadRequirements();
+            await LoadPayments();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task LoadMilestone()
+    {
+        var milestoneResult = await MilestoneService.MilestoneByIdAsync(MilestoneId, new CancellationToken());
+        if (!milestoneResult.IsOk)
+        {
+            NotificationService.Error(milestoneResult.Error.ToString());
+            return;
+        }    
+        SelectedMilestone = milestoneResult.Value;
+        
+        MilestoneAmount = SelectedMilestone.Amount; 
+        MilestonePercent = MilestoneAmount > 0 && Application?.OurContribution > 0 ? decimal.Divide(MilestoneAmount, Application.OurContribution)*100 : 0.0m;
+        MilestoneExpires = SelectedMilestone.ExpireDate;
+        MilestoneLocked = SelectedMilestone.IsLocked;
+    }
+    private async Task LoadRequirements()
+    {
+        if (SelectedMilestone.Id < 1)
+        {
+            NotificationService.Error("SelectedMilestone.Id < 1");
+            return;
+        }    
+        
+        await Task.Delay(1);
+        RequirementTypesListViewValue.Clear();
+        
+        foreach (var requirement in SelectedMilestone.Requirements.ToList())
+        {
+            RequirementTypesListViewValue.Add(requirement);
+        }
+        
+        RequirementTypesListViewRef.Rebind();
+    }
+    private async Task LoadPayments()
+    {
+        if (SelectedMilestone.Id < 1)
+        {
+            NotificationService.Error("SelectedMilestone.Id < 1");
+            return;
+        }    
+        
+        await Task.Delay(1);
+        ListViewPayment.Clear();
+        
+        foreach (var payment in SelectedMilestone.Payments.ToList())
+        {
+            ListViewPayment.Add(payment);
+        }
+
+        ListViewPaymentRef.Rebind();
+    }
+
+    private async Task OnPaymentAdd()
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        
+        var payments = SelectedMilestone.Payments.ToList();
+        payments.Add(new MilestonePaymentDto()
+        {
+            Amount = PaymentAmount,
+            CreatedDate = DateTime.UtcNow,
+            Note = PaymentNote
+        });
+        SelectedMilestone.Payments = payments;
+        var createPaymentResult = await MilestoneService.UpdateMilestoneAsync(SelectedMilestone.Id, 
+            new UpdateMilestoneDto()
+            {
+                StatusId = 2,
+                Amount = MilestoneAmount,
+                ExpireDate = MilestoneExpires,
+                IsLocked = MilestoneLocked,
+                Payments = SelectedMilestone.Payments.ToList(),
+                Requirements = SelectedMilestone.Requirements.ToList()
+            }, new CancellationToken());
+        if (!createPaymentResult.IsOk)
+        {
+            NotificationService.Error(createPaymentResult.Error.ToString());
+            return;
+        }
+
+        await Load();
+        
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task OnPaymentDelete(ListViewCommandEventArgs args)
+    {
+        if (args.Item is not null)
+        {
+            Enabled = false;
+            await InvokeAsync(StateHasChanged);
+            
+            var payment = (MilestonePaymentDto)args.Item;
+            SelectedMilestone.Payments = SelectedMilestone.Payments.ToList().Where(x => x.CreatedDate != payment.CreatedDate).ToList();
+            var createPaymentResult = await MilestoneService.UpdateMilestoneAsync(SelectedMilestone.Id, 
+                new UpdateMilestoneDto()
+                {
+                    StatusId = 2,
+                    Amount = MilestoneAmount,
+                    ExpireDate = MilestoneExpires,
+                    IsLocked = MilestoneLocked,
+                    Payments = SelectedMilestone.Payments.ToList(),
+                    Requirements = SelectedMilestone.Requirements.ToList()
+                }, new CancellationToken());
+            if (!createPaymentResult.IsOk)
+            {
+                NotificationService.Error(createPaymentResult.Error.ToString());
+                return;
+            }
+
+            await Load();
+            
+            Enabled = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    
+    private async Task OnRequirementDelete(ListViewCommandEventArgs args)
+    {
+        if (args.Item is not null)
+        {
+            Enabled = false;
+            await InvokeAsync(StateHasChanged);
+            
+            var milestoneRequirement = (MilestoneRequirementDto)args.Item;
+
+            var resultBudgets = await MilestoneService.DeleteRequirementAsync(milestoneRequirement.RequirementIdentifier, new CancellationToken());
+            if (!resultBudgets.IsOk)
+            {
+                NotificationService.Error(resultBudgets.Error.ToString());
+                return;
+            }    
+            
+            await Load();
+            
+            Enabled = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    private async Task OnRequirementAdd()
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        
+        var createResult = await MilestoneService.AddRequirementAsync(MilestoneId, 
+            new CreateMilestoneRequirementDto()
+            {
+                RequirementTypeId = SelectedRequirementTypeId,
+                DeliveryTypeId = SelectedDocumentDeliveryTypeId,
+                DocumentId = 0,
+                IsApproved = false,
+                ApprovedDate = DateTime.MinValue,
+                ExpireDate = DateTime.UtcNow.AddYears(1),
+                Name = string.Empty
+            }, new CancellationToken());
+        if (!createResult.IsOk)
+        {
+            NotificationService.Error(createResult.Error.ToString());
+            return;
+        }   
+            
+        await Load();
+        
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task UpdateRequirement(MilestoneRequirementDto requirement)
+    {
+        var updateRequirementAsyncResult = await MilestoneService.UpdateRequirementAsync(SelectedMilestone.Id, requirement.RequirementIdentifier, 
+            new UpdateMilestoneRequirementDto()
+            {
+                RequirementTypeId = requirement.RequirementTypeId,
+                DocumentId = requirement.DocumentId,
+                DeliveryTypeId = requirement.DeliveryTypeId,
+                IsApproved = requirement.IsApproved,
+                IsDelivered = requirement.IsDelivered,
+                DeliveredDate = requirement.DeliveredDate,
+                ApprovedDate = requirement.ApprovedDate,
+                ExpireDate = requirement.ExpireDate,
+                Name = requirement.Name
+            }, new CancellationToken());
+        
+        if (!updateRequirementAsyncResult.IsOk)
+        {
+            NotificationService.Error(updateRequirementAsyncResult.Error.ToString());
+            return;
+        }
+
+        await LoadRequirements();
+    }
+
+    private async Task MilestoneAmountChanged(decimal value)
+    {
+        MilestoneAmount = value;
+        MilestonePercent = MilestoneAmount > 0 && Application!.OurContribution > 0 ? decimal.Divide(value, Application.OurContribution)*100 : 0.0m;
+        await UpdateMilestone();
+    }
+    private async Task MilestonePercentChanged(decimal value)
+    {
+        MilestonePercent = value;
+        MilestoneAmount = decimal.Multiply(value, Application!.OurContribution) / 100;
+        await UpdateMilestone();
+    }
+    private async Task MilestoneExpiredChanged(DateTime value)
+    {
+        MilestoneExpires = value;
+        await UpdateMilestone();
+    }
+
+    private async Task UpdateMilestone()
+    {
+        var result = await MilestoneService.UpdateMilestoneAsync(SelectedMilestone.Id, 
+            new UpdateMilestoneDto()
+            {
+                StatusId = 2,
+                Amount = MilestoneAmount,
+                ExpireDate = MilestoneExpires,
+                IsLocked = MilestoneLocked,
+                Payments = SelectedMilestone.Payments.ToList(),
+                Requirements = SelectedMilestone.Requirements.ToList()
+            }, new CancellationToken());
+        
+        await Load();
+    }
+    
+    private async Task OnLock()
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        
+        var createPaymentResult = await MilestoneService.UpdateMilestoneAsync(SelectedMilestone.Id, 
+            new UpdateMilestoneDto()
+            {
+                StatusId = 2,
+                Amount = MilestoneAmount,
+                ExpireDate = MilestoneExpires,
+                IsLocked = true,
+                Payments = SelectedMilestone.Payments.ToList(),
+                Requirements = SelectedMilestone.Requirements.ToList()
+            }, new CancellationToken());
+        
+        if (!createPaymentResult.IsOk)
+        {
+            NotificationService.Error(createPaymentResult.Error.ToString());
+            return;
+        }
+
+        await Load();
+        
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task OnUnlock()
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        
+        var createPaymentResult = await MilestoneService.UpdateMilestoneAsync(SelectedMilestone.Id, 
+            new UpdateMilestoneDto()
+            {
+                StatusId = 2,
+                Amount = MilestoneAmount,
+                ExpireDate = MilestoneExpires,
+                IsLocked = false,
+                Payments = SelectedMilestone.Payments.ToList(),
+                Requirements = SelectedMilestone.Requirements.ToList()
+            }, new CancellationToken());
+        
+        if (!createPaymentResult.IsOk)
+        {
+            NotificationService.Error(createPaymentResult.Error.ToString());
+            return;
+        }
+
+        await Load();
+        
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task OnDelete()
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        
+        var deleteMilestoneResult = await MilestoneService.DeleteMilestoneAsync(SelectedMilestone.Id, new CancellationToken());
+        
+        if (!deleteMilestoneResult.IsOk)
+        {
+            NotificationService.Error(deleteMilestoneResult.Error.ToString());
+            return;
+        }
+
+        await Load();
+        await OnUpdated.InvokeAsync(SelectedMilestone.Id);
+        
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleUpload(MouseEventArgs args, int requirementId)
+    {
+        TempPath = SharedService.InitializeTempFileDirectory();
+        UploadRequirementId = requirementId;
+        DialogVisible = UploadRequirementId > 0;
+
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task HandleApprove(MouseEventArgs args, int requirementId)
+    {
+        var requirement = RequirementTypesListViewValue.First(x => x.RequirementTypeId == requirementId);
+
+        requirement.IsApproved = true;
+
+        await UpdateRequirement(requirement);
+
+        //await Load();
+    }
+    
+    private async Task OnUploadHandler(UploadEventArgs args)
+    {
+        // var token = (await ((AuthStateProvider)AuthStateProvider).GetToken()).AccessToken;
+        args.RequestData.Add(TempPath, TempPath);
+
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task OnRemoveHandler(UploadEventArgs args)
+    {
+        // var token = (await ((AuthStateProvider)AuthStateProvider).GetToken()).AccessToken;
+        args.RequestData.Add(TempPath, TempPath);
+
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task OnUploadSuccess(UploadSuccessEventArgs args)
+    {
+        var fileName = args.Files.First().Name;
+        var filePath = Path.Combine(TempPath, fileName);
+        var file = new System.IO.FileInfo(filePath);
+        var statusCode = args.Request.Status;
+
+        if (statusCode == 200)
+        {
+            var requirement = RequirementTypesListViewValue.First(x => x.RequirementTypeId == UploadRequirementId);
+
+            
+            // create document
+            var document = new Document();
+            var createDocumentResult = await DocumentService.CreateDocumentAsync(
+                new CreateDocumentDto
+                {
+                    ApplicationId = Application!.Id,
+                    StatusId = 2,
+                    RequirementTypeId = requirement.RequirementTypeId,
+                    DeliveryTypeId = requirement.DeliveryTypeId,
+                    FileName = file.Name,
+                    MimeType = MimeTypesMap.GetMimeType(file.Name),
+                    Extension = file.Extension,
+                    Path = file.FullName,
+                    Phrases = "",
+                    Summarize = "",
+                    Binary = [],
+                    Metadata = new List<DocumentMetaDataDto>(),
+                    IsDelivered = false,
+                    IsSigned = false,
+                    IsCertified = false,
+                    IsLocked = false
+                }, new CancellationToken(), false);
+            
+            if (!createDocumentResult.IsOk) throw new Exception(createDocumentResult.Error.ToString());
+            document = createDocumentResult.Value.ToEntity();
+
+            if (document.Id < 1)
+            {
+                NotificationService.Error("document.Id < 1");
+                return;
+            }
+
+            // copy to correct folder
+            var physicalPath = Configuration.GetValue<string>("DocumentPhysicalRoot")!;
+
+            var dir = new DirectoryInfo(physicalPath);
+            if (!dir.Exists) dir.Create();
+            
+            physicalPath = Path.Combine(
+                physicalPath,
+                "app",
+                ApplicationId.ToString(), 
+                "mil", 
+                SelectedMilestone.Id.ToString(), 
+                "req", requirement.RequirementTypeId.ToString(),
+                document.Id.ToString());
+            
+            dir = new DirectoryInfo(physicalPath);
+            if (!dir.Exists) dir.Create();
+            
+            physicalPath = Path.Combine(physicalPath, document.FileName);
+
+            file = file.CopyTo(physicalPath, true);
+            if (!file.Exists)
+            {
+                NotificationService.Error("FileNotFoundException");
+                return;
+            }
+
+            // update document
+            var updateDocumentResult = await DocumentService.UpdateDocumentAsync(document.Id, 
+                new UpdateDocumentDto()
+                {
+                    StatusId = 2,
+                    RequirementTypeId = requirement.RequirementTypeId,
+                    DeliveryTypeId = requirement.DeliveryTypeId,
+                    FileName = file.Name,
+                    MimeType = MimeTypesMap.GetMimeType(file.Name),
+                    Extension = file.Extension,
+                    Path = physicalPath,
+                    Phrases = "",
+                    Summarize = "",
+                    Binary = [],
+                    Metadata = new List<DocumentMetaDataDto>(),
+                    IsDelivered = true,
+                    IsSigned = false,
+                    IsCertified = false,
+                    IsLocked = false,
+                    DeliverDate = DateTime.UtcNow
+                }, new CancellationToken());
+            
+            if (!updateDocumentResult.IsOk)
+            {
+                NotificationService.Error(updateDocumentResult.Error.ToString());
+                return;
+            }
+
+            // update requirement
+            var updateRequirementResult = await MilestoneService.UpdateRequirementAsync(SelectedMilestone.Id, requirement.RequirementIdentifier, 
+                new UpdateMilestoneRequirementDto()
+                {
+                    RequirementTypeId = requirement.RequirementTypeId,
+                    DocumentId = document.Id,
+                    DeliveryTypeId = requirement.DeliveryTypeId,
+                    IsApproved = requirement.IsApproved,
+                    IsDelivered = true,
+                    DeliveredDate = DateTime.UtcNow,
+                    ApprovedDate = requirement.ApprovedDate,
+                    ExpireDate = requirement.ExpireDate,
+                    Name = requirement.Name
+                }, new CancellationToken());
+            
+            if (!updateRequirementResult.IsOk)
+            {
+                NotificationService.Error(updateRequirementResult.Error.ToString());
+                return;
+            }
+
+            RecursiveDelete(new DirectoryInfo(TempPath));
+        }
+
+        NotificationService.Success(@LocalizationService.StringFromResource("Projects-83"));
+
+        DialogVisible = false;
+
+        await Load();
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private static void RecursiveDelete(DirectoryInfo baseDir)
+    {
+        if (!baseDir.Exists)
+            return;
+
+        foreach (var dir in baseDir.EnumerateDirectories())
+        {
+            RecursiveDelete(dir);
+        }
+        baseDir.Delete(true);
+    }
+    
+}

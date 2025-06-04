@@ -1,0 +1,83 @@
+@using global::Shared.Global.Services
+
+@inject BrowserService BrowserService
+@inject IConfiguration Configuration
+
+<TelerikChart @ref="Chart" Height="12vw" RenderAs="RenderingMode.SVG" Transitions="true" Width="23vw">
+    <ChartSeriesItems>
+        <ChartSeries Type="ChartSeriesType.Column" Name="Man" Data="@Male">
+            <ChartSeriesLabels Position="ChartSeriesLabelsPosition.Center"
+                               Visible="true" Format="{0} %"
+                               Background="transparent"/>
+        </ChartSeries>
+        <ChartSeries Type="ChartSeriesType.Column" Name="Kvinna" Data="@Female">
+            <ChartSeriesLabels Position="ChartSeriesLabelsPosition.Center"
+                               Visible="true" Format="{0} %"
+                               Background="transparent"/>
+        </ChartSeries>
+        <ChartSeries Type="ChartSeriesType.Column" Name="Båda" Data="@Both">
+            <ChartSeriesLabels Position="ChartSeriesLabelsPosition.Center"
+                               Visible="true" Format="{0} %"
+                               Background="transparent"/>
+        </ChartSeries>
+        <ChartSeries Type="ChartSeriesType.Column" Name="Annat" Data="@Other">
+            <ChartSeriesLabels Position="ChartSeriesLabelsPosition.Center"
+                               Visible="true" Format="{0} %"
+                               Background="transparent"/>
+        </ChartSeries>
+    </ChartSeriesItems>
+
+    <ChartLegend Position="ChartLegendPosition.Right">
+    </ChartLegend>
+</TelerikChart>
+
+@code 
+{
+    [Parameter] public List<string> Data { get; set; } = [];
+    private List<object> Male { get; set; } = [];
+    private List<object> Female { get; set; } = [];
+    private List<object> Both { get; set; } = [];
+    private List<object> Other { get; set; } = [];
+    private TelerikChart Chart { get; set; } = null!;
+
+    protected override void OnInitialized() {
+        // subscribe to browser width change
+        BrowserService.Resize += UpdatedBrowserRefreshComponent!;
+    }
+    
+    protected override void OnParametersSet()
+    {
+        if (Configuration.GetValue<bool>("DemoMode")) Data = ["1", "1", "1", "1"];   
+            
+        _ = decimal.TryParse(Data[0], out var male);
+        _ = decimal.TryParse(Data[1], out var female);
+        _ = decimal.TryParse(Data[2], out var both);
+        _ = decimal.TryParse(Data[3], out var other);
+        
+        if (Configuration.GetValue<bool>("DemoMode"))
+        {
+            male = new Bogus.Faker().Random.Int(1, 100);
+            female = new Bogus.Faker().Random.Int(1, 100);
+            both = new Bogus.Faker().Random.Int(1, 10);
+            other = new Bogus.Faker().Random.Int(1, 10);
+        }
+        
+        if (Data.Count != 4) return;
+        
+        var sum = male + female + both + other;
+        
+        if (sum < 1) return;
+
+        Male = [System.Math.Round((male / sum) * 100)];
+        Female = [System.Math.Round((female / sum) * 100)];
+        Both = [System.Math.Round((both / sum) * 100)];
+        Other = [System.Math.Round((other / sum) * 100)];
+        
+        StateHasChanged();
+    }
+    
+    protected void UpdatedBrowserRefreshComponent(object sender, int width) {
+        Chart.Refresh();
+    }
+
+}

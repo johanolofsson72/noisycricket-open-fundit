@@ -1,0 +1,136 @@
+
+@using global::Shared.Applications.DTOs
+
+@inject ApplicationService ApplicationService
+
+<label style="font-size: 14px;width:100%">@ApplicationBudgetType.Names[0]</label>
+<div style="border: 1px solid #009FFD; padding: 3px; border-radius: 5px; width:100%">
+    <TelerikListView Data="ListViewValue" OnDelete="@OnListDelete" @ref="@ListViewRef">
+        <Template>
+            <div style="display: flex; flex-direction: row; margin: 3px">
+                <div style="width: 30%; margin-top: 3px;">@context.Amount</div>
+                <div style="width: 60%; margin-top: 3px;">@context.Name</div>
+                <div style="flex-grow: 1; text-align: right">
+                    <ListViewCommandButton Enabled="@Enabled" Command="Delete" ThemeColor="@ThemeConstants.Button.ThemeColor.Error" Icon="@SvgIcon.Trash" />
+                </div>
+            </div>
+        </Template>
+    </TelerikListView>
+    <br />
+    <br />
+    <label style="font-size: 14px; width:100%">
+        @LocalizationService.StringFromResource("Projects-54")
+        <TelerikTextBox @bind-Value="BudgetNote" Enabled="@(ApplicationBudgetType.Id != 1)" />
+    </label>
+    <br />
+    <label style="font-size: 14px; width:100%">
+        @LocalizationService.StringFromResource("Projects-55")
+        <TelerikNumericTextBox Format="0.00" Decimals="2" @bind-Value="BudgetAmount" />
+    </label>
+    <br />
+    <br />
+    <div style="text-align: right">
+        <TelerikButton Enabled="@Enabled" OnClick="OnListAdd" Icon="@SvgIcon.Plus" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Projects-56")</TelerikButton>
+        </div>
+    </div>
+
+@code
+{
+    [Parameter] public required EconomyApplicationDto Application { get; set; } 
+    [Parameter] public required ApplicationBudgetTypeDto ApplicationBudgetType { get; set; }
+    [Parameter] public EventCallback<EconomyApplicationDto> OnUpdatedBudget { get; set; }
+
+    //private ApplicationDto Application { get; set; } = new();
+    private TelerikListView<ApplicationBudgetDto> ListViewRef { get; set; } = new TelerikListView<ApplicationBudgetDto>();
+    private List<ApplicationBudgetDto> ListViewValue { get; set; } = new List<ApplicationBudgetDto>();
+    private string BudgetNote { get; set; } = string.Empty;
+    private decimal BudgetAmount { get; set; } = 0.0m;
+    private bool Enabled { get; set; } = true;
+
+
+    protected override void OnParametersSet()
+    {
+        Load();
+    }
+
+    private void Load()
+    {
+        ListViewValue.Clear();
+        
+        foreach (var item in Application.InternalBudgets
+                     .Where(x => x.ApplicationBudgetTypeId == ApplicationBudgetType.Id))
+        {
+            ListViewValue.Add(item);
+        }
+
+        ListViewRef.Rebind();
+    }
+
+    private async Task OnListDelete(ListViewCommandEventArgs args)
+    {
+        if (args.Item is not null)
+        {
+            Enabled = false;
+            await InvokeAsync(StateHasChanged);
+            
+            var budget = (ApplicationBudgetDto)args.Item;
+
+            Application.InternalBudgets = Application.InternalBudgets
+                .Where(x => x.Id != budget.Id)
+                .ToList();
+
+            await DisapproveAllBudgets();
+            await UpdateReceivedAmount();
+            await OnUpdatedBudget.InvokeAsync(Application);
+            
+            Enabled = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public async Task OnListAdd()
+    {
+        if (BudgetAmount > 0 && ApplicationBudgetType.Id != 1)
+        {
+            Enabled = false;
+            await InvokeAsync(StateHasChanged);
+            
+            Application.InternalBudgets.Add(new ApplicationBudgetDto()
+            {
+                Id = Application.InternalBudgets.Count + 1,
+                StatusId = 2,
+                ApplicationBudgetTypeId = ApplicationBudgetType.Id,
+                Amount = BudgetAmount,
+                ApprovedDate = DateTime.MinValue,
+                Name = BudgetNote
+            });
+
+            await DisapproveAllBudgets();
+            await UpdateReceivedAmount();
+            await OnUpdatedBudget.InvokeAsync(Application);
+            
+            Enabled = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task DisapproveAllBudgets()
+    {
+        await Task.Delay(0);
+        foreach (var item in Application.InternalBudgets)
+        {
+            item.StatusId = 2;
+            item.Amount = item.Amount;
+            item.ApprovedDate = DateTime.MinValue;
+            item.Name = item.Name;
+        }
+    }
+
+    private async Task UpdateReceivedAmount()
+    {
+        await Task.Delay(0);
+        Application.OurContribution = Application.InternalBudgets
+            .Sum(x => x.Amount);
+    }
+    
+}

@@ -1,0 +1,164 @@
+@using global::Shared.Extensions
+@inherits DocumentBase
+
+<style>
+    .littlemargin {
+        margin-left: 4px
+    }
+
+    .buttonwidth {
+        width: 80px
+    }
+</style>
+
+<style>
+    .k-form .k-form-legend, .k-form-inline .k-form-legend {
+        display: none;
+    }
+    .k-pdf-viewer-pages .k-icon-xxxl,
+    .k-pdf-viewer-pages .k-upload {
+        display: none;
+    }
+</style>
+
+@if (base.SelectedApplication.Id > 0)
+{
+    <TelerikForm Model="@SelectedApplication">
+        <FormValidation>
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+        </FormValidation>
+        <FormItems>
+            <FormGroup>
+                @if (Ingress.Length > 0)
+                {
+                    <FormItem>
+                        <Template>
+                            <p style="white-space: pre-wrap; margin-bottom: 38px">
+                                @Ingress
+                            </p>
+                        </Template>
+                    </FormItem>
+                }
+                <FormItem>
+                    <Template>
+                        <div style='border: 1px solid #009FFD; padding: 3px; border-radius: 2px; width: 100%'>
+                            <label style="width: 100%">
+                                <div style="display: flex; flex-direction: row; margin-left: 3px; margin-right: 3px;width: 100%">
+                                    <div style="width: 30%; ">@LocalizationService.StringFromResource("Documents-9")</div>
+                                    <div style="width: 10%; ">@LocalizationService.StringFromResource("Documents-10")</div>
+                                    <div style="width: 10%; ">@LocalizationService.StringFromResource("Documents-11")</div>
+                                    <div style="width: 10%; ">@LocalizationService.StringFromResource("Documents-12")</div>
+                                    @if (ShowSending)
+                                    {
+                                        <div style="width: 10%; ">@LocalizationService.StringFromResource("Documents-13")</div>
+                                    }
+                                    <div style="width: 35%; text-align: right">&nbsp;</div>
+                                </div>
+                                <div style="border: #EBEBEB solid 1px; margin-top: 0px; min-height: 37px;width: 100%">
+                                    <TelerikListView Data="DocumentListViewValue" @ref="@DocumentsListViewRef" OnDelete="@OnDelete">
+                                        <Template>
+                                            <div style="display: flex; flex-direction: row; margin: 3px;width: 99.5%; overflow-y: scroll;">
+                                                <div style="width: 30%; margin-top: 3px;">@context.FileName</div>
+                                                <div style="width: 10%; margin-top: 3px;">@context.CreatedDate.ToString("yyyy-MM-dd")</div>
+                                                <div style='width: 10%; margin-top: 3px; color: @((context.IsLocked ? "#008000" : "#ff0000"));'>@(context.IsLocked ? @LocalizationService.StringFromResource("Documents-14") : @LocalizationService.StringFromResource("Documents-15"))</div>
+                                                <div style='width: 10%; margin-top: 3px; color: @((context.IsSigned ? "#008000" : "#ff0000"));'>@(context.IsSigned ? @LocalizationService.StringFromResource("Documents-14") : @LocalizationService.StringFromResource("Documents-15"))</div>
+                                                @if (ShowSending)
+                                                {
+                                                    <div style='width: 9.3%; margin-top: 3px; color: @((context.IsDelivered ? "#008000" : "#ff0000"))'>@(context.IsDelivered ? @LocalizationService.StringFromResource("Documents-14") : @LocalizationService.StringFromResource("Documents-15"))</div>
+                                                }
+                                                <div style="width: 35%; text-align: right;">
+                                                    @if (ShowSending)
+                                                    {
+                                                        <TelerikButton Enabled="@context.IsSigned" OnClick="@((args) => OnSend(context.Id))" ThemeColor="@ThemeConstants.Button.ThemeColor.Dark" Icon="@SvgIcon.ArrowRotateCw">@LocalizationService.StringFromResource("Documents-16")</TelerikButton><span>&nbsp;</span>
+                                                    }
+                                                    <TelerikButton Enabled="@(context.IsLocked && !context.IsSigned && Enabled)" OnClick="@((args) => OnSign(context.Id))" ThemeColor="@ThemeConstants.Button.ThemeColor.Light" Icon="@SvgIcon.Pencil">@LocalizationService.StringFromResource("Documents-17")</TelerikButton>
+                                                    @if (context.IsLocked)
+                                                    {
+                                                        @*
+                                                        <TelerikButton Enabled="@(!context.IsSigned)" Class="littlemargin buttonwidth" OnClick="@((args) => OnUnlock(context.Id))" ThemeColor="@ThemeConstants.Button.ThemeColor.Success" Icon="@SvgIcon.Lock">@LocalizationService.StringFromResource("Documents-18")</TelerikButton>
+                                                        *@
+                                                    }
+                                                    else
+                                                    {
+                                                        <TelerikButton Enabled="@(!context.IsSigned && Enabled)" Class="littlemargin buttonwidth" OnClick="@((args) => OnLock(context.Id))" ThemeColor="@ThemeConstants.Button.ThemeColor.Warning" Icon="@SvgIcon.Unlock">@LocalizationService.StringFromResource("Documents-19")</TelerikButton>
+                                                    }
+                                                    <TelerikButton Enabled="@(!context.IsLocked && !context.IsSigned && Enabled)" Class="littlemargin" OnClick="@(() => OnEdit(context.Id))" Icon="@SvgIcon.EditTools" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Documents-20")</TelerikButton>
+                                                    <ListViewCommandButton Enabled="@(!context.IsLocked && !context.IsSigned && Enabled)" Command="Delete" ThemeColor="@ThemeConstants.Button.ThemeColor.Error" Icon="@SvgIcon.Trash"/>
+                                                
+                                                    </div>
+                                            </div>
+                                        </Template>
+                                    </TelerikListView>
+                                </div>
+                            </label>
+                            <br/>
+                            <br/>
+                            <div style="display: flex; flex-direction: row; padding: 3px; width: 100%">
+                                <div style="width: 20%; display: flex; flex-direction: row; ">
+                                    <div style="display: flex; flex-direction: row; justify-content: space-between">
+                                        @if (Templates.Count > 0)
+                                        {
+                                            <div style="width: 70%; margin-right: 10px; display: flex; flex-direction: row; justify-content: space-between">
+                                                <div style="white-space: nowrap; margin-right: 10px; margin-top: 4px">@LocalizationService.StringFromResource("Documents-43")</div>
+                                                <TelerikDropDownList Data="@Templates" @bind-Value="@SelectedTemplate" />
+                                            </div>
+                                        }
+                                        <TelerikButton OnClick="OnLoadTemplate" Enabled="@(Enabled)" Icon="@SvgIcon.DocumentManager" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Documents-21")</TelerikButton>
+                                    </div>
+                                </div>
+                                <div style="text-align: right; width: 80%">
+                                    <TelerikButton OnClick="OnListAdd" Enabled="@(DocumentLoaded && Enabled)" Icon="@SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Documents-22")</TelerikButton>
+                                    
+                                    </div>
+                            </div>
+                        </div>
+                    </Template>
+                </FormItem>
+            </FormGroup>
+        </FormItems>
+        <FormButtons />
+    </TelerikForm>
+
+    <div style="visibility: @DocumentAreaDisplay">
+        @if (FileName == "CHOOSE")
+        {
+            <div style="width: 25%; margin-top: 10px; margin-bottom: 10px">
+                <span>@LocalizationService.StringFromResource("Documents-59")</span>
+                <TelerikTextBox @bind-Value="@ChosenFileName"></TelerikTextBox>
+            </div>
+        }
+        @if (AssessmentId is > 0 and < 3)
+        {
+            <div style="width: 25%; margin-top: 10px; margin-bottom: 10px">
+                <span>Gå vidare: </span>
+                <TelerikSwitch @bind-Value="@Proceed"
+                               OffLabel="@LocalizationService.StringFromResource("CheckboxSegment-2")"
+                               OnLabel="@LocalizationService.StringFromResource("CheckboxSegment-1")" />
+            </div>
+        }
+        <div style="display: flex; flex-direction: row; padding-top: 10px; width: 100%">
+            <div style="width: 50%; margin-right: 3px">
+                <label>
+                    @LocalizationService.StringFromResource("Documents-23")
+                    <TelerikEditor Value="@DocumentContent"
+                                   DebounceDelay="1000"
+                                   ValueChanged="@DocumentContentChangedHandler"
+                                   Tools="@Tools"
+                                   Width="100%"
+                                   Height="1000px">
+                    </TelerikEditor>
+                </label>
+            </div>
+            <div style="width: 50%; margin-left: 3px">
+                <label>
+                    @LocalizationService.StringFromResource("Documents-24")
+                    <TelerikPdfViewer @ref="@PdfViewerRef"
+                                      Width="100%"
+                                      Height="1000px"
+                                      Data="@PdfFileData">
+                    </TelerikPdfViewer>
+                </label>
+            </div>
+        </div>
+    </div>
+}

@@ -1,0 +1,16 @@
+@page "/Account/AccessDenied"
+
+
+<PageTitle>@LocalizationService.StringFromResource("Account-50")</PageTitle>
+
+<div class="mt-8 mx-auto max-w-lg">
+    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl text-danger">@LocalizationService.StringFromResource("Account-50")</h1>
+
+    <p class="my-4 text-danger">
+        @LocalizationService.StringFromResource("Account-51")
+    </p>
+</div>
+
+@code {
+    [Parameter] public string ReturnUrl { get; set; } = null!;
+}

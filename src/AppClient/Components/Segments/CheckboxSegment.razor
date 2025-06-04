@@ -1,0 +1,52 @@
+@using System.Text.RegularExpressions
+@inject SharedService SharedService
+
+<div class="application-segment">
+    <label for="@Control.Id.ToString()" class="application-label">@Control.Labels[Index]<br/>
+        <div class="application-sub-label" style="display: @ShowSubLabel">@Control.SubLabels[Index]</div>
+        <TelerikSwitch Value="@Value" Enabled="@Enabled" 
+                       OffLabel="@LocalizationService.StringFromResource("CheckboxSegment-2")" 
+                       OnLabel="@LocalizationService.StringFromResource("CheckboxSegment-1")"
+                       ValueChanged="@( (bool value) => OnValueChanged(value) )"
+                       ValueExpression="@( () => Value )"/>
+    </label>
+</div>
+
+@code {
+    [Parameter] public ApplicationControlDto Control { get; set; } = new();
+    [Parameter] public EventCallback<ApplicationControlDto> OnControlChanged { get; set; }
+    private bool Value { get; set; } = false;
+    private string ShowSubLabel => Control.SubLabels.Any(x => x.Length > 0) ? "block" : "none";
+    private int Index { get; set; } = 0;
+    private bool Enabled { get; set; } = true;
+    
+
+    protected override void OnInitialized()
+    {
+        Index = SharedService.IndexByCulture();
+        if (Control.Labels.Count == 1) Index = 0;
+        Control.Value = Regex.Unescape(Control.Value);
+        if (string.IsNullOrWhiteSpace(Control.Value))
+        {
+            Value = false;
+        }
+        else
+        {
+            _ = bool.TryParse(Control.Value, out bool value);
+            Value = value;
+        }
+        Enabled = true;
+    }
+
+    private async Task OnValueChanged(bool value)
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        Value = value;
+        Control.Value = value.ToString();
+        await OnControlChanged.InvokeAsync(Control);
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

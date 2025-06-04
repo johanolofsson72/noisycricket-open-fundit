@@ -1,0 +1,150 @@
+@using AppAdmin.Components.Segments
+@using global::Shared.Events.Services
+
+@inject IConfiguration Configuration
+@inject NavigationManager NavigationManager
+@inject ApplicationService ApplicationService
+@inject EventService EventService
+
+@if (Application is not null)
+{
+    <TelerikForm Model="Application">
+        <FormItems>
+            <FormGroup Columns="2">
+                @if (ApplicantLeftControls != null)
+                {
+                    foreach (var control in ApplicantLeftControls)
+                    {
+                        <FormItem>
+                            <Template>
+                                <SegmentHandler Control="control" Readonly="true"/>
+                            </Template>
+                        </FormItem>
+                    }
+                }
+                @if (ApplicantRightControls != null)
+                {
+                    foreach (var control in ApplicantRightControls)
+                    {
+                        <FormItem>
+                            <Template>
+                                <SegmentHandler Control="control" Readonly="true"/>
+                            </Template>
+                        </FormItem>
+                    }
+                }
+            </FormGroup>
+            <FormGroup Columns="2">
+                @if (BudgetLeftControls != null)
+                {
+                    foreach (var control in BudgetLeftControls)
+                    {
+                        <FormItem>
+                            <Template>
+                                <SegmentHandler Control="control" Readonly="true"/>
+                            </Template>
+                        </FormItem>
+                    }
+                }
+                @if (BudgetRightControls != null)
+                {
+                    foreach (var control in BudgetRightControls)
+                    {
+                        <FormItem>
+                            <Template>
+                                <SegmentHandler Control="control" Readonly="true"/>
+                            </Template>
+                        </FormItem>
+                    }
+                }
+            </FormGroup>
+            <FormGroup Columns="2">
+                @if (AttachmentLeftControls != null)
+                {
+                    foreach (var control in AttachmentLeftControls)
+                    {
+                        <FormItem>
+                            <Template>
+                                <SegmentHandler Control="control" ApplicationId="Application.Id" Readonly="true"/>
+                            </Template>
+                        </FormItem>
+                    }
+                }
+                @if (AttachmentRightControls != null)
+                {
+                    foreach (var control in AttachmentRightControls)
+                    {
+                        <FormItem>
+                            <Template>
+                                <SegmentHandler Control="control" ApplicationId="Application.Id" Readonly="true"/>
+                            </Template>
+                        </FormItem>
+                    }
+                }
+            </FormGroup>
+        </FormItems>
+        <FormButtons />
+    </TelerikForm>
+}
+
+@code
+{
+    [Parameter] public int ApplicationId { get; set; }
+    private SlimApplicationDto? Application { get; set; }
+    private List<ApplicationControlDto>? ApplicantLeftControls { get; set; } = [];
+    private List<ApplicationControlDto>? ApplicantRightControls { get; set; } = [];
+    private List<ApplicationControlDto>? BudgetLeftControls { get; set; } = [];
+    private List<ApplicationControlDto>? BudgetRightControls { get; set; } = [];
+    private List<ApplicationControlDto>? AttachmentLeftControls { get; set; } = [];
+    private List<ApplicationControlDto>? AttachmentRightControls { get; set; } = [];
+    private string TempPath { get; set; } = string.Empty;
+    const string CssLeft = "application-form-left-container";
+    const string CssRight = "application-form-right-container";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApplicationService.SlimApplicationByIdAsync(ApplicationId, new CancellationToken());
+
+        if (!result.IsOk) return;
+        
+        Application = result.Value;
+        
+        ApplicantLeftControls = Application.Controls
+            .Where(x => x.ApplicationFormSectionId == 2)
+            .Where(x => x.Css.Contains(CssLeft))
+            .OrderBy(x => x.Order)
+            .ToList();
+        
+        ApplicantRightControls = Application.Controls
+            .Where(x => x.ApplicationFormSectionId == 2)
+            .Where(x => x.Css.Contains(CssRight))
+            .OrderBy(x => x.Order)
+            .ToList();
+        
+        BudgetLeftControls = Application.Controls
+            .Where(x => x.ApplicationFormSectionId == 3)
+            .Where(x => x.Css.Contains(CssLeft))
+            .OrderBy(x => x.Order)
+            .ToList();
+        
+        BudgetRightControls = Application.Controls
+            .Where(x => x.ApplicationFormSectionId == 3)
+            .Where(x => x.Css.Contains(CssRight))
+            .OrderBy(x => x.Order)
+            .ToList();
+        
+        AttachmentLeftControls = Application.Controls
+            .Where(x => x.ApplicationFormSectionId == 4)
+            .Where(x => x.Css.Contains(CssLeft))
+            .OrderBy(x => x.Order)
+            .ToList();
+        
+        AttachmentRightControls = Application.Controls
+            .Where(x => x.ApplicationFormSectionId == 4)
+            .Where(x => x.Css.Contains(CssRight))
+            .OrderBy(x => x.Order)
+            .ToList();
+
+    }
+
+}

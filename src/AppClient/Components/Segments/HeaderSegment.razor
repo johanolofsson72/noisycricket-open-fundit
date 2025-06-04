@@ -1,0 +1,16 @@
+@inject SharedService SharedService
+
+<div class="application-segment">
+    <label class="application-category-header">@Control.Labels[Index]</label>
+</div>
+
+@code {
+    [Parameter] public ApplicationControlDto Control { get; set; } = new();
+    private int Index { get; set; } = 0;
+    
+    protected override void OnInitialized()
+    {
+        Index = SharedService.IndexByCulture();
+        if (Control.Labels.Count == 1) Index = 0;
+    }
+}

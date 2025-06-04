@@ -1,0 +1,230 @@
+@using System.Net
+@using System.Text.Json
+@using System.Text.RegularExpressions
+@inject SharedService SharedService
+
+<div class="application-segment">
+    @if (Control.ControlTypeId == 15)
+    {
+    <label class="application-category-header">@Control.Labels[Index]</label>
+    }
+    else if (Value == "saknas")
+    {
+    <label for="@Control.Id.ToString()" class="application-label">@Control.Labels[Index]<br/>
+        <label Id="@Control.Id.ToString()" class="application-missing-label">@Value</label>
+    </label>
+    }
+    else
+    {
+    <label for="@Control.Id.ToString()" class="application-label">@Control.Labels[Index]<br/>
+        <label Id="@Control.Id.ToString()" class="application-summary-label">@Value</label>
+    </label>
+    }
+</div>
+
+@code {
+    [Parameter] public ApplicationControlDto Control { get; set; } = new();
+    private string Value { get; set; } = string.Empty;
+    private int Index { get; set; } = 0;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            Index = SharedService.IndexByCulture();
+            if (Control.Labels.Count == 1) Index = 0;
+            Control.Value = Regex.Unescape(Control.Value);
+            switch (Control.ControlTypeId)
+            {
+                case 2:
+                    Value = Control.Value;
+                    break;
+                case 3:
+                    Value = Control.Value;
+                    break;
+                case 4:
+                    if (!string.IsNullOrWhiteSpace(Control.Value))
+                    {
+                        var val = decimal.Parse(Control.Value);
+                        Value = val.ToString("#,##0.00");
+                    }
+                    break;
+                case 5:
+                    Value = Control.Value;
+                    break;
+                case 6:
+                    if (!string.IsNullOrWhiteSpace(Control.Value))
+                    {
+                        try
+                        {
+                            var val = bool.Parse(Control.Value);
+                            Value = val ? @LocalizationService.StringFromResource("Applications-21") : @LocalizationService.StringFromResource("Applications-20");
+                        }
+                        catch
+                        {
+                            Value = @LocalizationService.StringFromResource("Applications-20");
+                        }
+                    }
+                    break;
+                case 7:
+                    Value = Control.Value;
+                    break;
+                case 8:
+                    Value = Control.Value;
+                    break;
+                case 9:
+                    if (!string.IsNullOrWhiteSpace(Control.Value))
+                    {
+                        var value = string.Empty;
+                        var list = JsonSerializer.Deserialize<List<ListboxNameEmailAgeDto>>(Control.Value);
+                        if (list != null)
+                        {
+                            foreach (var item in list)
+                            {
+                                value += $"{item.Name}, {item.Email}, {item.Age}\n";
+                            }
+                            value = value.TrimEnd('\n');
+                        }
+
+                        Value = value;
+                    }
+                    break;
+                case 10:
+                    if (!string.IsNullOrWhiteSpace(Control.Value))
+                    {
+                        var value = string.Empty;
+                        var list = JsonSerializer.Deserialize<List<ListboxDaysLocationDto>>(Control.Value);
+                        if (list != null)
+                        {
+                            foreach (var item in list)
+                            {
+                                value += $"{item.Days}, {item.Location}\n";
+                            }
+                            value = value.TrimEnd('\n');
+                        }
+
+                        Value = value;
+                    }
+                    break;
+                case 11:
+                    if (!string.IsNullOrWhiteSpace(Control.Value))
+                    {
+                        var value = string.Empty;
+                        var list = JsonSerializer.Deserialize<List<ListboxNamePricesReceivedAttendedDto>>(Control.Value);
+                        if (list != null)
+                        {
+                            foreach (var item in list)
+                            {
+                                value += $"{item.Name}, {item.Prices}, {item.Attended}\n";
+                            }
+                            value = value.TrimEnd('\n');
+                        }
+
+                        Value = value;
+                    }
+                    break;
+                case 12:
+                    if (!string.IsNullOrWhiteSpace(Control.Value))
+                    {
+                        var value = string.Empty;
+                        var list = JsonSerializer.Deserialize<List<ListboxNameEmailPhonenumberGenderDto>>(Control.Value);
+                        if (list != null)
+                        {
+                            foreach (var item in list)
+                            {
+                                value += $"{item.Name}, {item.Email}, {item.Phonenumber}, {item.Gender}\n";
+                            }
+                            value = value.TrimEnd('\n');
+                        }
+
+                        Value = value;
+                    }
+                    break;
+                case 13:
+                    if (!string.IsNullOrWhiteSpace(Control.Value))
+                    {
+                        var value = string.Empty;
+                        var list = JsonSerializer.Deserialize<List<UploadFileInfo>>(Control.Value);
+                        if (list != null)
+                        {
+                            foreach (var item in list)
+                            {
+                                value += $"{Path.GetFileName(WebUtility.UrlDecode(item.Name).Replace('\\','/'))}\n";
+                            }
+                            value = value.TrimEnd('\n');
+                        }
+
+                        Value = value;
+                    }
+                    break;
+                case 14:
+                    if (!string.IsNullOrWhiteSpace(Control.Value))
+                    {
+                        var value = string.Empty;
+                        var list = JsonSerializer.Deserialize<List<ListboxNameGenderDto>>(Control.Value);
+                        if (list != null)
+                        {
+                            foreach (var item in list)
+                            {
+                                value += $"{item.Name}, {item.Gender}\n";
+                            }
+                            value = value.TrimEnd('\n');
+                        }
+
+                        Value = value;
+                    }
+                    break;
+                case 15:
+                    Value = string.Empty;
+                    break;
+                case 16:
+                    if (!string.IsNullOrWhiteSpace(Control.Value))
+                    {
+                        var val = DateTime.Parse(Control.Value);
+                        Value = val.ToString("yyyy-MM-dd");
+                    }
+                    break;
+                case 17:
+                    if (!string.IsNullOrWhiteSpace(Control.Value))
+                    {
+                        Value = Control.Value.Replace(":", " " + @LocalizationService.StringFromResource("HourMinuteNumericTextboxSegment-2") + " ") + " " + @LocalizationService.StringFromResource("HourMinuteNumericTextboxSegment-3");
+                    }
+                    break;
+                case 18:
+                    if (!string.IsNullOrWhiteSpace(Control.Value))
+                    {
+                        var dates = Control.Value.Split(";");
+                        if (dates.Length == 2)
+                        {
+                            var start = DateTime.Parse(dates[0]);
+                            var end = DateTime.Parse(dates[1]);
+                            Value = $"{start:yyyy-MM-dd} - {end:yyyy-MM-dd}";
+                        }
+                    }
+                    break;
+                case 1_000_000:
+                    if (!string.IsNullOrWhiteSpace(Control.Value))
+                    {
+                        var val = decimal.Parse(Control.Value);
+                        Value = Math.Round(val, 2).ToString() + " %";
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            if (string.IsNullOrEmpty(Value))
+            {
+                Value = @LocalizationService.StringFromResource("Applications-11");
+            }
+            else
+            {
+                Value = WebUtility.HtmlDecode(Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("ReadonlySegment: " + ex);
+        }
+    }
+}

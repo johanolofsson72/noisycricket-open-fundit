@@ -1,0 +1,69 @@
+@page "/Account/Manage/GenerateRecoveryCodes"
+
+@using Microsoft.AspNetCore.Identity
+@using AppClient.Data
+
+@inject UserManager<User> UserManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject ILogger<GenerateRecoveryCodes> Logger
+
+<PageTitle>@LocalizationService.StringFromResource("Account-84")</PageTitle>
+
+<div class="max-w-xl">
+    @if (recoveryCodes is not null)
+    {
+        <ShowRecoveryCodes RecoveryCodes="recoveryCodes.ToArray()" StatusMessage="@message" />
+    }
+    else
+    {
+        <Heading3>@LocalizationService.StringFromResource("Account-84")</Heading3>
+        <Alert Type="AlertType.Warning">
+            <p class="mb-3">
+                <strong>@LocalizationService.StringFromResource("Account-85")</strong>
+            </p>
+            <p class="mb-3">
+                @LocalizationService.StringFromResource("Account-86")
+            </p>
+            <p class="mb-3">
+                @LocalizationService.StringFromResource("Account-87")
+                <HyperLink class="font-semibold" href="Account/Manage/ResetAuthenticator">@LocalizationService.StringFromResource("Account-88")</HyperLink>
+            </p>
+        </Alert>
+        <div class="mt-4">
+            <form @formname="generate-recovery-codes" @onsubmit="OnSubmitAsync" method="post">
+                <AntiforgeryToken />
+                <PrimaryButton Style="ButtonStyle.Red" type="submit">@LocalizationService.StringFromResource("Account-89")</PrimaryButton>
+            </form>
+        </div>
+    }
+</div>
+
+@code {
+    private string? message;
+    private User user = default!;
+    private IEnumerable<string>? recoveryCodes;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+
+        var isTwoFactorEnabled = await UserManager.GetTwoFactorEnabledAsync(user);
+        if (!isTwoFactorEnabled)
+        {
+            throw new InvalidOperationException("Cannot generate recovery codes for user because they do not have 2FA enabled.");
+        }
+    }
+
+    private async Task OnSubmitAsync()
+    {
+        var userId = await UserManager.GetUserIdAsync(user);
+        recoveryCodes = await UserManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+        message = "You have generated new recovery codes.";
+
+        Logger.LogInformation("User with ID '{UserId}' has generated new 2FA recovery codes.", userId);
+    }
+}

@@ -1,0 +1,16 @@
+﻿
+<style>
+    .big-notification {
+    }
+    .k-notification-content {
+        font-size: 16px;
+    }
+</style>
+<TelerikNotification @ref="_notification"
+                     HorizontalPosition="NotificationHorizontalPosition.Right"
+                     VerticalPosition="NotificationVerticalPosition.Top"
+                     Class="big-notification">
+    <Template Context="notificationModel">
+        @RawText(notificationModel.Text)
+    </Template>
+</TelerikNotification>

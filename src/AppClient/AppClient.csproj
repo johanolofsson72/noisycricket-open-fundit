@@ -1,0 +1,323 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>aspnet-AppClient-7b2ab71a-0b50-423f-969d-e35a9402b1b5</UserSecretsId>
+        <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+        <Configurations>Debug;Release;Demo</Configurations>
+        <Platforms>AnyCPU</Platforms>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Using Include="AppClient" />
+        <Using Include="ServiceStack" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Update="Resources\Localization.designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>Localization.resx</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Update="Resources\Localization.resx">
+            <Generator>PublicResXFileCodeGenerator</Generator>
+            <LastGenOutput>Localization.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Blazor.Bootstrap" Version="3.1.1" />
+        <PackageReference Include="BlazorAnimate" Version="3.0.0" />
+        <PackageReference Include="Blazorise.Animate" Version="1.7.0-preview1" />
+        <PackageReference Include="ClosedXML" Version="0.104.2" />
+        <PackageReference Include="Humanizer.Core" Version="2.14.1" />
+        <PackageReference Include="Humanizer.Core.sv" Version="2.14.1" />
+        <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="9.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="9.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Components" Version="9.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.2" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.3">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="9.3.0" />
+        <PackageReference Include="Markdig" Version="0.38.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
+        <PackageReference Include="MimeTypesMap" Version="1.0.9" />
+        <PackageReference Include="Quartz" Version="3.14.0" />
+        <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.14.0" />
+        <PackageReference Include="Quartz.Extensions.Hosting" Version="3.14.0" />
+        <PackageReference Include="ResXResourceReader.NetStandard" Version="1.3.0" />
+        <PackageReference Include="Syncfusion.Blazor.InPlaceEditor" Version="29.1.35" />
+        <PackageReference Include="Syncfusion.Blazor.InteractiveChat" Version="29.1.35" />
+        <PackageReference Include="Syncfusion.Blazor.Themes" Version="29.1.35" />
+        <PackageReference Include="System.IO.Packaging" Version="9.0.3" />
+        <PackageReference Include="System.Text.Json" Version="9.0.3" />
+        <PackageReference Include="Telerik.UI.for.Blazor" Version="8.1.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.0" />
+        <PackageReference Include="ServiceStack.AspNetCore.OpenApi" Version="8.6.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="ServiceStack" Version="8.*" />
+        <PackageReference Include="ServiceStack.Blazor" Version="8.*" />
+        <PackageReference Include="ServiceStack.Mvc" Version="8.*" />
+        <PackageReference Include="ServiceStack.OrmLite.Sqlite.Data" Version="8.*" />
+        <PackageReference Include="ServiceStack.Extensions" Version="8.*" />
+        <PackageReference Include="ServiceStack.Server" Version="8.*" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Shared\Shared.csproj" />
+        <ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <_ContentIncludedByDefault Remove="Components\Pages\Secure\Bookings.razor" />
+        <_ContentIncludedByDefault Remove="Components\Pages\Secure\Coupons.razor" />
+        <_ContentIncludedByDefault Remove="Components\Pages\Error.razor" />
+        <_ContentIncludedByDefault Remove="Components\Users\Users.razor" />
+        <_ContentIncludedByDefault Remove="Components\Users\UsersPage.razor" />
+        <_ContentIncludedByDefault Remove="Components\Statistics\TotalBudgetLastYear.razor" />
+        <_ContentIncludedByDefault Remove="Components\Statistics\TotalBudgetThisYear.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\CheckboxSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\DateFromToSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\DateSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\DropdownSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\HeaderSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\HourMinuteNumericTextboxSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\ListboxDaysLocationSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\ListboxNameEmailAgeSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\ListboxNameEmailPhonenumberGenderSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\ListboxNameGenderSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\ListboxNamePricesReceivedAttendedSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\MultilineTextboxSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\MultiselectSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\NumericTextboxSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\RadioSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\ReadonlySegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\SegmentHandler.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\TextboxSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\Segments\UploadSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Auth\ExternalLoginPicker.razor" />
+        <_ContentIncludedByDefault Remove="Components\Auth\Login.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\AccessDenied.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\ConfirmEmail.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\ConfirmEmailChange.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\ExternalLogin.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\ForgotPassword.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\ForgotPasswordConfirmation.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\InvalidPasswordReset.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\InvalidUser.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Lockout.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Login.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\LoginWith2fa.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\LoginWithRecoveryCode.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Logout.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\ApiKeys.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\ChangePassword.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\DeletePersonalData.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\Disable2fa.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\Email.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\EnableAuthenticator.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\ExternalLogins.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\GenerateRecoveryCodes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\Index.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\PersonalData.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\ResetAuthenticator.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\SetPassword.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\TwoFactorAuthentication.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\_Imports.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\Register.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\RegisterConfirmation.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\ResendEmailConfirmation.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\ResetPassword.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\ResetPasswordConfirmation.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Pages\_Imports.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Shared\AccountLayout.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Shared\ManageLayout.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Shared\ManageNavMenu.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Shared\RedirectToLogin.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Shared\ShowRecoveryCodes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Shared\StatusMessage.razor" />
+        <_ContentIncludedByDefault Remove="Components\Account\Shared\ExternalLoginPicker.razor" />
+        <_ContentIncludedByDefault Remove="Components\Applications\Application.razor" />
+        <_ContentIncludedByDefault Remove="Components\Applications\Applications.razor" />
+        <_ContentIncludedByDefault Remove="Components\Applications\ApplicationsPage.razor" />
+        <_ContentIncludedByDefault Remove="Components\Messages\Messages.razor" />
+        <_ContentIncludedByDefault Remove="Components\Messages\MessagesPage.razor" />
+        <_ContentIncludedByDefault Remove="Components\Organizations\Organizations.razor" />
+        <_ContentIncludedByDefault Remove="Components\Organizations\OrganizationsPage.razor" />
+        <_ContentIncludedByDefault Remove="Components\Organizations\Users.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\Project.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplication.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationAiPopup.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationAssessments.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationAuditPopup.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationDocument.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationDocuments.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationDocumentsGeneric.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationEventPopup.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationFinancing.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationFinancingBudget.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationOfficialDocuments.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationOverview.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationProgress.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplicationProgressMilestone.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectApplications.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectHeader.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\Projects.razor" />
+        <_ContentIncludedByDefault Remove="Components\Projects\ProjectsPage.razor" />
+        <_ContentIncludedByDefault Remove="Components\Schemas\Schemas.razor" />
+        <_ContentIncludedByDefault Remove="Components\Schemas\SchemasPage.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\ButtonSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\CheckboxSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\DateApprovedSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\DateFromToSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\DateSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\DropdownSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\HeaderSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\HourMinuteNumericTextboxSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\ListboxDaysLocationSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\ListboxNameEmailAgeSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\ListboxNameEmailPhonenumberGenderSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\ListboxNameGenderSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\ListboxNamePricesReceivedAttendedSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\MultilineTextboxSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\MultiselectSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\NumericTextboxSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\RadioSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\ReadonlySegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\SegmentHandler.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\TextboxSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Segments\UploadSegment.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\ActionTypes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\ApplicationBudgetTypes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\ClaimTypes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\ControlTypes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\DocumentDeliveryTypes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\DocumentTypes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\EventTypes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\Genders.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\MessageTypes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\MilestoneRequirementTypes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\PhoneNumberTypes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\ReactionTypes.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\Sections.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\SettingsPage.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\Statistics.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\Statuses.razor" />
+        <_ContentIncludedByDefault Remove="Components\Settings\SystemMessageDestinations.razor" />
+        <_ContentIncludedByDefault Remove="Components\Staff\Personnel.razor" />
+        <_ContentIncludedByDefault Remove="Components\Staff\StaffPage.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\StartedApplication.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\StartedApplications.razor" />
+        <_ContentIncludedByDefault Remove="Components\StartedApplications\StartedApplicationsPage.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <UpToDateCheckInput Remove="Components\Account\Pages\AccessDenied.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\ConfirmEmail.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\ConfirmEmailChange.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\ExternalLogin.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\ForgotPassword.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\ForgotPasswordConfirmation.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\InvalidPasswordReset.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\InvalidUser.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Lockout.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Login.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\LoginWith2fa.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\LoginWithRecoveryCode.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Logout.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\ApiKeys.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\ChangePassword.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\DeletePersonalData.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\Disable2fa.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\Email.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\EnableAuthenticator.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\ExternalLogins.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\GenerateRecoveryCodes.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\Index.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\PersonalData.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\ResetAuthenticator.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\SetPassword.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\TwoFactorAuthentication.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Manage\_Imports.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\Register.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\RegisterConfirmation.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\ResendEmailConfirmation.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\ResetPassword.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\ResetPasswordConfirmation.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Pages\_Imports.razor" />
+        <UpToDateCheckInput Remove="Components\Account\Shared\AccountLayout.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="Components\Account\Pages\AccessDenied.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\ConfirmEmail.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\ConfirmEmailChange.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\ExternalLogin.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\ForgotPassword.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\ForgotPasswordConfirmation.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\InvalidPasswordReset.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\InvalidUser.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Lockout.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Login.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\LoginWith2fa.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\LoginWithRecoveryCode.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Logout.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\ApiKeys.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\ChangePassword.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\DeletePersonalData.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\Disable2fa.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\Email.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\EnableAuthenticator.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\ExternalLogins.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\GenerateRecoveryCodes.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\Index.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\PersonalData.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\ResetAuthenticator.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\SetPassword.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\TwoFactorAuthentication.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Manage\_Imports.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\Register.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\RegisterConfirmation.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\ResendEmailConfirmation.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\ResetPassword.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\ResetPasswordConfirmation.razor" />
+        <AdditionalFiles Include="Components\Account\Pages\_Imports.razor" />
+        <AdditionalFiles Include="Components\Account\Shared\AccountLayout.razor" />
+        <AdditionalFiles Include="Components\Account\Shared\ExternalLoginPicker.razor" />
+        <AdditionalFiles Include="Components\Account\Shared\ManageLayout.razor" />
+        <AdditionalFiles Include="Components\Account\Shared\ManageNavMenu.razor" />
+        <AdditionalFiles Include="Components\Account\Shared\RedirectToLogin.razor" />
+        <AdditionalFiles Include="Components\Account\Shared\ShowRecoveryCodes.razor" />
+        <AdditionalFiles Include="Components\Account\Shared\StatusMessage.razor" />
+        <AdditionalFiles Include="Components\Reply\Reply.razor" />
+        <AdditionalFiles Include="Components\Reply\ReplyPage.razor" />
+        <AdditionalFiles Include="Components\Segments\ButtonSegment.razor" />
+        <AdditionalFiles Include="Components\Segments\DateApprovedSegment.razor" />
+        <AdditionalFiles Include="Components\Segments\MultilineTextboxSegment.razor" />
+        <AdditionalFiles Include="Components\Segments\ReadonlySegment.razor" />
+        <AdditionalFiles Include="Components\Segments\SegmentHandler.razor" />
+        <AdditionalFiles Include="Components\Segments\TextboxSegment.razor" />
+    </ItemGroup>
+
+</Project>

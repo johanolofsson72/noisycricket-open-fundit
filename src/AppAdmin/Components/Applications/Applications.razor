@@ -1,0 +1,217 @@
+@using System.Text.RegularExpressions
+@using AppAdmin.State
+@using EasyCaching.Core
+
+@inject NavigationManager NavigationManager
+@inject ApplicationService ApplicationService
+@inject IConfiguration Configuration
+@inject NotificationService NotificationService
+@inject ProjectService ProjectService
+@inject UserService UserService
+@inject DocumentService DocumentService
+@inject SharedService SharedService
+@inject IEasyCachingProvider Cache
+
+<style>
+    .k-animation-container {
+        z-index: 15000 !important;
+    }
+
+    .droppis .k-animation-container {
+        z-index: 15000 !important;
+    }
+
+    .droppis {
+        z-index: 15000 !important;
+    }
+</style>
+
+<h5>@LocalizationService.StringFromResource("Applications-1")</h5>
+<p>@LocalizationService.StringFromResource("Applications-2")</p>
+<p>@LocalizationService.StringFromResource("Applications-3")</p>
+
+<Spacer Height="5px" />
+<div width="100%" style="display: flex; flex-direction: row; justify-content: flex-end;">
+    <SecondaryButton OnClick="Refresh">
+        <i class="fas fa-sync"></i> <!-- Exempel för FontAwesome -->
+    </SecondaryButton>
+</div>
+<Spacer Height="10px" />
+<TelerikGrid Data="ApplicationList" Context="item" Reorderable="true" Resizable="true" Pageable="true" PageSize="12" @ref="GridRef"
+             EditMode="@GridEditMode.Popup"
+             OnDelete="@OnGridDelete"
+             ConfirmDelete="true">
+    <GridSettings>
+        <GridPopupEditSettings Title="@LocalizationService.StringFromResource("Applications-4")"
+                               MaxWidth="80vw"
+                               MaxHeight="80vh"
+                               Class="custom-popup">
+        </GridPopupEditSettings>
+        <GridPopupEditFormSettings Orientation="@FormOrientation.Horizontal"
+                                   ButtonsLayout="FormButtonsLayout.Center"
+                                   ColumnSpacing="50px"
+                                   Columns="4">
+            <FormTemplate>
+                @{
+                EditItem = context.Item as GridApplicationDto ?? new GridApplicationDto();
+
+                <Application ApplicationId="@EditItem.Id" OnApplicationClosed="OnApplicationClosed" />
+
+                }
+            </FormTemplate>
+        </GridPopupEditFormSettings>
+    </GridSettings>
+    <GridColumns>
+        <GridColumn Title="@LocalizationService.StringFromResource("Applications-5")" Width="350px">
+            <Template>
+                @{
+                var item = (GridApplicationDto)context;
+                var title = Regex.Unescape(item.Title);
+                if (title.Length > 45)
+                {
+                <span>@title.Substring(0, 45) ...</span>
+                }
+                else
+                {
+                <span>@title</span>
+                }
+                }
+            </Template>
+        </GridColumn>
+        <GridColumn Title="@LocalizationService.StringFromResource("Applications-6")" Field=@nameof(GridApplicationDto.UpdatedDate) DisplayFormat="{0:yyyy-MM-dd}" Width="140px" />
+        <GridColumn Title="@LocalizationService.StringFromResource("Applications-7")" Field=@nameof(GridApplicationDto.SchemaNames)>
+            <Template>
+                @{
+                var index = SharedService.IndexByCulture();
+                var item = (GridApplicationDto)context;
+                <span>@item.SchemaNames[index]</span>
+                }
+            </Template>
+        </GridColumn>
+        <GridColumn Title="@LocalizationService.StringFromResource("Applications-8")" Field=@nameof(GridApplicationDto.OrganizationName)>
+            <Template>
+                @{
+                var item = (GridApplicationDto)context;
+                if (item.OrganizationName is not null)
+                {
+                <span>@item.OrganizationName</span>
+                }
+                else
+                {
+                <span>@LocalizationService.StringFromResource("Applications-11")</span>
+                }
+                }
+            </Template>
+        </GridColumn>
+        <GridCommandColumn Context="item" Width="200px">
+            <GridCommandButton Command="Edit" Icon="@SvgIcon.Eye" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Applications-9")</GridCommandButton>
+            <GridCommandButton Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Applications-10")</GridCommandButton>
+        </GridCommandColumn>
+    </GridColumns>
+</TelerikGrid>
+
+@code
+{
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public int ApplicationId { get; set; } = 0;
+    private TelerikGrid<GridApplicationDto> GridRef { get; set; } = null!;
+    private List<GridApplicationDto> ApplicationList { get; set; } = default!;
+    private GridApplicationDto EditItem { get; set; } = default!;
+    private int OrganizationId { get; set; }
+    private int UserId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && ApplicationId > 0)
+        {
+            var item = ApplicationList.FirstOrDefault(x => x.Id == ApplicationId);
+            if (item is not null)
+            {
+                var state = GridRef.GetState();
+                state.InsertedItem = null!;
+                state.OriginalEditItem = item;
+                state.EditItem = item;
+                await GridRef.SetStateAsync(state);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    private async Task Load()
+    {
+        UserId = AppState.User.Id;
+        OrganizationId = AppState.Organization.Id;
+        
+        var result = await ApplicationService.GridApplicationByStatusAsync(3);
+        if (!result.IsOk) return;
+
+        ApplicationList = result.Value.OrderByDescending(x => x.UpdatedDate).ToList();
+        NotificationService.Info(@LocalizationService.StringFromResource("Applications-12") + $" {ApplicationList.Count} " + @LocalizationService.StringFromResource("Applications-13"), 2000);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnGridDelete(GridCommandEventArgs args)
+    {
+        var item = args.Item as GridApplicationDto;
+
+        if (item is null) return;
+
+        var deleteApplicationResult = await ApplicationService.DeleteApplicationAsync(item.Id, new CancellationToken());
+        if (!deleteApplicationResult.IsOk)
+        {
+            NotificationService.Error(@LocalizationService.StringFromResource("Applications-14"));
+            return;
+        }
+
+        var deleteStateResult = await ApplicationService.DeleteApplicationStateAsync(OrganizationId, UserId, item.Id, new CancellationToken());
+        if (!deleteStateResult.IsOk)
+        {
+            NotificationService.Error(@LocalizationService.StringFromResource("Applications-15"));
+            return;
+        }
+
+        NotificationService.Success(@LocalizationService.StringFromResource("Applications-16"));
+
+        await Load();
+
+    }
+
+    private async Task OnCancel()
+    {
+        await ExitEditAsync();
+    }
+
+    private async Task ExitEditAsync()
+    {
+        if (GridRef is null) return;
+
+        var state = GridRef.GetState();
+
+        if (state is null) return;
+
+        state.OriginalEditItem = null!;
+        state.EditItem = null!;
+        state.InsertedItem = null!;
+
+        await GridRef.SetStateAsync(state);
+    }
+
+    private async Task OnApplicationClosed(string arg)
+    {
+        await ExitEditAsync();
+        await Load();
+    }
+    
+    private async Task Refresh()
+    {
+        await Cache.RemoveByPrefixAsync("Applications", CancellationToken.None);        
+        await Cache.RemoveByPrefixAsync("Projects", CancellationToken.None);
+        NavigationManager.NavigateTo("applications", true);
+    }
+}

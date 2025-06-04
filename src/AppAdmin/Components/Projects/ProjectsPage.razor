@@ -1,0 +1,20 @@
+@page "/projects"
+
+@attribute [Authorize(Policy = "Admin")]
+
+<TelerikRootComponent>
+    <div class="component-page">
+        <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+            <Projects SearchPhrase="@SearchPhrase" ProjectId="@ProjectId" ApplicationId="@ApplicationId" DocumentId="@DocumentId" TabIndex="@TabIndex" TabItem="@TabItem" />
+        </Animate>
+    </div>
+</TelerikRootComponent>
+
+@code {
+    [SupplyParameterFromQuery] [Parameter] public string? SearchPhrase { get; set; } = string.Empty;
+    [Parameter] public int ProjectId { get; set; } = 0;
+    [Parameter] public int ApplicationId { get; set; } = 0;
+    [Parameter] public int DocumentId { get; set; } = 0;
+    [Parameter] public int TabIndex { get; set; } = 0;
+    [Parameter] public int TabItem { get; set; } = 0;
+}

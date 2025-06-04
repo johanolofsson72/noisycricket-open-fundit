@@ -1,0 +1,22 @@
+﻿@page "/reply/{MessageId:int}/{ApplicationId:int}/{OriginalMessageContent}"
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@attribute [Authorize(Policy = "User")]
+
+<PageTitle>@LocalizationService.StringFromResource("Reply-1")</PageTitle>
+
+<TelerikRootComponent>
+    <div class="component-page">
+        <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+            <Reply MessageId="@MessageId" ApplicationId="@ApplicationId" OriginalMessageContent="@OriginalMessageContent" />
+        </Animate>
+    </div>
+</TelerikRootComponent>
+
+@code 
+{
+    [Parameter] public int MessageId { get; set; }
+    [Parameter] public int ApplicationId { get; set; }
+    [Parameter] public string OriginalMessageContent { get; set; } = string.Empty;
+
+}

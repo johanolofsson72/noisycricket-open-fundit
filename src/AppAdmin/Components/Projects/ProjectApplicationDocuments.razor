@@ -1,0 +1,613 @@
+@using AppAdmin.State
+@using global::Shared.Documents.DTOs
+@using global::Shared.Documents.Entities
+@using global::Shared.Events.Services
+@using global::Shared.Milestones.DTOs
+@using global::Shared.Milestones.Entities
+@using global::Shared.Milestones.Services
+@using HeyRed.Mime
+@using Microsoft.CodeAnalysis.Operations
+@using FileInfo = System.IO.FileInfo
+@inject NavigationManager NavigationManager
+@inject ApplicationService ApplicationService
+@inject DocumentService DocumentService
+@inject IConfiguration Configuration
+@inject LocalStorage LocalStorage
+@inject IJSRuntime JS
+@inject BrowserService BrowserService
+@inject SharedService SharedService
+@inject NotificationService NotificationService
+@inject MilestoneService MilestoneService
+@inject EventService EventService
+
+<style>
+    .k-tilelayout {
+        background-color: transparent;
+    }
+    .k-card-header {
+        border-color: rgba(0,0,0,0.08);
+        color: #424242;
+        background-color: #f2f2f2;
+    }
+</style>
+<style>
+    .k-form .k-form-legend, .k-form-inline .k-form-legend {
+        display: none;
+    }
+</style>
+
+<Spacer Height="10px" />
+@LocalizationService.StringFromResource("Documents-44")
+
+@if (ApplicationId > 0)
+{
+    <TelerikTileLayout @ref="@TileLayoutInstance"
+                       Columns="12"
+                       Width="100%"
+                       Height="200vh"
+                       RowHeight="5.5vw"
+                       Class="tiles"
+                       Resizable="true"
+                       Reorderable="true" 
+                       OnResize="@OnResize" 
+                       OnReorder="@OnReOrder">
+        <TileLayoutItems>
+            <TileLayoutItem HeaderText="@LocalizationService.StringFromResource("Documents-45")" ColSpan="7" RowSpan="6">
+                <Content>
+                    <div @onclick="@OnUploadAttachment"><TelerikSvgIcon Icon="@SvgIcon.Upload" Size="@ThemeConstants.SvgIcon.Size.Large" Class="upload-icon"/></div>
+                    <ProjectApplicationDocumentsGeneric ApplicationId="@ApplicationId"
+                                                        Title=@LocalizationService.StringFromResource("Documents-45")
+                                                        IsAttachment="true" RefreshVariable="@DateTime.UtcNow"/>
+                </Content>
+            </TileLayoutItem>
+            <TileLayoutItem HeaderText="@LocalizationService.StringFromResource("Documents-50")" ColSpan="5" RowSpan="2">
+                <Content>
+                    <div @onclick="@OnUploadLoc"><TelerikSvgIcon Icon="@SvgIcon.Upload" Size="@ThemeConstants.SvgIcon.Size.Large" Class="upload-icon"/></div>
+                    <ProjectApplicationDocumentsGeneric ApplicationId="@ApplicationId"
+                                                        Title=@LocalizationService.StringFromResource("Documents-50")
+                                                        RequirementTypeId="59"
+                                                        ShowIsSent="true" RefreshVariable="@DateTime.UtcNow" />
+                </Content>
+            </TileLayoutItem>
+            <TileLayoutItem HeaderText="@LocalizationService.StringFromResource("Documents-61")" ColSpan="5" RowSpan="2">
+                <Content>
+                    <div @onclick="@OnUploadDenial"><TelerikSvgIcon Icon="@SvgIcon.Upload" Size="@ThemeConstants.SvgIcon.Size.Large" Class="upload-icon"/></div>
+                    <ProjectApplicationDocumentsGeneric ApplicationId="@ApplicationId"
+                                                        Title="@LocalizationService.StringFromResource("Documents-61")"
+                                                        RequirementTypeId="60" RefreshVariable="@DateTime.UtcNow" />
+                </Content>
+            </TileLayoutItem>
+            <TileLayoutItem HeaderText="@LocalizationService.StringFromResource("Documents-60")" ColSpan="5" RowSpan="2">
+                <Content>
+                    <div @onclick="@OnUploadBasis"><TelerikSvgIcon Icon="@SvgIcon.Upload" Size="@ThemeConstants.SvgIcon.Size.Large" Class="upload-icon"/></div>
+                    <ProjectApplicationDocumentsGeneric ApplicationId="@ApplicationId"
+                                                        Title="@LocalizationService.StringFromResource("Documents-60")"
+                                                        RequirementTypeId="70" RefreshVariable="@DateTime.UtcNow" />
+                </Content>
+            </TileLayoutItem>
+            <TileLayoutItem HeaderText="@LocalizationService.StringFromResource("Documents-47")" ColSpan="7" RowSpan="2">
+                <Content>
+                    <div @onclick="@OnUploadRequirement"><TelerikSvgIcon Icon="@SvgIcon.Upload" Size="@ThemeConstants.SvgIcon.Size.Large" Class="upload-icon"/></div>
+                    <ProjectApplicationDocumentsGeneric ApplicationId="@ApplicationId"
+                                                        Title=@LocalizationService.StringFromResource("Documents-47")
+                                                        IsProgress="true" RefreshVariable="@DateTime.UtcNow" />
+                </Content>
+            </TileLayoutItem>
+            <TileLayoutItem HeaderText="@LocalizationService.StringFromResource("Documents-52")" ColSpan="5" RowSpan="2">
+                <Content>
+                    <div @onclick="@OnUploadEconomyOverview"><TelerikSvgIcon Icon="@SvgIcon.Upload" Size="@ThemeConstants.SvgIcon.Size.Large" Class="upload-icon"/></div>
+                    <ProjectApplicationDocumentsGeneric ApplicationId="@ApplicationId"
+                                                        Title=@LocalizationService.StringFromResource("Documents-52")
+                                                        RequirementTypeId="74" RefreshVariable="@DateTime.UtcNow" />
+                </Content>
+            </TileLayoutItem>
+            <TileLayoutItem HeaderText="@LocalizationService.StringFromResource("Documents-49")" ColSpan="12" RowSpan="3">
+                <Content>
+                    <div @onclick="@OnUploadOther"><TelerikSvgIcon Icon="@SvgIcon.Upload" Size="@ThemeConstants.SvgIcon.Size.Large" Class="upload-icon"/></div>
+                    <ProjectApplicationDocumentsGeneric ApplicationId="@ApplicationId"
+                                                        Title=@LocalizationService.StringFromResource("Documents-49")
+                                                        RequirementTypeId="0"
+                                                        ShowIsSent="true" RefreshVariable="@DateTime.UtcNow" />
+                </Content>
+            </TileLayoutItem>
+        </TileLayoutItems>
+    </TelerikTileLayout>
+}
+
+<TelerikDialog @ref="@TelerikDialogInstance" @bind-Visible="@DialogVisible" Width="320px" Title="@LocalizationService.StringFromResource("Projects-72")">
+    <DialogContent>
+        @switch (Mode)
+        {
+            case "attachment":
+                <span>Välj typ:</span>
+                <TelerikDropDownList Data="@AppState.DocumentTypes.Where(x => x.OrganizationDocumentTypeIdentifier > 1)"
+                                     TextField="@nameof(OrganizationDocumentTypeDto.Names)"
+                                     ValueField="@nameof(OrganizationDocumentTypeDto.OrganizationDocumentTypeIdentifier)"
+                                     Context="pop"
+                                     OnChange="UploadDocumentTypeChanged"
+                                     @bind-Value="@UploadDocumentType">
+                    
+                    <ItemTemplate>
+                        @{
+                            var index = SharedService.IndexByCulture();
+                            @pop.Names[index];
+                        }
+                    </ItemTemplate>
+                    <ValueTemplate>
+                        @{
+                            var index = SharedService.IndexByCulture();
+                            @pop.Names[index];
+                        }
+                    </ValueTemplate>
+                </TelerikDropDownList>
+                break;
+            case "requirement":
+                <span>Välj rat:</span>
+                <TelerikDropDownList Data="@SelectedApplicationMilestones"
+                                     TextField="@nameof(MilestoneDto.Id)"
+                                     ValueField="@nameof(MilestoneDto.Id)"
+                                     Context="pop"
+                                     OnChange="UploadMilestoneChanged"
+                                     @bind-Value="@UploadMilestoneId">
+                    
+                    <ItemTemplate>
+                        @{
+                            @(SelectedApplicationMilestones.FindIndex(x => x.Id == pop.Id) + 1);
+                        }
+                    </ItemTemplate>
+                    <ValueTemplate>
+                        @{
+                            @(SelectedApplicationMilestones.FindIndex(x => x.Id == pop.Id) + 1);
+                        }
+                    </ValueTemplate>
+                </TelerikDropDownList>
+                
+                @if (UploadMilestoneId > 0)
+                {
+                    <br /><br />
+                    <span>Välj villkor:</span>
+                    <TelerikDropDownList Data="@SelectedApplicationMilestones.FirstOrDefault(x => x.Id == UploadMilestoneId)?.Requirements"
+                                         TextField="@nameof(MilestoneRequirementDto.RequirementIdentifier)"
+                                         ValueField="@nameof(MilestoneRequirementDto.RequirementIdentifier)"
+                                         Context="pop"
+                                         OnChange="UploadRequirementChanged"
+                                         @bind-Value="@UploadRequirementId">
+                        
+                        <ItemTemplate>
+                            @{
+                                @AppState.MilestoneRequirementTypes.FirstOrDefault(x => x.OrganizationMilestoneRequirementTypeIdentifier == pop.RequirementTypeId)?.Names[SharedService.IndexByCulture()];
+                            }
+                        </ItemTemplate>
+                        <ValueTemplate>
+                            @{
+                                @AppState.MilestoneRequirementTypes.FirstOrDefault(x => x.OrganizationMilestoneRequirementTypeIdentifier == pop.RequirementTypeId)?.Names[SharedService.IndexByCulture()];
+                             }
+                        </ValueTemplate>
+                    </TelerikDropDownList>
+                }
+                break;
+            case "other":
+                break;
+        }
+        @if (UploadDocumentType > 0 || UploadRequirementId > 0)
+        {
+            <br/><br/>
+            <TelerikUpload @ref="TelerikUploadInstance" 
+                           SaveUrl="upload/save"
+                           RemoveUrl="upload/remove"
+                           Multiple="false"
+                           OnUpload="@OnUploadHandler"
+                           OnRemove="@OnRemoveHandler"
+                           OnSuccess="@OnUploadSuccess"  />
+        }
+    </DialogContent>
+    <DialogButtons>
+        <TelerikButton OnClick="@(() => { DialogVisible = false; })">@LocalizationService.StringFromResource("Projects-71")</TelerikButton>
+    </DialogButtons>
+</TelerikDialog>
+
+<TelerikMediaQuery Media="@SmallScreenMediaQuery" OnChange="@((doesMatch) => IsSmallScreen = doesMatch)"></TelerikMediaQuery>
+<TelerikMediaQuery Media="@LargeScreenMediaQuery" OnChange="@((doesMatch) => isLarge = doesMatch)"></TelerikMediaQuery>
+
+@code
+{
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public int ApplicationId { get; set; } 
+    [Parameter] public int DocumentId { get; set; } = 0;
+    [Parameter] public EventCallback<int> OnUpdated { get; set; }
+    
+    private List<MilestoneDto> SelectedApplicationMilestones { get; set; } = [];
+    private bool IsSmallScreen { get; set; }
+    private bool isLarge { get; set; }
+    private string SmallScreenMediaQuery { get; set; } = "(max-width: 1800px)";
+    private string LargeScreenMediaQuery { get; set; } = "(min-width: 1800px)";
+    private TelerikTileLayout TileLayoutInstance { get; set; } = null!;
+    private TileLayoutState SavedState { get; set; } = null!;
+    private string StateStorageKey { get; set; } = "fundit-documents-tile-layout-state";
+    private bool DialogVisible { get; set; }
+    private string TempPath { get; set; } = string.Empty;
+    private int UploadDocumentType { get; set; } = 0;
+    private int UploadMilestoneId { get; set; } = 0;
+    private int UploadRequirementId { get; set; } = 0;
+    private string Mode { get; set; } = string.Empty;
+    private TelerikUpload TelerikUploadInstance { get; set; } = null!;
+    private TelerikDialog TelerikDialogInstance { get; set; } = null!;
+    private bool Enabled { get; set; } = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        StateStorageKey = $"fundit-documents-tile-layout-state-{ApplicationId}";
+        BrowserService.Init(JS);
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        var milestoneResult = await MilestoneService.MilestonesByApplicationIdAsync(ApplicationId, new CancellationToken());
+        if (milestoneResult.IsOk) SelectedApplicationMilestones = milestoneResult.Value.ToList();
+        
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var state = await LocalStorage.GetItemAsync<TileLayoutState>(StateStorageKey);
+        if (state != null && TileLayoutInstance != null)
+        {
+            TileLayoutInstance.SetState(state);
+        }
+    }
+    
+    private async Task SaveState()
+    {
+        var state = TileLayoutInstance.GetState();
+        await LocalStorage.SetItemAsync(StateStorageKey, state);
+    }
+
+    private async Task LoadState()
+    {
+        TileLayoutState? storedState = await LocalStorage.GetItemAsync<TileLayoutState>(StateStorageKey);
+        if (storedState != null)
+        {
+            TileLayoutInstance.SetState(storedState);
+        }
+    }
+
+    private async Task OnReOrder(TileLayoutReorderEventArgs obj)
+    {
+        await SaveState();
+    }
+
+    private async Task OnResize(TileLayoutResizeEventArgs obj)
+    {
+        await SaveState();
+    }
+    
+    private int GetContainerCount()
+    {
+        int width = 3;
+
+        if (IsSmallScreen)
+        {
+            width = 1;
+        }
+        if (isLarge)
+        {
+            width = 3;
+        }
+
+        return width;
+    }
+
+    private void OnUploadAttachment()
+    {
+        TempPath = SharedService.InitializeTempFileDirectory();
+        UploadDocumentType = 0;
+        Mode = "attachment";
+        DialogVisible = true;
+    }
+
+    private void OnUploadLoc()
+    {
+        TempPath = SharedService.InitializeTempFileDirectory();
+        UploadDocumentType = 59;
+        Mode = "loc";
+        DialogVisible = true;
+    }
+
+    private void OnUploadDenial()
+    {
+        TempPath = SharedService.InitializeTempFileDirectory();
+        UploadDocumentType = 60;
+        Mode = "denial";
+        DialogVisible = true;
+    }
+
+    private void OnUploadBasis()
+    {
+        TempPath = SharedService.InitializeTempFileDirectory();
+        UploadDocumentType = 70;
+        Mode = "basis";
+        DialogVisible = true;
+    }
+
+    private void OnUploadRequirement()
+    {
+        TempPath = SharedService.InitializeTempFileDirectory();
+        UploadMilestoneId = 0;
+        UploadRequirementId = 0;
+        Mode = "requirement";
+        DialogVisible = true;
+    }
+
+    private void OnUploadEconomyOverview()
+    {
+        TempPath = SharedService.InitializeTempFileDirectory();
+        UploadDocumentType = 74;
+        Mode = "economy";
+        DialogVisible = true;
+    }
+
+    private void OnUploadOther()
+    {
+        TempPath = SharedService.InitializeTempFileDirectory();
+        UploadDocumentType = 1;
+        Mode = "other";
+        DialogVisible = true;
+    }
+    
+    private async Task OnUploadHandler(UploadEventArgs args)
+    {
+        // var token = (await ((AuthStateProvider)AuthStateProvider).GetToken()).AccessToken;
+        args.RequestData.Add(TempPath, TempPath);
+
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task OnRemoveHandler(UploadEventArgs args)
+    {
+        // var token = (await ((AuthStateProvider)AuthStateProvider).GetToken()).AccessToken;
+        args.RequestData.Add(TempPath, TempPath);
+
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task OnUploadSuccess(UploadSuccessEventArgs args)
+    {
+        var fileName = args.Files.First().Name;
+        var filePath = Path.Combine(TempPath, fileName);
+        var file = new System.IO.FileInfo(filePath);
+        var statusCode = args.Request.Status;
+        var documentType = UploadDocumentType;
+        var milestoneId = UploadMilestoneId;
+        var requirementId = UploadRequirementId;
+
+        if (statusCode == 200)
+        {
+            switch (Mode)
+            {
+                case "attachment":
+                    var attachment = await OnUploadSuccessCreateDocument(documentType, file);
+                    var attachmentPath = OnUploadSuccessPreSetFilePath();
+                    attachmentPath = Path.Combine(
+                        attachmentPath,
+                        "app",
+                        ApplicationId.ToString(), 
+                        "att", 
+                        attachment.Id.ToString());
+                    if (OnUploadSuccessCopyFile(attachment, ref attachmentPath, ref file)) return;
+                    if (await OnUploadSuccessUpdateDocument(attachment, attachment.RequirementTypeId, file, attachmentPath)) return;
+                    if (documentType == 75)
+                    {
+                        
+                        // Event 21: När producent skickar in teamlista eller koordinator laddar upp teamlista i administrationen.
+                        var event20Completed = await EventService.IsEventComplete(ApplicationId, 20, new CancellationToken());
+                        if (event20Completed.Value)
+                        {
+                            var ev21 = await EventService.TriggerNextEventById(ApplicationId, 21, new CancellationToken());
+                            if (!ev21.IsOk)
+                            {
+                                NotificationService.Error(ev21.Error.Message, 30000);
+                                Console.WriteLine(ev21.Error.Message);
+                            }
+                        }
+                    }
+                    break;
+                case "requirement":
+                    documentType = SelectedApplicationMilestones
+                        .FirstOrDefault(x => x.Id == milestoneId)?.Requirements
+                            .FirstOrDefault(x => x.RequirementIdentifier == requirementId)?.RequirementTypeId ?? 0;
+                    var requirement = await OnUploadSuccessCreateDocument(documentType, file);
+                    var requirementPath = OnUploadSuccessPreSetFilePath();
+                    requirementPath = Path.Combine(
+                        requirementPath,
+                        "app",
+                        ApplicationId.ToString(), 
+                        "mil", 
+                        milestoneId.ToString(), 
+                        "req", requirementId.ToString(),
+                        requirement.Id.ToString());
+                    if (OnUploadSuccessCopyFile(requirement, ref requirementPath, ref file)) return;
+                    if (await OnUploadSuccessUpdateDocument(requirement, requirement.RequirementTypeId, file, requirementPath)) return;
+                    await OnUploadSuccessUpdateRequirement(milestoneId, requirementId, requirement.RequirementTypeId, requirement);
+                    break;
+                default:
+                    var document = await OnUploadSuccessCreateDocument(documentType, file);
+                    var physicalPath = OnUploadSuccessPreSetFilePath();
+                    physicalPath = Path.Combine(
+                        physicalPath,
+                        "app",
+                        ApplicationId.ToString(), 
+                        "doc", 
+                        document.Id.ToString());
+                    if (OnUploadSuccessCopyFile(document, ref physicalPath, ref file)) return;
+                    if (await OnUploadSuccessUpdateDocument(document, document.RequirementTypeId, file, physicalPath)) return;
+                    break;
+            }
+            
+            await OnUploadSuccessNotifyAndRefresh();
+            await InvokeAsync(StateHasChanged);
+        }
+
+    }
+
+    private async Task OnUploadSuccessUpdateRequirement(int milestoneId, int requirementId, int documentType,
+        Document document)
+    {
+        // update requirement
+        var requirementResult = await MilestoneService.RequirementByIdAsync(milestoneId, requirementId, new CancellationToken());
+        if (!requirementResult.IsOk) throw new Exception(requirementResult.Error.ToString());
+        var requirement = requirementResult.Value.ToEntity();
+        var updateRequirementResult = await MilestoneService.UpdateRequirementAsync(milestoneId, requirementId, 
+            new UpdateMilestoneRequirementDto()
+            {
+                RequirementTypeId = documentType,
+                DocumentId = document.Id,
+                DeliveryTypeId = 3,
+                IsApproved = requirement.IsApproved,
+                IsDelivered = true,
+                DeliveredDate = DateTime.UtcNow,
+                ApprovedDate = requirement.ApprovedDate,
+                ExpireDate = requirement.ExpireDate,
+                Name = requirement.Name
+            }, new CancellationToken());
+    }
+
+    private async Task<bool> OnUploadSuccessUpdateDocument(Document document, int requiredType, FileInfo file, string physicalPath)
+    {
+        // update document
+        var updateDocumentResult = await DocumentService.UpdateDocumentAsync(document.Id, 
+            new UpdateDocumentDto()
+            {
+                StatusId = 2,
+                RequirementTypeId = requiredType,
+                DeliveryTypeId = 3,
+                FileName = file.Name,
+                MimeType = MimeTypesMap.GetMimeType(file.Name),
+                Extension = file.Extension,
+                Path = physicalPath,
+                Phrases = "",
+                Summarize = "",
+                Binary = [],
+                Metadata = new List<DocumentMetaDataDto>(),
+                IsDelivered = true,
+                IsSigned = false,
+                IsCertified = false,
+                IsLocked = false,
+                DeliverDate = DateTime.UtcNow
+            }, new CancellationToken());
+
+        if (!updateDocumentResult.IsOk)
+        {
+            NotificationService.Error(updateDocumentResult.Error.ToString());
+            return true;
+        }
+
+        return false;
+    }
+    private bool OnUploadSuccessCopyFile(Document document, ref string physicalPath, ref FileInfo file)
+    {
+        DirectoryInfo dir = new DirectoryInfo(physicalPath);
+        if (!dir.Exists) dir.Create();
+        physicalPath = Path.Combine(physicalPath, document.FileName);
+        file = file.CopyTo(physicalPath, true);
+        if (!file.Exists)
+        {
+            NotificationService.Error("FileNotFoundException");
+            return true;
+        }
+
+        return false;
+    }
+    private string OnUploadSuccessPreSetFilePath()
+    {
+        var physicalPath = Configuration.GetValue<string>("DocumentPhysicalRoot")!;
+        var dir = new DirectoryInfo(physicalPath);
+        if (!dir.Exists) dir.Create();
+        return physicalPath;
+    }
+    private async Task<Document> OnUploadSuccessCreateDocument(int requiredType, FileInfo file)
+    {
+        // create document
+        var document = new Document();
+        var createDocumentResult = await DocumentService.CreateDocumentAsync(
+            new CreateDocumentDto
+            {
+                ApplicationId = ApplicationId,
+                StatusId = 2,
+                RequirementTypeId = requiredType,
+                DeliveryTypeId = 3,
+                FileName = file.Name,
+                MimeType = MimeTypesMap.GetMimeType(file.Name),
+                Extension = file.Extension,
+                Path = file.FullName,
+                Phrases = "",
+                Summarize = "",
+                Binary = [],
+                Metadata = new List<DocumentMetaDataDto>(),
+                IsDelivered = false,
+                IsSigned = false,
+                IsCertified = false,
+                IsLocked = false
+            }, new CancellationToken(), false);
+            
+        if (!createDocumentResult.IsOk) throw new Exception(createDocumentResult.Error.ToString());
+        document = createDocumentResult.Value.ToEntity();
+
+        if (document.Id < 1)
+        {
+            NotificationService.Error("document.Id < 1");
+            return document;
+        }
+
+        return document;
+    }
+    private async Task OnUploadSuccessNotifyAndRefresh()
+    {
+        NotificationService.Success(@LocalizationService.StringFromResource("Projects-83"));
+        DialogVisible = false;
+        UploadMilestoneId = 0;
+        UploadRequirementId = 0;
+        UploadDocumentType = 0;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static void RecursiveDelete(DirectoryInfo baseDir)
+    {
+        if (!baseDir.Exists)
+            return;
+
+        foreach (var dir in baseDir.EnumerateDirectories())
+        {
+            RecursiveDelete(dir);
+        }
+        baseDir.Delete(true);
+    }
+
+    private async Task UploadMilestoneRequirementTypeChanged(object obj)
+    {
+        UploadDocumentType = (int)obj;
+        TelerikDialogInstance.Refresh();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UploadDocumentTypeChanged(object obj)
+    {
+        UploadDocumentType = (int)obj;
+        TelerikDialogInstance.Refresh();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UploadMilestoneChanged(object obj)
+    {
+        UploadMilestoneId = (int)obj;
+        TelerikDialogInstance.Refresh();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UploadRequirementChanged(object obj)
+    {
+        UploadRequirementId = (int)obj;
+        TelerikDialogInstance.Refresh();
+        await InvokeAsync(StateHasChanged);
+    }
+}

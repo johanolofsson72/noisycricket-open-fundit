@@ -1,0 +1,429 @@
+@using AppAdmin.State
+@using EasyCaching.Core
+@using global::Shared.Projects.DTOs
+
+@inject IConfiguration Configuration
+@inject ProjectService ProjectService
+@inject NotificationService NotificationService
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+@inject IEasyCachingProvider Cache
+
+   <style>
+       .backbutton {
+           width: 113px;
+       }
+       .e-inplaceeditor .e-editable-value-container .e-editable-value {
+           border-bottom: none;
+       }
+       .e-inplaceeditor {
+           margin-top: 4px;
+           margin-left:  -8px;
+           line-height: 15px;
+       }
+       .favorite-toggle-button {
+           border: none;
+           background: transparent;
+           cursor: pointer;
+           padding: 0;
+       }
+
+       .star-icon {
+           width: 20px;
+           height: 20px;
+       }
+
+       .favorite {
+           color: gold;
+       }
+
+       .not-favorite {
+           color: lightgray;
+       }
+   </style>
+
+@if (SelectedProject.Id > 0)
+{
+    <div style="display: flex; flex-direction: column">
+        <div style="display: flex; flex-direction: row; justify-content: space-between;">
+            <div>
+                <div style="display: flex; flex-direction: column">
+                    <div>@LocalizationService.StringFromResource("Projects-4")</div>
+                    <div style="display: flex; flex-direction: row; justify-content: space-between;">
+                        <b>
+                            <SfInPlaceEditor @bind-Value="@ProjectTitle" TValue="string">
+                                <EditorComponent>
+                                    <SfTextBox @bind-Value="@ProjectTitle" Placeholder="@LocalizationService.StringFromResource("Projects-19")"></SfTextBox>
+                                </EditorComponent>
+                                <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                            </SfInPlaceEditor>
+                        </b>
+                        <div style="margin-top: 1px">
+                            <button class="favorite-toggle-button" @onclick="ToggleFavorite">
+                                @if (IsFavorite)
+                                {
+                                <svg class="star-icon favorite" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 .587l3.668 7.455 8.332 1.216-6.001 5.831 1.419 8.281L12 18.899l-7.418 3.908 1.419-8.281-6.001-5.831 8.332-1.216z"/>
+                                </svg>
+                                }
+                                else
+                                {
+                                    <svg class="star-icon not-favorite" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 .587l3.668 7.455 8.332 1.216-6.001 5.831 1.419 8.281L12 18.899l-7.418 3.908 1.419-8.281-6.001-5.831 8.332-1.216z"/>
+                                    </svg>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                    <div><b>@SelectedProject.Number</b></div>
+                    <div>&nbsp;</div>
+                    <div>
+                        <TelerikButton Class="backbutton" ThemeColor="@(ThemeConstants.Button.ThemeColor.Light)" OnClick="@(() => { BackToPreviousPage(); })">@LocalizationService.StringFromResource("Projects-18")</TelerikButton>
+                        &nbsp;
+                        <SecondaryButton OnClick="Refresh">
+                            <i class="fas fa-sync"></i> <!-- Exempel för FontAwesome -->
+                        </SecondaryButton>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div style="display: flex; flex-direction: column">
+                    <div>@LocalizationService.StringFromResource("Projects-9")</div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@OrganizationName" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@OrganizationName" Placeholder="@LocalizationService.StringFromResource("Projects-20")"></SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@OrganizationAddress" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@OrganizationAddress" Placeholder="@LocalizationService.StringFromResource("Projects-21")"></SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@OrganizationPostalCode" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@OrganizationPostalCode" Placeholder="@LocalizationService.StringFromResource("Projects-22")"> </SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                        &nbsp;
+                        <SfInPlaceEditor @bind-Value="@OrganizationCity" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@OrganizationCity" Placeholder="@LocalizationService.StringFromResource("Projects-23")"> </SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@OrganizationCountry" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@OrganizationCountry" Placeholder="@LocalizationService.StringFromResource("Projects-24")"></SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div style="display: flex; flex-direction: column">
+                    <div>@LocalizationService.StringFromResource("Projects-15")</div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@ProducerName" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@ProducerName" Placeholder="@LocalizationService.StringFromResource("Projects-25")"></SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@ProducerEmail" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@ProducerEmail" Placeholder="@LocalizationService.StringFromResource("Projects-26")"></SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@ProducerPhoneNumber" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@ProducerPhoneNumber" Placeholder="@LocalizationService.StringFromResource("Projects-27")"></SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div style="display: flex; flex-direction: column">
+                    <div>@LocalizationService.StringFromResource("Projects-16")</div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@ApplicantName" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@ApplicantName" Placeholder="@LocalizationService.StringFromResource("Projects-25")"></SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@ApplicantEmail" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@ApplicantEmail" Placeholder="@LocalizationService.StringFromResource("Projects-26")"></SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@ApplicantPhoneNumber" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@ApplicantPhoneNumber" Placeholder="@LocalizationService.StringFromResource("Projects-27")"></SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div style="display: flex; flex-direction: column">
+                    <div>@LocalizationService.StringFromResource("Projects-17")</div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@ProjectManagerName" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@ProjectManagerName" Placeholder="@LocalizationService.StringFromResource("Projects-25")"></SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@ProjectManagerEmail" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@ProjectManagerEmail" Placeholder="@LocalizationService.StringFromResource("Projects-26")"></SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                    <div>
+                        <SfInPlaceEditor @bind-Value="@ProjectManagerPhoneNumber" TValue="string">
+                            <EditorComponent>
+                                <SfTextBox @bind-Value="@ProjectManagerPhoneNumber" Placeholder="@LocalizationService.StringFromResource("Projects-27")"></SfTextBox>
+                            </EditorComponent>
+                            <InPlaceEditorEvents ValueChange="@ProjectChangeHandler" TValue="string" ></InPlaceEditorEvents>
+                        </SfInPlaceEditor>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div style="display: flex; flex-direction: row; justify-content: end">
+                    @if (OrganizationUrl.Length > 3)
+                    {
+                        <img alt="logo" src="https://logo.clearbit.com/@OrganizationUrl" style="z-index: -1000;opacity: 0.5;height: 50px;">
+                    }
+                    else
+                    {
+                        <img alt="logo" src="img/movie.png" style="z-index: -1000;opacity: 0.5;width: 200px">
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public int ProjectId { get; set; } = 0;
+    [Parameter] public EventCallback<string> OnBack { get; set; }
+    [Parameter] public string? SearchPhrase { get; set; } = string.Empty;
+
+    private string ProjectTitle { get; set; } = string.Empty;
+    private string OrganizationName { get; set; } = string.Empty;
+    private string OrganizationAddress { get; set; } = string.Empty;
+    private string OrganizationPostalCode { get; set; } = string.Empty;
+    private string OrganizationCity { get; set; } = string.Empty;
+    private string OrganizationCountry { get; set; } = string.Empty;
+    private string OrganizationUrl { get; set; } = string.Empty;
+    private string ProducerName { get; set; } = string.Empty;
+    private string ProducerEmail { get; set; } = string.Empty;
+    private string ProducerPhoneNumber { get; set; } = string.Empty;
+    private string ApplicantName { get; set; } = string.Empty;
+    private string ApplicantEmail { get; set; } = string.Empty;
+    private string ApplicantPhoneNumber { get; set; } = string.Empty;
+    private string ProjectManagerName { get; set; } = string.Empty;
+    private string ProjectManagerEmail { get; set; } = string.Empty;
+    private string ProjectManagerPhoneNumber { get; set; } = string.Empty;
+    
+    private ProjectHeaderDto SelectedProject { get; set; } = new ProjectHeaderDto();
+    private bool IsFavorite { get; set; } = false;
+    
+    private readonly Lock _lockObject = new Lock();
+    private DateTime _lastExecuted = DateTime.MinValue;
+    private static Timer _debounceTimer = default!;
+    private const double DebounceIntervalMs = 1000;
+
+    private void HandlePropertyChanged(StatePropertyChangedArgs args)
+    {
+        if (args.PropertyName != "Notify" || args.NewValue?.ToString() != NotificationType.ProjectsHeader.ToString()) return;
+        lock (_lockObject)
+        {
+            _debounceTimer?.Dispose();
+        
+            _debounceTimer = new Timer((state) =>
+            {
+                lock (_lockObject)
+                {
+                    if ((DateTime.UtcNow - _lastExecuted).TotalMilliseconds < DebounceIntervalMs)
+                        return;
+
+                    _lastExecuted = DateTime.UtcNow;
+                    ExecutePropertyJob(args).WaitAsync(new CancellationToken());
+                }
+            }, null, (int)DebounceIntervalMs, Timeout.Infinite);
+        }
+    }
+
+    private async Task ExecutePropertyJob(StatePropertyChangedArgs args)
+    {
+        await Load();
+        await InvokeAsync(StateHasChanged);
+
+        //NotificationService.Info("Updated");
+    }
+
+    protected override void OnInitialized()
+    {
+        AppState?.RegisterCallback(EventCallback.Factory.Create<StatePropertyChangedArgs>(this, HandlePropertyChanged));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        SelectedProject = new ProjectHeaderDto();
+
+        var result = await ProjectService.ProjectHeaderByIdAsync(ProjectId, CancellationToken.None);
+        if (!result.IsOk) return;
+
+        SelectedProject = result.Value;
+
+        ProjectTitle = string.IsNullOrEmpty(SelectedProject.Title) ? " " : SelectedProject.Title;
+        OrganizationName = string.IsNullOrEmpty(SelectedProject.OrganizationName) ? " " : SelectedProject.OrganizationName;
+        OrganizationAddress = string.IsNullOrEmpty(SelectedProject.OrganizationAddress) ? " " : SelectedProject.OrganizationAddress;
+        OrganizationPostalCode = string.IsNullOrEmpty(SelectedProject.OrganizationPostalCode) ? " " : SelectedProject.OrganizationPostalCode;
+        OrganizationCity = string.IsNullOrEmpty(SelectedProject.OrganizationCity) ? " " : SelectedProject.OrganizationCity;
+        OrganizationCountry = string.IsNullOrEmpty(SelectedProject.OrganizationCountry) ? " " : SelectedProject.OrganizationCountry;
+        OrganizationUrl = string.IsNullOrEmpty(SelectedProject.OrganizationUrl) ? " " : SelectedProject.OrganizationUrl;
+        ProducerName = string.IsNullOrEmpty(SelectedProject.ProducerName) ? " " : SelectedProject.ProducerName;
+        ProducerEmail = string.IsNullOrEmpty(SelectedProject.ProducerEmail) ? " " : SelectedProject.ProducerEmail;
+        ProducerPhoneNumber = string.IsNullOrEmpty(SelectedProject.ProducerPhoneNumber) ? " " : SelectedProject.ProducerPhoneNumber;
+        ApplicantName = string.IsNullOrEmpty(SelectedProject.ApplicantName) ? " " : SelectedProject.ApplicantName;
+        ApplicantEmail = string.IsNullOrEmpty(SelectedProject.ApplicantEmail) ? " " : SelectedProject.ApplicantEmail;
+        ApplicantPhoneNumber = string.IsNullOrEmpty(SelectedProject.ApplicantPhoneNumber) ? " " : SelectedProject.ApplicantPhoneNumber;
+        ProjectManagerName = string.IsNullOrEmpty(SelectedProject.ProjectManagerName) ? " " : SelectedProject.ProjectManagerName;
+        ProjectManagerEmail = string.IsNullOrEmpty(SelectedProject.ProjectManagerEmail) ? " " : SelectedProject.ProjectManagerEmail;
+        ProjectManagerPhoneNumber = string.IsNullOrEmpty(SelectedProject.ProjectManagerPhoneNumber) ? " " : SelectedProject.ProjectManagerPhoneNumber;
+
+        var favoritesResult = await UserService.FavoritesAsync(AppState.User.Id, CancellationToken.None);
+        if (favoritesResult.IsOk)
+        {
+            IsFavorite = favoritesResult.Value.Contains(ProjectId);
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void BackToPreviousPage()
+    {
+        if (SearchPhrase is not null && SearchPhrase.Length > 0)
+        {
+            NavigationManager.NavigateTo("projects?SearchPhrase=" + SearchPhrase, false);
+        }
+        else
+        {
+            NavigationManager.NavigateTo("projects", false);
+        }
+    }
+
+    private async Task ToggleFavorite()
+    {
+        IsFavorite = !IsFavorite;
+
+        var favoritesResult = await UserService.FavoritesAsync(AppState.User.Id, new CancellationToken());
+        if (!favoritesResult.IsOk) return;
+
+        if (IsFavorite)
+        {
+            if (!favoritesResult.Value.Contains(ProjectId))
+            {
+                favoritesResult.Value.Add(ProjectId);
+                var updateFavoritesResult = await UserService.UpdateFavoritesAsync(AppState.User.Id, favoritesResult.Value, new CancellationToken());
+                if (!updateFavoritesResult.IsOk)
+                {
+                    NotificationService.Error(updateFavoritesResult.Error.Message);
+                }
+            }
+        }
+        else
+        {
+            if (favoritesResult.Value.Contains(ProjectId))
+            {
+                var updateFavoritesResult = await UserService.UpdateFavoritesAsync(AppState.User.Id, favoritesResult.Value.Where(x => x != ProjectId).ToList(), new CancellationToken());
+                if (!updateFavoritesResult.IsOk)
+                {
+                    NotificationService.Error(updateFavoritesResult.Error.Message);
+                }
+            }
+        }           
+    }
+
+    private async Task ProjectChangeHandler<TValue>(Syncfusion.Blazor.InPlaceEditor.ChangeEventArgs<TValue> obj)
+    {
+        SelectedProject.Title = ProjectTitle;
+        SelectedProject.OrganizationName = OrganizationName;
+        SelectedProject.OrganizationAddress = OrganizationAddress;
+        SelectedProject.OrganizationPostalCode = OrganizationPostalCode;
+        SelectedProject.OrganizationCity = OrganizationCity;
+        SelectedProject.OrganizationCountry = OrganizationCountry;
+        SelectedProject.ProducerName = ProducerName;
+        SelectedProject.ProducerEmail = ProducerEmail;
+        SelectedProject.ProducerPhoneNumber = ProducerPhoneNumber;
+        SelectedProject.ApplicantName = ApplicantName;
+        SelectedProject.ApplicantEmail = ApplicantEmail;
+        SelectedProject.ApplicantPhoneNumber = ApplicantPhoneNumber;
+        SelectedProject.ProjectManagerName = ProjectManagerName;
+        SelectedProject.ProjectManagerEmail = ProjectManagerEmail;
+        SelectedProject.ProjectManagerPhoneNumber = ProjectManagerPhoneNumber;
+
+        var result = await ProjectService.UpdateProjectHeaderAsync(SelectedProject, new CancellationToken());
+        if (!result.IsOk)
+        {
+            NotificationService.Error(result.Error.Message);
+        }
+
+        NotificationService.Success(@LocalizationService.StringFromResource("Projects-45"));
+    }
+
+    private async Task Refresh()
+    {
+        await Cache.RemoveByPrefixAsync("Applications", CancellationToken.None);        
+        await Cache.RemoveByPrefixAsync("Projects", CancellationToken.None);
+        NavigationManager.NavigateTo($"/", true);
+        if (SearchPhrase is not null && SearchPhrase.Length > 0)
+        {
+            NavigationManager.NavigateTo($"/project/{ProjectId}/searchphrase/{SearchPhrase}", true);
+        }
+        else
+        {
+            NavigationManager.NavigateTo($"/project/{ProjectId}", true);
+        }
+    }
+
+}

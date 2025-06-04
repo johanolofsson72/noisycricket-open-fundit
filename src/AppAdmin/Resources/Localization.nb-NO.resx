@@ -1,0 +1,4250 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Aggregate_Count" xml:space="preserve">
+    <value>Telle</value>
+  </data>
+  <data name="Aggregate_Max" xml:space="preserve">
+    <value>Maks</value>
+  </data>
+  <data name="Aggregate_Min" xml:space="preserve">
+    <value>Min</value>
+  </data>
+  <data name="Aggregate_Sum" xml:space="preserve">
+    <value>Sum</value>
+  </data>
+  <data name="AutoComplete_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="AutoComplete_Clear" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="AutoComplete_NoData" xml:space="preserve">
+    <value>Ingen data</value>
+  </data>
+  <data name="Calendar_Choose_Decade" xml:space="preserve">
+    <value>Velg et tiår</value>
+  </data>
+  <data name="Calendar_Choose_Month" xml:space="preserve">
+    <value>Velg en måned</value>
+  </data>
+  <data name="Calendar_Choose_Year" xml:space="preserve">
+    <value>Velg et år</value>
+  </data>
+  <data name="Calendar_GoToNext" xml:space="preserve">
+    <value>Gå til neste periode</value>
+  </data>
+  <data name="Calendar_GoToPrevious" xml:space="preserve">
+    <value>Gå til forrige periode</value>
+  </data>
+  <data name="Calendar_Today" xml:space="preserve">
+    <value>I dag</value>
+  </data>
+  <data name="Carousel_Next" xml:space="preserve">
+    <value>Neste</value>
+  </data>
+  <data name="Carousel_Previous" xml:space="preserve">
+    <value>Tidligere</value>
+  </data>
+  <data name="ColorAlpha_Label" xml:space="preserve">
+    <value>EN</value>
+  </data>
+  <data name="ColorBlue_Label" xml:space="preserve">
+    <value>B</value>
+  </data>
+  <data name="ColorGradient_AlphaSlider_Label" xml:space="preserve">
+    <value>Alfa-glidebryterverdi</value>
+  </data>
+  <data name="ColorGradient_HueSlider_Label" xml:space="preserve">
+    <value>Nyanseskyveverdi</value>
+  </data>
+  <data name="ColorGradient_ToggleButton" xml:space="preserve">
+    <value>Bytt format.</value>
+  </data>
+  <data name="ColorGreen_Label" xml:space="preserve">
+    <value>G</value>
+  </data>
+  <data name="ColorHex_Label" xml:space="preserve">
+    <value>HEX</value>
+  </data>
+  <data name="ColorHex_Placeholder" xml:space="preserve">
+    <value>Hex farge</value>
+  </data>
+  <data name="ColorPicker_Apply" xml:space="preserve">
+    <value>Søke</value>
+  </data>
+  <data name="ColorPicker_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="ColorPicker_ClearTitle" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="ColorPicker_CurrentColor" xml:space="preserve">
+    <value>Nåværende farge</value>
+  </data>
+  <data name="ColorPicker_GradientViewTitle" xml:space="preserve">
+    <value>Velg Gradient View</value>
+  </data>
+  <data name="ColorPicker_Open" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
+  <data name="ColorPicker_PaletteViewTitle" xml:space="preserve">
+    <value>Velg Palettvisning</value>
+  </data>
+  <data name="ColorPicker_PreviewColor" xml:space="preserve">
+    <value>Forhåndsvisningsfarge</value>
+  </data>
+  <data name="ColorRed_Label" xml:space="preserve">
+    <value>R</value>
+  </data>
+  <data name="ColumnMenu_Apply" xml:space="preserve">
+    <value>Søke</value>
+  </data>
+  <data name="ColumnMenu_ColumnMenu" xml:space="preserve">
+    <value>Kolonnemeny</value>
+  </data>
+  <data name="ColumnMenu_Columns" xml:space="preserve">
+    <value>Kolonner</value>
+  </data>
+  <data name="ColumnMenu_Lock" xml:space="preserve">
+    <value>Låse</value>
+  </data>
+  <data name="ColumnMenu_Reset" xml:space="preserve">
+    <value>Tilbakestill</value>
+  </data>
+  <data name="ColumnMenu_SortAscending" xml:space="preserve">
+    <value>Sorter stigende</value>
+  </data>
+  <data name="ColumnMenu_SortDescending" xml:space="preserve">
+    <value>Sorter synkende</value>
+  </data>
+  <data name="ColumnMenu_Unlock" xml:space="preserve">
+    <value>Låse opp</value>
+  </data>
+  <data name="ComboBox_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="ComboBox_Clear" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="ComboBox_NoData" xml:space="preserve">
+    <value>Ingen data</value>
+  </data>
+  <data name="ComboBox_Open" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
+  <data name="DateInput_Clear" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="DateInput_ParsingErrorMessage" xml:space="preserve">
+    <value>Datoformatet er ikke parserbart. Vennligst skriv inn gyldig dato.</value>
+  </data>
+  <data name="DateInput_ValidationErrorMessage" xml:space="preserve">
+    <value>Datoen er ikke gyldig.</value>
+  </data>
+  <data name="DatePicker_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="DatePicker_Open" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
+  <data name="DatePicker_SetDate" xml:space="preserve">
+    <value>Sett dato</value>
+  </data>
+  <data name="DateRangePicker_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="DateRangePicker_ConfirmSelection" xml:space="preserve">
+    <value>Bekreft valget</value>
+  </data>
+  <data name="DateRangePicker_End" xml:space="preserve">
+    <value>Slutt</value>
+  </data>
+  <data name="DateRangePicker_Start" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="DateTimePicker_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="DateTimePicker_Date" xml:space="preserve">
+    <value>Dato</value>
+  </data>
+  <data name="DateTimePicker_Open" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
+  <data name="DateTimePicker_Set" xml:space="preserve">
+    <value>Sett</value>
+  </data>
+  <data name="DateTimePicker_Time" xml:space="preserve">
+    <value>Tid</value>
+  </data>
+  <data name="Dialog_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Dialog_Close" xml:space="preserve">
+    <value>Lukke</value>
+  </data>
+  <data name="Dialog_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="DropDownList_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="DropDownList_NoData" xml:space="preserve">
+    <value>Ingen data</value>
+  </data>
+  <data name="DropDownList_Open" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
+  <data name="Editor_AddColumnAfter" xml:space="preserve">
+    <value>Legg til kolonne til høyre</value>
+  </data>
+  <data name="Editor_AddColumnBefore" xml:space="preserve">
+    <value>Legg til kolonne til venstre</value>
+  </data>
+  <data name="Editor_AddRowAfter" xml:space="preserve">
+    <value>Legg til rad nedenfor</value>
+  </data>
+  <data name="Editor_AddRowBefore" xml:space="preserve">
+    <value>Legg til rad over</value>
+  </data>
+  <data name="Editor_AddRowBelow" xml:space="preserve">
+    <value>Legg til rad nedenfor</value>
+  </data>
+  <data name="Editor_AlignCenter" xml:space="preserve">
+    <value>Sentrert tekst</value>
+  </data>
+  <data name="Editor_AlignJustify" xml:space="preserve">
+    <value>Begrunn</value>
+  </data>
+  <data name="Editor_AlignLeft" xml:space="preserve">
+    <value>Juster tekst til venstre</value>
+  </data>
+  <data name="Editor_AlignRight" xml:space="preserve">
+    <value>Juster teksten til høyre</value>
+  </data>
+  <data name="Editor_BackColor" xml:space="preserve">
+    <value>Bakgrunnsfarge</value>
+  </data>
+  <data name="Editor_Bold" xml:space="preserve">
+    <value>Fet</value>
+  </data>
+  <data name="Editor_CreateLink" xml:space="preserve">
+    <value>Sett inn hyperkobling</value>
+  </data>
+  <data name="Editor_CreateTable" xml:space="preserve">
+    <value>Lag tabell</value>
+  </data>
+  <data name="Editor_CreateTablePopup" xml:space="preserve">
+    <value>Opprett {0}-tabell</value>
+  </data>
+  <data name="Editor_DeleteColumn" xml:space="preserve">
+    <value>Slett kolonne</value>
+  </data>
+  <data name="Editor_DeleteRow" xml:space="preserve">
+    <value>Slett rad</value>
+  </data>
+  <data name="Editor_DialogCancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Editor_DialogClose" xml:space="preserve">
+    <value>Lukke</value>
+  </data>
+  <data name="Editor_DialogInsert" xml:space="preserve">
+    <value>Sett inn</value>
+  </data>
+  <data name="Editor_DialogUpdate" xml:space="preserve">
+    <value>Oppdater</value>
+  </data>
+  <data name="Editor_FontFamily" xml:space="preserve">
+    <value>Skriftnavn</value>
+  </data>
+  <data name="Editor_FontSize" xml:space="preserve">
+    <value>Skriftstørrelse</value>
+  </data>
+  <data name="Editor_ForeColor" xml:space="preserve">
+    <value>Farge</value>
+  </data>
+  <data name="Editor_Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="Editor_ImageAltText" xml:space="preserve">
+    <value>Alternativ tekst:</value>
+  </data>
+  <data name="Editor_ImageHeight" xml:space="preserve">
+    <value>Høyde:</value>
+  </data>
+  <data name="Editor_ImageWebAddress" xml:space="preserve">
+    <value>Nettadresse:</value>
+  </data>
+  <data name="Editor_ImageWidth" xml:space="preserve">
+    <value>Bredde:</value>
+  </data>
+  <data name="Editor_Indent" xml:space="preserve">
+    <value>Innrykk</value>
+  </data>
+  <data name="Editor_InsertFile" xml:space="preserve">
+    <value>Sett inn fil</value>
+  </data>
+  <data name="Editor_InsertHtml" xml:space="preserve">
+    <value>Sett inn HTML</value>
+  </data>
+  <data name="Editor_InsertImage" xml:space="preserve">
+    <value>Sett inn bilde</value>
+  </data>
+  <data name="Editor_InsertOrderedList" xml:space="preserve">
+    <value>Sett inn bestilt liste</value>
+  </data>
+  <data name="Editor_InsertUnorderedList" xml:space="preserve">
+    <value>Sett inn uordnet liste</value>
+  </data>
+  <data name="Editor_Italic" xml:space="preserve">
+    <value>Kursiv</value>
+  </data>
+  <data name="Editor_LinkOpenNewWindow" xml:space="preserve">
+    <value>Åpne i nytt vindu</value>
+  </data>
+  <data name="Editor_LinkText" xml:space="preserve">
+    <value>Tekst</value>
+  </data>
+  <data name="Editor_LinkTitle" xml:space="preserve">
+    <value>Tittel:</value>
+  </data>
+  <data name="Editor_LinkWebAddress" xml:space="preserve">
+    <value>Nettadresse:</value>
+  </data>
+  <data name="Editor_MergeCells" xml:space="preserve">
+    <value>Slå sammen celler</value>
+  </data>
+  <data name="Editor_Outdent" xml:space="preserve">
+    <value>Utent</value>
+  </data>
+  <data name="Editor_Redo" xml:space="preserve">
+    <value>Gjenta</value>
+  </data>
+  <data name="Editor_SetHtml" xml:space="preserve">
+    <value>Se HTML</value>
+  </data>
+  <data name="Editor_SplitCell" xml:space="preserve">
+    <value>Del celle</value>
+  </data>
+  <data name="Editor_Strikethrough" xml:space="preserve">
+    <value>Gjennomstreking</value>
+  </data>
+  <data name="Editor_Subscript" xml:space="preserve">
+    <value>Subscript</value>
+  </data>
+  <data name="Editor_Superscript" xml:space="preserve">
+    <value>Overskrift</value>
+  </data>
+  <data name="Editor_Underline" xml:space="preserve">
+    <value>Understrek</value>
+  </data>
+  <data name="Editor_Undo" xml:space="preserve">
+    <value>Angre</value>
+  </data>
+  <data name="Editor_Unlink" xml:space="preserve">
+    <value>Fjern hyperkobling</value>
+  </data>
+  <data name="FileManager_ConfirmDeleteCancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="FileManager_ConfirmDeleteOk" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+  <data name="FileManager_ConfirmDeleteText" xml:space="preserve">
+    <value>Er du sikker på at du vil slette filen(e)?</value>
+  </data>
+  <data name="FileManager_ConfirmDeleteTitle" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="FileManager_ContextMenu_Delete" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="FileManager_ContextMenu_Download" xml:space="preserve">
+    <value>Last ned</value>
+  </data>
+  <data name="FileManager_ContextMenu_Rename" xml:space="preserve">
+    <value>Gi nytt navn</value>
+  </data>
+  <data name="FileManager_DetailsPane_DateCreated" xml:space="preserve">
+    <value>Dato opprettet</value>
+  </data>
+  <data name="FileManager_DetailsPane_DateModified" xml:space="preserve">
+    <value>Dato endret</value>
+  </data>
+  <data name="FileManager_DetailsPane_NoFileSelected" xml:space="preserve">
+    <value>Ingen fil er valgt</value>
+  </data>
+  <data name="FileManager_DetailsPane_Size" xml:space="preserve">
+    <value>Størrelse</value>
+  </data>
+  <data name="FileManager_DetailsPane_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="FileManager_FileView_Items" xml:space="preserve">
+    <value>gjenstander</value>
+  </data>
+  <data name="FileManager_Grid_DateCreatedColumnTitle" xml:space="preserve">
+    <value>Opprettelsesdato</value>
+  </data>
+  <data name="FileManager_Grid_FileSizeColumnTitle" xml:space="preserve">
+    <value>Filstørrelse</value>
+  </data>
+  <data name="FileManager_Grid_NameColumnTitle" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="FileManager_SearchBox_Placeholder" xml:space="preserve">
+    <value>Søk</value>
+  </data>
+  <data name="FileManager_SearchBox_Title" xml:space="preserve">
+    <value>Søk</value>
+  </data>
+  <data name="FileManager_ToolBar_CreateNewFolder" xml:space="preserve">
+    <value>Ny mappe</value>
+  </data>
+  <data name="FileManager_ToolBar_SortBy" xml:space="preserve">
+    <value>Sorter etter</value>
+  </data>
+  <data name="FileManager_ToolBar_SortByDateCreated" xml:space="preserve">
+    <value>Opprettelsesdato</value>
+  </data>
+  <data name="FileManager_ToolBar_SortByDateModified" xml:space="preserve">
+    <value>Dato endret</value>
+  </data>
+  <data name="FileManager_ToolBar_SortByName" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="FileManager_ToolBar_SortBySize" xml:space="preserve">
+    <value>Størrelse</value>
+  </data>
+  <data name="FileManager_ToolBar_SortByType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="FileManager_ToolBar_Upload" xml:space="preserve">
+    <value>Last opp</value>
+  </data>
+  <data name="FileManager_ToolBar_ViewDetails" xml:space="preserve">
+    <value>Se detaljer</value>
+  </data>
+  <data name="FileManager_UploadDialogCancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="FileManager_UploadDialogOk" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+  <data name="FileManager_UploadDialogTitle" xml:space="preserve">
+    <value>Last opp filer</value>
+  </data>
+  <data name="FileSelect_InvalidFileExtension" xml:space="preserve">
+    <value>Filtype ikke tillatt.</value>
+  </data>
+  <data name="FileSelect_InvalidMaxFileSize" xml:space="preserve">
+    <value>Filstørrelsen er for stor.</value>
+  </data>
+  <data name="FileSelect_InvalidMinFileSize" xml:space="preserve">
+    <value>Filstørrelsen er for liten.</value>
+  </data>
+  <data name="FileSelect_Remove" xml:space="preserve">
+    <value>Fjerne</value>
+  </data>
+  <data name="FileSelect_SelectFiles" xml:space="preserve">
+    <value>Velg filer...</value>
+  </data>
+  <data name="Filter_AddExpression" xml:space="preserve">
+    <value>Legg til uttrykk</value>
+  </data>
+  <data name="Filter_AddGroup" xml:space="preserve">
+    <value>Legg til gruppe</value>
+  </data>
+  <data name="Filter_AdditionalOperator" xml:space="preserve">
+    <value>Ekstra operatør</value>
+  </data>
+  <data name="Filter_AdditionalValue" xml:space="preserve">
+    <value>Merverdi</value>
+  </data>
+  <data name="Filter_All" xml:space="preserve">
+    <value>(Alle)</value>
+  </data>
+  <data name="Filter_And" xml:space="preserve">
+    <value>Og</value>
+  </data>
+  <data name="Filter_BooleanIsEqualTo" xml:space="preserve">
+    <value>Er lik</value>
+  </data>
+  <data name="Filter_BooleanIsNotEqualTo" xml:space="preserve">
+    <value>Er ikke lik</value>
+  </data>
+  <data name="Filter_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Filter_Clear" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="Filter_DateIsEqualTo" xml:space="preserve">
+    <value>Er lik</value>
+  </data>
+  <data name="Filter_DateIsGreaterThan" xml:space="preserve">
+    <value>Er etter</value>
+  </data>
+  <data name="Filter_DateIsGreaterThanOrEqualTo" xml:space="preserve">
+    <value>Er etter eller lik</value>
+  </data>
+  <data name="Filter_DateIsLessThan" xml:space="preserve">
+    <value>Er før</value>
+  </data>
+  <data name="Filter_DateIsLessThanOrEqualTo" xml:space="preserve">
+    <value>Er før eller lik</value>
+  </data>
+  <data name="Filter_DateIsNotEqualTo" xml:space="preserve">
+    <value>Er ikke lik</value>
+  </data>
+  <data name="Filter_DateIsNotNull" xml:space="preserve">
+    <value>Er ikke null</value>
+  </data>
+  <data name="Filter_DateIsNull" xml:space="preserve">
+    <value>Er null</value>
+  </data>
+  <data name="Filter_EnumIsEqualTo" xml:space="preserve">
+    <value>Er lik</value>
+  </data>
+  <data name="Filter_EnumIsNotEqualTo" xml:space="preserve">
+    <value>Er ikke lik</value>
+  </data>
+  <data name="Filter_EnumIsNotNull" xml:space="preserve">
+    <value>Er ikke null</value>
+  </data>
+  <data name="Filter_EnumIsNull" xml:space="preserve">
+    <value>Er null</value>
+  </data>
+  <data name="Filter_Filter" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="Filter_FilterLabel" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="Filter_FilterSettings" xml:space="preserve">
+    <value>Filterinnstillinger</value>
+  </data>
+  <data name="Filter_Info" xml:space="preserve">
+    <value>Vis poster med verdi som</value>
+  </data>
+  <data name="Filter_IsFalse" xml:space="preserve">
+    <value>er falsk</value>
+  </data>
+  <data name="Filter_IsTrue" xml:space="preserve">
+    <value>er sant</value>
+  </data>
+  <data name="Filter_NoData" xml:space="preserve">
+    <value>Ingen data</value>
+  </data>
+  <data name="Filter_NumberIsEqualTo" xml:space="preserve">
+    <value>Er lik</value>
+  </data>
+  <data name="Filter_NumberIsGreaterThan" xml:space="preserve">
+    <value>Er større enn</value>
+  </data>
+  <data name="Filter_NumberIsGreaterThanOrEqualTo" xml:space="preserve">
+    <value>Er større enn eller lik</value>
+  </data>
+  <data name="Filter_NumberIsLessThan" xml:space="preserve">
+    <value>Er mindre enn</value>
+  </data>
+  <data name="Filter_NumberIsLessThanOrEqualTo" xml:space="preserve">
+    <value>Er mindre enn eller lik</value>
+  </data>
+  <data name="Filter_NumberIsNotEqualTo" xml:space="preserve">
+    <value>Er ikke lik</value>
+  </data>
+  <data name="Filter_NumberIsNotNull" xml:space="preserve">
+    <value>Er ikke null</value>
+  </data>
+  <data name="Filter_NumberIsNull" xml:space="preserve">
+    <value>Er null</value>
+  </data>
+  <data name="Filter_Operator" xml:space="preserve">
+    <value>Operatør</value>
+  </data>
+  <data name="Filter_Or" xml:space="preserve">
+    <value>Eller</value>
+  </data>
+  <data name="Filter_Remove" xml:space="preserve">
+    <value>Fjerne</value>
+  </data>
+  <data name="Filter_Search" xml:space="preserve">
+    <value>Søk</value>
+  </data>
+  <data name="Filter_SelectAll" xml:space="preserve">
+    <value>Velg alle</value>
+  </data>
+  <data name="Filter_SelectValue" xml:space="preserve">
+    <value>-Velg verdi-</value>
+  </data>
+  <data name="Filter_StringContains" xml:space="preserve">
+    <value>Inneholder</value>
+  </data>
+  <data name="Filter_StringDoesNotContain" xml:space="preserve">
+    <value>Inneholder ikke</value>
+  </data>
+  <data name="Filter_StringEndsWith" xml:space="preserve">
+    <value>Ender med</value>
+  </data>
+  <data name="Filter_StringIsEmpty" xml:space="preserve">
+    <value>Er tom</value>
+  </data>
+  <data name="Filter_StringIsEqualTo" xml:space="preserve">
+    <value>Er lik</value>
+  </data>
+  <data name="Filter_StringIsNotEmpty" xml:space="preserve">
+    <value>Er ikke tom</value>
+  </data>
+  <data name="Filter_StringIsNotEqualTo" xml:space="preserve">
+    <value>Er ikke lik</value>
+  </data>
+  <data name="Filter_StringIsNotNull" xml:space="preserve">
+    <value>Er ikke null</value>
+  </data>
+  <data name="Filter_StringIsNotNullOrEmpty" xml:space="preserve">
+    <value>Har verdi</value>
+  </data>
+  <data name="Filter_StringIsNull" xml:space="preserve">
+    <value>Er null</value>
+  </data>
+  <data name="Filter_StringIsNullOrEmpty" xml:space="preserve">
+    <value>Har ingen verdi</value>
+  </data>
+  <data name="Filter_StringStartsWith" xml:space="preserve">
+    <value>Starter med</value>
+  </data>
+  <data name="Filter_Value" xml:space="preserve">
+    <value>Verdi</value>
+  </data>
+  <data name="Form_Clear" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="Form_Submit" xml:space="preserve">
+    <value>Send inn</value>
+  </data>
+  <data name="Gantt_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Gantt_Day" xml:space="preserve">
+    <value>Dag</value>
+  </data>
+  <data name="Gantt_Delete" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Gantt_DialogClose" xml:space="preserve">
+    <value>Lukke</value>
+  </data>
+  <data name="Gantt_Editor_EditorTitle" xml:space="preserve">
+    <value>Rediger oppgave</value>
+  </data>
+  <data name="Gantt_Editor_End" xml:space="preserve">
+    <value>Slutt</value>
+  </data>
+  <data name="Gantt_Editor_EndTimeValueValidationMessage" xml:space="preserve">
+    <value>Sluttiden må være etter starttiden.</value>
+  </data>
+  <data name="Gantt_Editor_PercentComplete" xml:space="preserve">
+    <value>Fullstendig</value>
+  </data>
+  <data name="Gantt_Editor_Start" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Gantt_Editor_StartTimeValueValidationMessage" xml:space="preserve">
+    <value>Starttiden må være før sluttid.</value>
+  </data>
+  <data name="Gantt_Editor_Title" xml:space="preserve">
+    <value>Tittel</value>
+  </data>
+  <data name="Gantt_Editor_TitleRequiredValidationMessage" xml:space="preserve">
+    <value>Tittel er påkrevd.</value>
+  </data>
+  <data name="Gantt_Month" xml:space="preserve">
+    <value>Måned</value>
+  </data>
+  <data name="Gantt_Save" xml:space="preserve">
+    <value>Spare</value>
+  </data>
+  <data name="Gantt_Week" xml:space="preserve">
+    <value>Uke</value>
+  </data>
+  <data name="Gantt_Year" xml:space="preserve">
+    <value>År</value>
+  </data>
+  <data name="Grid_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Grid_CancelChanges" xml:space="preserve">
+    <value>Avbryt endringer</value>
+  </data>
+  <data name="Grid_CancelDelete" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Grid_CheckAll" xml:space="preserve">
+    <value>Sjekk alle</value>
+  </data>
+  <data name="Grid_Columns" xml:space="preserve">
+    <value>Kolonner</value>
+  </data>
+  <data name="Grid_ColumnSettings" xml:space="preserve">
+    <value>Kolonneinnstillinger</value>
+  </data>
+  <data name="Grid_Confirmation" xml:space="preserve">
+    <value>Er du sikker på at du vil slette denne posten?</value>
+  </data>
+  <data name="Grid_ConfirmDelete" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Grid_ConfirmDeleteCancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Grid_ConfirmDeleteOk" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+  <data name="Grid_ConfirmDeleteText" xml:space="preserve">
+    <value>Er du sikker på at du vil slette denne posten?</value>
+  </data>
+  <data name="Grid_ConfirmDeleteTitle" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Grid_Create" xml:space="preserve">
+    <value>Legg til ny rekord</value>
+  </data>
+  <data name="Grid_Csv" xml:space="preserve">
+    <value>Eksporter til CSV</value>
+  </data>
+  <data name="Grid_DataTable" xml:space="preserve">
+    <value>Datatabell</value>
+  </data>
+  <data name="Grid_Delete" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Grid_DialogClose" xml:space="preserve">
+    <value>Lukke</value>
+  </data>
+  <data name="Grid_Done" xml:space="preserve">
+    <value>Ferdig</value>
+  </data>
+  <data name="Grid_DragItems" xml:space="preserve">
+    <value>elementer valgt</value>
+  </data>
+  <data name="Grid_DragRowLabel" xml:space="preserve">
+    <value>Dra rad</value>
+  </data>
+  <data name="Grid_Edit" xml:space="preserve">
+    <value>Redigere</value>
+  </data>
+  <data name="Grid_Excel" xml:space="preserve">
+    <value>Eksporter til Excel</value>
+  </data>
+  <data name="Grid_Filter" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="Grid_FilterMenuSettings" xml:space="preserve">
+    <value>{0} kolonnefiltermenyinnstillinger</value>
+  </data>
+  <data name="Grid_FilterRowLabel" xml:space="preserve">
+    <value>{0} filter</value>
+  </data>
+  <data name="Grid_GroupHeaderLabel" xml:space="preserve">
+    <value>Rutenettgruppeoverskrift</value>
+  </data>
+  <data name="Grid_Lock" xml:space="preserve">
+    <value>Låse</value>
+  </data>
+  <data name="Grid_NoRecords" xml:space="preserve">
+    <value>Ingen poster tilgjengelig.</value>
+  </data>
+  <data name="Grid_Remove" xml:space="preserve">
+    <value>Fjerne</value>
+  </data>
+  <data name="Grid_SaveChanges" xml:space="preserve">
+    <value>Lagre endringer</value>
+  </data>
+  <data name="Grid_Search" xml:space="preserve">
+    <value>Søk...</value>
+  </data>
+  <data name="Grid_Select" xml:space="preserve">
+    <value>Velge</value>
+  </data>
+  <data name="Grid_SelectAllRows" xml:space="preserve">
+    <value>Velg alle rader</value>
+  </data>
+  <data name="Grid_SelectRow" xml:space="preserve">
+    <value>Velg en rad</value>
+  </data>
+  <data name="Grid_SortAscending" xml:space="preserve">
+    <value>Sorter stigende</value>
+  </data>
+  <data name="Grid_SortDescending" xml:space="preserve">
+    <value>Sorter synkende</value>
+  </data>
+  <data name="Grid_SortedAscending" xml:space="preserve">
+    <value>Sortert i stigende rekkefølge</value>
+  </data>
+  <data name="Grid_SortedDescending" xml:space="preserve">
+    <value>Sortert i synkende rekkefølge</value>
+  </data>
+  <data name="Grid_ToolbarLabel" xml:space="preserve">
+    <value>Grid verktøylinje</value>
+  </data>
+  <data name="Grid_Unlock" xml:space="preserve">
+    <value>Låse opp</value>
+  </data>
+  <data name="Grid_Update" xml:space="preserve">
+    <value>Oppdater</value>
+  </data>
+  <data name="Group_Empty" xml:space="preserve">
+    <value>Dra en kolonneoverskrift og slipp den her for å gruppere etter den kolonnen</value>
+  </data>
+  <data name="MaskedTextBox_Clear" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="MultiSelect_Apply" xml:space="preserve">
+    <value>Søke</value>
+  </data>
+  <data name="MultiSelect_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="MultiSelect_Clear" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="MultiSelect_NoData" xml:space="preserve">
+    <value>Ingen data</value>
+  </data>
+  <data name="NumericTextBox_Clear" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="NumericTextBox_DecreaseValue" xml:space="preserve">
+    <value>Reduser verdien</value>
+  </data>
+  <data name="NumericTextBox_IncreaseValue" xml:space="preserve">
+    <value>Øk verdien</value>
+  </data>
+  <data name="Optional_Label" xml:space="preserve">
+    <value>Valgfri</value>
+  </data>
+  <data name="Pager_AllPages" xml:space="preserve">
+    <value>Alle</value>
+  </data>
+  <data name="Pager_Display" xml:space="preserve">
+    <value>{0} - {1} av {2} elementer</value>
+  </data>
+  <data name="Pager_Empty" xml:space="preserve">
+    <value>Ingen elementer å vise</value>
+  </data>
+  <data name="Pager_First" xml:space="preserve">
+    <value>Gå til første side</value>
+  </data>
+  <data name="Pager_ItemsPerPage" xml:space="preserve">
+    <value>elementer per side</value>
+  </data>
+  <data name="Pager_Last" xml:space="preserve">
+    <value>Gå til siste side</value>
+  </data>
+  <data name="Pager_MorePages" xml:space="preserve">
+    <value>Flere sider</value>
+  </data>
+  <data name="Pager_Next" xml:space="preserve">
+    <value>Gå til neste side</value>
+  </data>
+  <data name="Pager_Of" xml:space="preserve">
+    <value>av {0}</value>
+  </data>
+  <data name="Pager_Page" xml:space="preserve">
+    <value>Side</value>
+  </data>
+  <data name="Pager_PageDisplay" xml:space="preserve">
+    <value>Side {0}</value>
+  </data>
+  <data name="Pager_PageInputLabel" xml:space="preserve">
+    <value>Velg en side</value>
+  </data>
+  <data name="Pager_Previous" xml:space="preserve">
+    <value>Gå til forrige side</value>
+  </data>
+  <data name="Pager_Refresh" xml:space="preserve">
+    <value>Forfriske</value>
+  </data>
+  <data name="Pager_WrapperLabel" xml:space="preserve">
+    <value>Sidenavigering, side {0} av {1}</value>
+  </data>
+  <data name="PdfViewer_Search_Close" xml:space="preserve">
+    <value>Lukke</value>
+  </data>
+  <data name="PdfViewer_Search_MatchCase" xml:space="preserve">
+    <value>Matchetui</value>
+  </data>
+  <data name="PdfViewer_Search_MatchesOf" xml:space="preserve">
+    <value>av</value>
+  </data>
+  <data name="PdfViewer_Search_NextMatch" xml:space="preserve">
+    <value>Neste kamp</value>
+  </data>
+  <data name="PdfViewer_Search_Placeholder" xml:space="preserve">
+    <value>Søk</value>
+  </data>
+  <data name="PdfViewer_Search_PreviousMatch" xml:space="preserve">
+    <value>Forrige kamp</value>
+  </data>
+  <data name="PdfViewer_ToolBar_Download" xml:space="preserve">
+    <value>Last ned</value>
+  </data>
+  <data name="PdfViewer_ToolBar_Open" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
+  <data name="PdfViewer_ToolBar_Panning" xml:space="preserve">
+    <value>Aktiver panorering</value>
+  </data>
+  <data name="PdfViewer_ToolBar_Print" xml:space="preserve">
+    <value>Trykk</value>
+  </data>
+  <data name="PdfViewer_ToolBar_Search" xml:space="preserve">
+    <value>Søk</value>
+  </data>
+  <data name="PdfViewer_ToolBar_TextSelection" xml:space="preserve">
+    <value>Aktiver valg</value>
+  </data>
+  <data name="PdfViewer_ToolBar_ZoomActualWidth" xml:space="preserve">
+    <value>Faktisk bredde</value>
+  </data>
+  <data name="PdfViewer_ToolBar_ZoomFitToPage" xml:space="preserve">
+    <value>Tilpass til siden</value>
+  </data>
+  <data name="PdfViewer_ToolBar_ZoomFitToWidth" xml:space="preserve">
+    <value>Passer til bredden</value>
+  </data>
+  <data name="PdfViewer_ToolBar_ZoomIn" xml:space="preserve">
+    <value>Zoom inn</value>
+  </data>
+  <data name="PdfViewer_ToolBar_ZoomOut" xml:space="preserve">
+    <value>Zoom ut</value>
+  </data>
+  <data name="Scheduler_AllDay" xml:space="preserve">
+    <value>hele dagen</value>
+  </data>
+  <data name="Scheduler_AllEvents" xml:space="preserve">
+    <value>Alle arrangementer</value>
+  </data>
+  <data name="Scheduler_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Scheduler_ConfirmDeleteCancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Scheduler_ConfirmDeleteOk" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+  <data name="Scheduler_ConfirmDeleteText" xml:space="preserve">
+    <value>Er du sikker på at du vil slette denne hendelsen?</value>
+  </data>
+  <data name="Scheduler_ConfirmDeleteTitle" xml:space="preserve">
+    <value>Slett hendelsen</value>
+  </data>
+  <data name="Scheduler_Day" xml:space="preserve">
+    <value>Dag</value>
+  </data>
+  <data name="Scheduler_Delete" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Scheduler_DialogClose" xml:space="preserve">
+    <value>Lukke</value>
+  </data>
+  <data name="Scheduler_Editor_Description" xml:space="preserve">
+    <value>Beskrivelse</value>
+  </data>
+  <data name="Scheduler_Editor_EditorTitle" xml:space="preserve">
+    <value>Hendelse</value>
+  </data>
+  <data name="Scheduler_Editor_End" xml:space="preserve">
+    <value>Slutt</value>
+  </data>
+  <data name="Scheduler_Editor_EndTimeRequiredValidationMessage" xml:space="preserve">
+    <value>Slutttidspunkt er påkrevd.</value>
+  </data>
+  <data name="Scheduler_Editor_EndTimeValueValidationMessage" xml:space="preserve">
+    <value>Sluttiden må være etter starttiden.</value>
+  </data>
+  <data name="Scheduler_Editor_IsAllDay" xml:space="preserve">
+    <value>Heldagsarrangement</value>
+  </data>
+  <data name="Scheduler_Editor_Repeat" xml:space="preserve">
+    <value>Gjenta</value>
+  </data>
+  <data name="Scheduler_Editor_Start" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Scheduler_Editor_StartTimeRequiredValidationMessage" xml:space="preserve">
+    <value>Starttid er nødvendig.</value>
+  </data>
+  <data name="Scheduler_Editor_StartTimeValueValidationMessage" xml:space="preserve">
+    <value>Starttiden må være før sluttid.</value>
+  </data>
+  <data name="Scheduler_Editor_Title" xml:space="preserve">
+    <value>Tittel</value>
+  </data>
+  <data name="Scheduler_Editor_TitleRequiredValidationMessage" xml:space="preserve">
+    <value>Tittel er påkrevd.</value>
+  </data>
+  <data name="Scheduler_Month" xml:space="preserve">
+    <value>Måned</value>
+  </data>
+  <data name="Scheduler_MultiDay" xml:space="preserve">
+    <value>Flerdager</value>
+  </data>
+  <data name="Scheduler_Next" xml:space="preserve">
+    <value>Neste</value>
+  </data>
+  <data name="Scheduler_Previous" xml:space="preserve">
+    <value>Tidligere</value>
+  </data>
+  <data name="Scheduler_Recurrence_DeleteRecurring" xml:space="preserve">
+    <value>Vil du slette bare denne hendelsesforekomsten eller hele serien?</value>
+  </data>
+  <data name="Scheduler_Recurrence_DeleteWindowOccurrence" xml:space="preserve">
+    <value>Slett gjeldende forekomst</value>
+  </data>
+  <data name="Scheduler_Recurrence_DeleteWindowSeries" xml:space="preserve">
+    <value>Slett serien</value>
+  </data>
+  <data name="Scheduler_Recurrence_DeleteWindowTitle" xml:space="preserve">
+    <value>Slett gjentakende avtale</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Daily_Interval" xml:space="preserve">
+    <value> dag(er)</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Daily_RepeatEvery" xml:space="preserve">
+    <value>Gjenta hver</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_End_After" xml:space="preserve">
+    <value>Etter </value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_End_Label" xml:space="preserve">
+    <value>Slutt</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_End_Never" xml:space="preserve">
+    <value>Aldri</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_End_Occurrence" xml:space="preserve">
+    <value> forekomst(er)</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_End_On" xml:space="preserve">
+    <value>På </value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Frequencies_Daily" xml:space="preserve">
+    <value>Daglig</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Frequencies_Monthly" xml:space="preserve">
+    <value>Månedlig</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Frequencies_Never" xml:space="preserve">
+    <value>Aldri</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Frequencies_Weekly" xml:space="preserve">
+    <value>Ukentlig</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Frequencies_Yearly" xml:space="preserve">
+    <value>Årlig</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Monthly_Day" xml:space="preserve">
+    <value>Dag</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Monthly_Interval" xml:space="preserve">
+    <value>måned(er)</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Monthly_RepeatEvery" xml:space="preserve">
+    <value>Gjenta hver</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Monthly_RepeatOn" xml:space="preserve">
+    <value>Gjenta på</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_OffsetPositions_First" xml:space="preserve">
+    <value>først</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_OffsetPositions_Fourth" xml:space="preserve">
+    <value>fjerde</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_OffsetPositions_Last" xml:space="preserve">
+    <value>siste</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_OffsetPositions_Second" xml:space="preserve">
+    <value>sekund</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_OffsetPositions_Third" xml:space="preserve">
+    <value>tredje</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Weekdays_Day" xml:space="preserve">
+    <value>dag</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Weekdays_Weekday" xml:space="preserve">
+    <value>ukedag</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Weekdays_Weekend" xml:space="preserve">
+    <value>helgedag</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Weekly_Interval" xml:space="preserve">
+    <value>uke(r)</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Weekly_RepeatEvery" xml:space="preserve">
+    <value>Gjenta hver</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Weekly_RepeatOn" xml:space="preserve">
+    <value>Gjenta på</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Yearly_Interval" xml:space="preserve">
+    <value>år</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Yearly_Of" xml:space="preserve">
+    <value>av</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Yearly_RepeatEvery" xml:space="preserve">
+    <value>Gjenta hver</value>
+  </data>
+  <data name="Scheduler_Recurrence_Editor_Yearly_RepeatOn" xml:space="preserve">
+    <value>Gjenta på</value>
+  </data>
+  <data name="Scheduler_Recurrence_EditRecurring" xml:space="preserve">
+    <value>Vil du redigere bare denne hendelsesforekomsten eller hele serien?</value>
+  </data>
+  <data name="Scheduler_Recurrence_EditWindowOccurrence" xml:space="preserve">
+    <value>Rediger gjeldende forekomst</value>
+  </data>
+  <data name="Scheduler_Recurrence_EditWindowSeries" xml:space="preserve">
+    <value>Rediger serien</value>
+  </data>
+  <data name="Scheduler_Recurrence_EditWindowTitle" xml:space="preserve">
+    <value>Rediger gjentakende avtale</value>
+  </data>
+  <data name="Scheduler_Save" xml:space="preserve">
+    <value>Spare</value>
+  </data>
+  <data name="Scheduler_ShowFullDay" xml:space="preserve">
+    <value>Vis hele dagen</value>
+  </data>
+  <data name="Scheduler_ShowWorkDay" xml:space="preserve">
+    <value>Vis åpningstider</value>
+  </data>
+  <data name="Scheduler_Timeline" xml:space="preserve">
+    <value>Tidslinje</value>
+  </data>
+  <data name="Scheduler_Today" xml:space="preserve">
+    <value>I dag</value>
+  </data>
+  <data name="Scheduler_Week" xml:space="preserve">
+    <value>Uke</value>
+  </data>
+  <data name="Signature_Clear" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="Signature_Maximize" xml:space="preserve">
+    <value>Maksimer</value>
+  </data>
+  <data name="Signature_Minimize" xml:space="preserve">
+    <value>Minimer</value>
+  </data>
+  <data name="Slider_Decrease" xml:space="preserve">
+    <value>Reduksjon</value>
+  </data>
+  <data name="Slider_Increase" xml:space="preserve">
+    <value>Øke</value>
+  </data>
+  <data name="SplitButton_Open" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
+  <data name="Switch_OffLabel" xml:space="preserve">
+    <value>Av</value>
+  </data>
+  <data name="Switch_OnLabel" xml:space="preserve">
+    <value>På</value>
+  </data>
+  <data name="TextBox_Clear" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="TabStrip_ShowNextTabs" xml:space="preserve">
+    <value>Vis neste faner</value>
+  </data>
+  <data name="TabStrip_ShowPreviousTabs" xml:space="preserve">
+    <value>Vis tidligere faner</value>
+  </data>
+  <data name="TimePicker_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="TimePicker_Day" xml:space="preserve">
+    <value>Dag</value>
+  </data>
+  <data name="TimePicker_DayPeriod" xml:space="preserve">
+    <value>AM/PM</value>
+  </data>
+  <data name="TimePicker_Era" xml:space="preserve">
+    <value>Era</value>
+  </data>
+  <data name="TimePicker_Hour" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="TimePicker_Minute" xml:space="preserve">
+    <value>Minutt</value>
+  </data>
+  <data name="TimePicker_Month" xml:space="preserve">
+    <value>Måned</value>
+  </data>
+  <data name="TimePicker_Now" xml:space="preserve">
+    <value>Nå</value>
+  </data>
+  <data name="TimePicker_Open" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
+  <data name="TimePicker_Quarter" xml:space="preserve">
+    <value>Fjerdedel</value>
+  </data>
+  <data name="TimePicker_Second" xml:space="preserve">
+    <value>Sekund</value>
+  </data>
+  <data name="TimePicker_Set" xml:space="preserve">
+    <value>Sett</value>
+  </data>
+  <data name="TimePicker_ToggleClock" xml:space="preserve">
+    <value>Slå på klokken</value>
+  </data>
+  <data name="TimePicker_WeekDay" xml:space="preserve">
+    <value>Ukedag</value>
+  </data>
+  <data name="TimePicker_Year" xml:space="preserve">
+    <value>År</value>
+  </data>
+  <data name="TimePicker_Zone" xml:space="preserve">
+    <value>Sone</value>
+  </data>
+  <data name="TreeList_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="TreeList_ConfirmDeleteCancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="TreeList_ConfirmDeleteOk" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+  <data name="TreeList_ConfirmDeleteText" xml:space="preserve">
+    <value>Er du sikker på at du vil slette denne posten?</value>
+  </data>
+  <data name="TreeList_ConfirmDeleteTitle" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="TreeList_Create" xml:space="preserve">
+    <value>Legg til ny rekord</value>
+  </data>
+  <data name="TreeList_Delete" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="TreeList_DialogClose" xml:space="preserve">
+    <value>Lukke</value>
+  </data>
+  <data name="TreeList_Edit" xml:space="preserve">
+    <value>Redigere</value>
+  </data>
+  <data name="TreeList_NoRecords" xml:space="preserve">
+    <value>Ingen poster tilgjengelig.</value>
+  </data>
+  <data name="TreeList_Search" xml:space="preserve">
+    <value>Søk...</value>
+  </data>
+  <data name="TreeList_SelectAllRows" xml:space="preserve">
+    <value>Velg alle rader</value>
+  </data>
+  <data name="TreeList_SelectRow" xml:space="preserve">
+    <value>Velg en rad</value>
+  </data>
+  <data name="TreeList_SortedAscending" xml:space="preserve">
+    <value>Sortert i stigende rekkefølge</value>
+  </data>
+  <data name="TreeList_SortedDescending" xml:space="preserve">
+    <value>Sortert i synkende rekkefølge</value>
+  </data>
+  <data name="TreeList_Update" xml:space="preserve">
+    <value>Oppdater</value>
+  </data>
+  <data name="Upload_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Upload_Clear" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="Upload_FileStatusFailed" xml:space="preserve">
+    <value>Filen kunne ikke lastes opp.</value>
+  </data>
+  <data name="Upload_FileStatusUploaded" xml:space="preserve">
+    <value>Filen ble lastet opp.</value>
+  </data>
+  <data name="Upload_HeaderStatusUploaded" xml:space="preserve">
+    <value>Ferdig</value>
+  </data>
+  <data name="Upload_HeaderStatusUploading" xml:space="preserve">
+    <value>Laster opp ...</value>
+  </data>
+  <data name="Upload_InvalidFileExtension" xml:space="preserve">
+    <value>Filtype ikke tillatt.</value>
+  </data>
+  <data name="Upload_InvalidMaxFileSize" xml:space="preserve">
+    <value>Filstørrelsen er for stor.</value>
+  </data>
+  <data name="Upload_InvalidMinFileSize" xml:space="preserve">
+    <value>Filstørrelsen er for liten.</value>
+  </data>
+  <data name="Upload_Remove" xml:space="preserve">
+    <value>Trykk Slett for å fjerne</value>
+  </data>
+  <data name="Upload_Retry" xml:space="preserve">
+    <value>Prøv på nytt</value>
+  </data>
+  <data name="Upload_SelectFiles" xml:space="preserve">
+    <value>Velg filer...</value>
+  </data>
+  <data name="Upload_UploadFiles" xml:space="preserve">
+    <value>Last opp</value>
+  </data>
+  <data name="Validation_InvalidField" xml:space="preserve">
+    <value>{0} er ikke gyldig.</value>
+  </data>
+  <data name="Wizard_Done" xml:space="preserve">
+    <value>Ferdig</value>
+  </data>
+  <data name="Wizard_Next" xml:space="preserve">
+    <value>Neste</value>
+  </data>
+  <data name="Wizard_Pager" xml:space="preserve">
+    <value>Trinn {0} av {1} </value>
+  </data>
+  <data name="Wizard_Previous" xml:space="preserve">
+    <value>Tidligere</value>
+  </data>
+  <data name="Upload_UploadedState" xml:space="preserve">
+    <value>lastet opp</value>
+  </data>
+  <data name="Upload_SelectedState" xml:space="preserve">
+    <value>valgt</value>
+  </data>
+  <data name="Upload_SelectedFilesAriaLabel" xml:space="preserve">
+    <value>{0} fil(er) {1}. Trykk pil ned for å navigere.</value>
+  </data>
+  <data name="DropZone_Hint" xml:space="preserve">
+    <value>Dra og slipp filer her for å laste opp</value>
+  </data>
+  <data name="Upload_DropZoneHint" xml:space="preserve">
+    <value>Dra og slipp filer her for å laste opp</value>
+  </data>
+  <data name="FileSelect_DropZoneHint" xml:space="preserve">
+    <value>Dra og slipp filer her</value>
+  </data>
+  <data name="DropZone_Note" xml:space="preserve">
+    <value />
+  </data>
+  <data name="ColorGradient_AriaLabel" xml:space="preserve">
+    <value>Gjeldende valgt farge er {0}</value>
+  </data>
+  <data name="ColorPalette_AriaLabel" xml:space="preserve">
+    <value>Gjeldende valgt farge er {0}</value>
+  </data>
+  <data name="ColorPicker_AriaLabel" xml:space="preserve">
+    <value>Gjeldende valgt farge er {0}</value>
+  </data>
+  <data name="FlatColorPicker_AriaLabel" xml:space="preserve">
+    <value>Gjeldende valgt farge er {0}</value>
+  </data>
+  <data name="PivotGrid_GrandTotal" xml:space="preserve">
+    <value>Totalsum</value>
+  </data>
+  <data name="Filter_StringDoesNotEndWith" xml:space="preserve">
+    <value>Slutter ikke med</value>
+  </data>
+  <data name="Filter_StringDoesNotStartWith" xml:space="preserve">
+    <value>Begynner ikke med</value>
+  </data>
+  <data name="PivotGridConfiguratorButton_Text" xml:space="preserve">
+    <value>Endre innstillinger</value>
+  </data>
+  <data name="PivotGridConfigurator_Apply" xml:space="preserve">
+    <value>Søke</value>
+  </data>
+  <data name="PivotGridConfigurator_Cancel" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="PivotGridConfigurator_Columns" xml:space="preserve">
+    <value>Kolonner</value>
+  </data>
+  <data name="PivotGridConfigurator_Fields" xml:space="preserve">
+    <value>Felter</value>
+  </data>
+  <data name="PivotGridConfigurator_NoFields" xml:space="preserve">
+    <value>Velg noen felt for å starte oppsettet</value>
+  </data>
+  <data name="PivotGridConfigurator_Rows" xml:space="preserve">
+    <value>Rader</value>
+  </data>
+  <data name="PivotGridConfigurator_Settings" xml:space="preserve">
+    <value>Innstillinger</value>
+  </data>
+  <data name="PivotGridConfigurator_Values" xml:space="preserve">
+    <value>Verdier</value>
+  </data>
+  <data name="PivotGrid_GrandTotal1" xml:space="preserve">
+    <value>Totalsum</value>
+  </data>
+  <data name="PivotGrid_IncludeFields" xml:space="preserve">
+    <value>Ta med felt</value>
+  </data>
+  <data name="ColumnMenu_GroupColumn" xml:space="preserve">
+    <value>Gruppekolonne</value>
+  </data>
+  <data name="ColumnMenu_ReorderNext" xml:space="preserve">
+    <value>Flytt neste</value>
+  </data>
+  <data name="ColumnMenu_ReorderPrevious" xml:space="preserve">
+    <value>Flytt forrige</value>
+  </data>
+  <data name="ColumnMenu_UngroupColumn" xml:space="preserve">
+    <value>Fjern gruppering av kolonne</value>
+  </data>
+  <data name="ColumnMenu_SetColumnPosition" xml:space="preserve">
+    <value>Still inn kolonneposisjon</value>
+  </data>
+  <data name="Gantt_DialogMaximize" xml:space="preserve">
+    <value>Maksimer</value>
+  </data>
+  <data name="Gantt_DialogMinimize" xml:space="preserve">
+    <value>Minimer</value>
+  </data>
+  <data name="Gantt_Editor_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Gantt_Editor_Predecessors" xml:space="preserve">
+    <value>Forgjengere</value>
+  </data>
+  <data name="Gantt_Editor_Successors" xml:space="preserve">
+    <value>Etterfølgere</value>
+  </data>
+  <data name="Gantt_Editor_Other" xml:space="preserve">
+    <value>Annen</value>
+  </data>
+  <data name="Gantt_Editor_Parent" xml:space="preserve">
+    <value>Foreldre</value>
+  </data>
+  <data name="Gantt_Editor_None" xml:space="preserve">
+    <value>-Ingen-</value>
+  </data>
+  <data name="Gantt_Editor_DependencyAdd" xml:space="preserve">
+    <value>Legge til</value>
+  </data>
+  <data name="Gantt_Editor_DependencyRemove" xml:space="preserve">
+    <value>Fjerne</value>
+  </data>
+  <data name="Gantt_Editor_DependencyName" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="Gantt_Editor_DependencyType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="PivotGridConfigurator_MoveToColumns" xml:space="preserve">
+    <value>Flytt til kolonner</value>
+  </data>
+  <data name="PivotGridConfigurator_MoveToRows" xml:space="preserve">
+    <value>Flytt til rader</value>
+  </data>
+  <data name="MultiSelect_ItemsSelected" xml:space="preserve">
+    <value>{0} element(er) er valgt</value>
+  </data>
+  <data name="MultiSelect_MoreSelected" xml:space="preserve">
+    <value>{0} flere er valgt</value>
+  </data>
+  <data name="Editor_DeleteTable" xml:space="preserve">
+    <value>Slett tabell</value>
+  </data>
+  <data name="Aggregate_Average" xml:space="preserve">
+    <value>Gjennomsnittlig</value>
+  </data>
+  <data name="ListBoxToolBarTool_MoveDown" xml:space="preserve">
+    <value>Flytt ned</value>
+  </data>
+  <data name="ListBoxToolBarTool_MoveUp" xml:space="preserve">
+    <value>Flytt opp</value>
+  </data>
+  <data name="ListBoxToolBarTool_Remove" xml:space="preserve">
+    <value>Fjerne</value>
+  </data>
+  <data name="ListBoxToolBarTool_TransferAllFrom" xml:space="preserve">
+    <value>Overfør alle fra</value>
+  </data>
+  <data name="ListBoxToolBarTool_TransferAllTo" xml:space="preserve">
+    <value>Overfør alle til</value>
+  </data>
+  <data name="ListBoxToolBarTool_TransferFrom" xml:space="preserve">
+    <value>Overfør fra</value>
+  </data>
+  <data name="ListBoxToolBarTool_TransferTo" xml:space="preserve">
+    <value>Overfør til</value>
+  </data>
+  <data name="ListBox_NoData" xml:space="preserve">
+    <value>Ingen data</value>
+  </data>
+  <data name="ComboBox_Popup_AriaLabel" xml:space="preserve">
+    <value>Valgliste</value>
+  </data>
+  <data name="PdfViewer_Document_AriaLabel" xml:space="preserve">
+    <value>Dokumentvisningsport</value>
+  </data>
+  <data name="PdfViewer_SearchDialog_AriaLabel" xml:space="preserve">
+    <value>Søk dialog</value>
+  </data>
+  <data name="PopupList_AriaLabel" xml:space="preserve">
+    <value>Valgliste</value>
+  </data>
+  <data name="MultiSelect_Open" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
+  <data name="Filter_Expression_Options" xml:space="preserve">
+    <value>Filtrer operatørliste</value>
+  </data>
+  <data name="AIPrompt_OutputView_ButtonText" xml:space="preserve">
+    <value>Produksjon</value>
+  </data>
+  <data name="AIPrompt_OutputView_Copy" xml:space="preserve">
+    <value>Kopiere</value>
+  </data>
+  <data name="AIPrompt_OutputView_Retry" xml:space="preserve">
+    <value>Prøv på nytt</value>
+  </data>
+  <data name="AIPrompt_PromptView_ButtonText" xml:space="preserve">
+    <value>Spør AI</value>
+  </data>
+  <data name="AIPrompt_PromptView_Generate" xml:space="preserve">
+    <value>Generere</value>
+  </data>
+  <data name="AIPrompt_PromptView_PromptPlaceholder" xml:space="preserve">
+    <value>Spør eller generer innhold med AI</value>
+  </data>
+  <data name="AIPrompt_PromptView_SuggestionHeader" xml:space="preserve">
+    <value>Spørre forslag</value>
+  </data>
+  <data name="AIPrompt_OutputView_PromptTitle" xml:space="preserve">
+    <value>Generert med AI:</value>
+  </data>
+  <data name="Spreadsheet_AddColumnLeft" xml:space="preserve">
+    <value>Legg til kolonne til venstre</value>
+  </data>
+  <data name="Spreadsheet_AddColumnRight" xml:space="preserve">
+    <value>Legg til kolonne til høyre</value>
+  </data>
+  <data name="Spreadsheet_AddRowAbove" xml:space="preserve">
+    <value>Legg til rad over</value>
+  </data>
+  <data name="Spreadsheet_AddRowBelow" xml:space="preserve">
+    <value>Legg til rad nedenfor</value>
+  </data>
+  <data name="Spreadsheet_AlignBottom" xml:space="preserve">
+    <value>Juster bunnen</value>
+  </data>
+  <data name="Spreadsheet_AlignCenter" xml:space="preserve">
+    <value>Juster midten</value>
+  </data>
+  <data name="Spreadsheet_AlignJustify" xml:space="preserve">
+    <value>Juster begrunn</value>
+  </data>
+  <data name="Spreadsheet_AlignLeft" xml:space="preserve">
+    <value>Juster til venstre</value>
+  </data>
+  <data name="Spreadsheet_AlignMiddle" xml:space="preserve">
+    <value>Juster midten</value>
+  </data>
+  <data name="Spreadsheet_AlignRight" xml:space="preserve">
+    <value>Høyrejuster</value>
+  </data>
+  <data name="Spreadsheet_AlignTop" xml:space="preserve">
+    <value>Juster toppen</value>
+  </data>
+  <data name="Spreadsheet_BackgroundColor" xml:space="preserve">
+    <value>Bakgrunnsfarge</value>
+  </data>
+  <data name="Spreadsheet_Bold" xml:space="preserve">
+    <value>Fet</value>
+  </data>
+  <data name="Spreadsheet_Copy" xml:space="preserve">
+    <value>Kopiere</value>
+  </data>
+  <data name="Spreadsheet_Cut" xml:space="preserve">
+    <value>Kutt</value>
+  </data>
+  <data name="Spreadsheet_DefaultDownloadFileName" xml:space="preserve">
+    <value>Dokument</value>
+  </data>
+  <data name="Spreadsheet_DefaultSheetName" xml:space="preserve">
+    <value>Ark</value>
+  </data>
+  <data name="Spreadsheet_DeleteColumn" xml:space="preserve">
+    <value>Slett kolonne</value>
+  </data>
+  <data name="Spreadsheet_DeleteImage" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Spreadsheet_DeleteRow" xml:space="preserve">
+    <value>Slett rad</value>
+  </data>
+  <data name="Spreadsheet_Dialog_ClipboardErrorApplyButtonText" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Spreadsheet_Dialog_ClipboardErrorCloseButtonText" xml:space="preserve">
+    <value>Lukke</value>
+  </data>
+  <data name="Spreadsheet_Dialog_ClipboardErrorText" xml:space="preserve">
+    <value>For å fullføre denne handlingen trenger nettstedet tilgang til utklippstavlen.
+ Gå til nettleserens sikkerhetsinnstillinger og tillat utklippstavletillatelser for dette nettstedet.
+ Alternativt kan du bruke en av følgende snarveier:
+ Klipp ut = Ctrl/Cmd + X
+ Kopier = Ctrl/Cmd + C
+ Lim inn = Ctrl/Cmd + V</value>
+  </data>
+  <data name="Spreadsheet_Dialog_ClipboardErrorTitle" xml:space="preserve">
+    <value>Ingen tilgang til utklippstavlen</value>
+  </data>
+  <data name="Spreadsheet_Dialog_Close" xml:space="preserve">
+    <value>Lukke</value>
+  </data>
+  <data name="Spreadsheet_Dialog_DeleteSheetApplyButtonText" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Spreadsheet_Dialog_DeleteSheetCancelButtonText" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Spreadsheet_Dialog_DeleteSheetText" xml:space="preserve">
+    <value>Slettede arkdata vil gå tapt. Er du sikker på at du vil fortsette?</value>
+  </data>
+  <data name="Spreadsheet_Dialog_DeleteSheetTitle" xml:space="preserve">
+    <value>Slett ark</value>
+  </data>
+  <data name="Spreadsheet_Dialog_InsertLinkApplyButtonText" xml:space="preserve">
+    <value>Sett inn</value>
+  </data>
+  <data name="Spreadsheet_Dialog_InsertLinkCancelButtonText" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Spreadsheet_Dialog_InsertLinkInputPlaceholderText" xml:space="preserve">
+    <value>Linktekst</value>
+  </data>
+  <data name="Spreadsheet_Dialog_InsertLinkLabelText" xml:space="preserve">
+    <value>Link:</value>
+  </data>
+  <data name="Spreadsheet_Dialog_InsertLinkRemoveButtonText" xml:space="preserve">
+    <value>Fjern lenken</value>
+  </data>
+  <data name="Spreadsheet_Dialog_InsertLinkRequiredFieldText" xml:space="preserve">
+    <value>Linken kan ikke være tom.</value>
+  </data>
+  <data name="Spreadsheet_Dialog_InsertLinkTitle" xml:space="preserve">
+    <value>Sett inn lenke</value>
+  </data>
+  <data name="Spreadsheet_Dialog_RenameSheetApplyButtonText" xml:space="preserve">
+    <value>Gi nytt navn</value>
+  </data>
+  <data name="Spreadsheet_Dialog_RenameSheetButtonText" xml:space="preserve">
+    <value>Gi nytt navn</value>
+  </data>
+  <data name="Spreadsheet_Dialog_RenameSheetCancelButtonText" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Spreadsheet_Dialog_RenameSheetErrorText" xml:space="preserve">
+    <value>Det finnes et eksisterende ark med dette navnet. Vennligst skriv inn et annet navn.</value>
+  </data>
+  <data name="Spreadsheet_Dialog_RenameSheetLabelText" xml:space="preserve">
+    <value>Gi nytt navn til arket til:</value>
+  </data>
+  <data name="Spreadsheet_Dialog_RenameSheetPlaceholderText" xml:space="preserve">
+    <value>Arknavn</value>
+  </data>
+  <data name="Spreadsheet_Dialog_RenameSheetRequiredFieldText" xml:space="preserve">
+    <value>Arknavnet kan ikke være tomt.</value>
+  </data>
+  <data name="Spreadsheet_Dialog_RenameSheetTitle" xml:space="preserve">
+    <value>Gi nytt navn til arket</value>
+  </data>
+  <data name="Spreadsheet_DownloadFile" xml:space="preserve">
+    <value>Last ned</value>
+  </data>
+  <data name="Spreadsheet_FontFamily" xml:space="preserve">
+    <value>Fontfamilie</value>
+  </data>
+  <data name="Spreadsheet_FontSize" xml:space="preserve">
+    <value>Skriftstørrelse</value>
+  </data>
+  <data name="Spreadsheet_HorizontalAlign" xml:space="preserve">
+    <value>Horisontal justering</value>
+  </data>
+  <data name="Spreadsheet_InsertImage" xml:space="preserve">
+    <value>Sett inn bilde</value>
+  </data>
+  <data name="Spreadsheet_InsertLink" xml:space="preserve">
+    <value>Sett inn lenke</value>
+  </data>
+  <data name="Spreadsheet_Italic" xml:space="preserve">
+    <value>Kursiv</value>
+  </data>
+  <data name="Spreadsheet_MergeAllCells" xml:space="preserve">
+    <value>Slå sammen alle</value>
+  </data>
+  <data name="Spreadsheet_MergeCellsHorizontally" xml:space="preserve">
+    <value>Slå sammen horisontalt</value>
+  </data>
+  <data name="Spreadsheet_MergeCellsVertically" xml:space="preserve">
+    <value>Slå sammen vertikalt</value>
+  </data>
+  <data name="Spreadsheet_NumberFormatAutomatic" xml:space="preserve">
+    <value>Automatisk</value>
+  </data>
+  <data name="Spreadsheet_NumberFormatCurrency" xml:space="preserve">
+    <value>Valuta</value>
+  </data>
+  <data name="Spreadsheet_NumberFormatDate" xml:space="preserve">
+    <value>Dato</value>
+  </data>
+  <data name="Spreadsheet_NumberFormatDateTime" xml:space="preserve">
+    <value>Dato Tid</value>
+  </data>
+  <data name="Spreadsheet_NumberFormatDuration" xml:space="preserve">
+    <value>Varighet</value>
+  </data>
+  <data name="Spreadsheet_NumberFormatFinancial" xml:space="preserve">
+    <value>Finansiell</value>
+  </data>
+  <data name="Spreadsheet_NumberFormatNumber" xml:space="preserve">
+    <value>Tall</value>
+  </data>
+  <data name="Spreadsheet_NumberFormatPercentage" xml:space="preserve">
+    <value>Prosentdel</value>
+  </data>
+  <data name="Spreadsheet_NumberFormatText" xml:space="preserve">
+    <value>Tekst</value>
+  </data>
+  <data name="Spreadsheet_NumberFormatTime" xml:space="preserve">
+    <value>Tid</value>
+  </data>
+  <data name="Spreadsheet_OpenFile" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
+  <data name="Spreadsheet_Paste" xml:space="preserve">
+    <value>Lim inn</value>
+  </data>
+  <data name="Spreadsheet_Redo" xml:space="preserve">
+    <value>Gjenta</value>
+  </data>
+  <data name="Spreadsheet_SendImageToBack" xml:space="preserve">
+    <value>Send til baksiden</value>
+  </data>
+  <data name="Spreadsheet_SendImageToFront" xml:space="preserve">
+    <value>Bring frem</value>
+  </data>
+  <data name="Spreadsheet_SheetsBar_AddSheet" xml:space="preserve">
+    <value>Legge til</value>
+  </data>
+  <data name="Spreadsheet_SheetsBar_DeleteSheet" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Spreadsheet_SheetsBar_DuplicateSheet" xml:space="preserve">
+    <value>Kopiere</value>
+  </data>
+  <data name="Spreadsheet_SheetsBar_HideSheet" xml:space="preserve">
+    <value>Gjemme</value>
+  </data>
+  <data name="Spreadsheet_SheetsBar_MoveSheetLeft" xml:space="preserve">
+    <value>Flytt til venstre</value>
+  </data>
+  <data name="Spreadsheet_SheetsBar_MoveSheetRight" xml:space="preserve">
+    <value>Flytt til høyre</value>
+  </data>
+  <data name="Spreadsheet_SheetsBar_RenameSheetButtonText" xml:space="preserve">
+    <value>Gi nytt navn</value>
+  </data>
+  <data name="Spreadsheet_TextColor" xml:space="preserve">
+    <value>Tekstfarge</value>
+  </data>
+  <data name="Spreadsheet_TextWrap" xml:space="preserve">
+    <value>Tekstbryting</value>
+  </data>
+  <data name="Spreadsheet_ToolBar_FileMenu" xml:space="preserve">
+    <value>Fil</value>
+  </data>
+  <data name="Spreadsheet_ToolBar_FormatMenu" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="Spreadsheet_ToolBar_HomeMenu" xml:space="preserve">
+    <value>Hjem</value>
+  </data>
+  <data name="Spreadsheet_ToolBar_InsertMenu" xml:space="preserve">
+    <value>Sett inn</value>
+  </data>
+  <data name="Spreadsheet_ToolBar_ViewMenu" xml:space="preserve">
+    <value>Utsikt</value>
+  </data>
+  <data name="Spreadsheet_Underline" xml:space="preserve">
+    <value>Understrek</value>
+  </data>
+  <data name="Spreadsheet_Undo" xml:space="preserve">
+    <value>Angre</value>
+  </data>
+  <data name="Spreadsheet_VerticalAlign" xml:space="preserve">
+    <value>Vertikal justering</value>
+  </data>
+  <data name="Spreadsheet_NumberFormat" xml:space="preserve">
+    <value>Tallformat</value>
+  </data>
+  <data name="Spreadsheet_FormulaInput" xml:space="preserve">
+    <value>Formelinngang</value>
+  </data>
+  <data name="Spreadsheet_NameBox" xml:space="preserve">
+    <value>Navneboks</value>
+  </data>
+  <data name="Spreadsheet_MergeCells" xml:space="preserve">
+    <value>Slå sammen celler</value>
+  </data>
+  <data name="Spreadsheet_SheetsBar_AllSheets" xml:space="preserve">
+    <value>Alle ark</value>
+  </data>
+  <data name="Spreadsheet_DecreaseDecimal" xml:space="preserve">
+    <value>Reduser desimal</value>
+  </data>
+  <data name="Spreadsheet_GridLines" xml:space="preserve">
+    <value>Bytt rutenett</value>
+  </data>
+  <data name="Spreadsheet_IncreaseDecimal" xml:space="preserve">
+    <value>Øk desimal</value>
+  </data>
+  <data name="Spreadsheet_UnmergeCells" xml:space="preserve">
+    <value>Opphev sammenslåingen</value>
+  </data>
+  <data name="PdfViewer_DropZone_Hint" xml:space="preserve">
+    <value>Dra og slipp filer her for å laste opp</value>
+  </data>
+  <data name="Test" xml:space="preserve">
+    <value>saknas</value>
+  </data>
+  <data name="StartedApplications-1" xml:space="preserve">
+    <value>Startet applikasjoner</value>
+  </data>
+  <data name="StartedApplications-2" xml:space="preserve">
+    <value>I denne listen vises alle påbegynte applikasjoner, klikk på knappen "Åpne" til høyre for mer informasjon.</value>
+  </data>
+  <data name="StartedApplications-3" xml:space="preserve">
+    <value>Funnet</value>
+  </data>
+  <data name="StartedApplications-4" xml:space="preserve">
+    <value>startet applikasjoner</value>
+  </data>
+  <data name="StartedApplications-5" xml:space="preserve">
+    <value>Kunne ikke slette</value>
+  </data>
+  <data name="StartedApplications-6" xml:space="preserve">
+    <value>Kunne ikke slette</value>
+  </data>
+  <data name="StartedApplications-7" xml:space="preserve">
+    <value>Slettet</value>
+  </data>
+  <data name="Applications-1" xml:space="preserve">
+    <value>Innkommende søknader</value>
+  </data>
+  <data name="Applications-2" xml:space="preserve">
+    <value>I denne listen er alle innkommende applikasjoner, klikk på knappen "Åpne" for å vise flere.</value>
+  </data>
+  <data name="Applications-3" xml:space="preserve">
+    <value>I detaljvisning kan du koble applikasjonen til et nytt eller eksisterende prosjekt.</value>
+  </data>
+  <data name="Applications-4" xml:space="preserve">
+    <value>Detaljvisning og funksjoner for å lage prosjekt</value>
+  </data>
+  <data name="Applications-5" xml:space="preserve">
+    <value>Tittel</value>
+  </data>
+  <data name="Applications-6" xml:space="preserve">
+    <value>Oppdatert</value>
+  </data>
+  <data name="Applications-7" xml:space="preserve">
+    <value>Søknadstype</value>
+  </data>
+  <data name="Applications-8" xml:space="preserve">
+    <value>Produksjonsselskap</value>
+  </data>
+  <data name="Applications-9" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
+  <data name="Applications-10" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Applications-11" xml:space="preserve">
+    <value>savnet</value>
+  </data>
+  <data name="Applications-12" xml:space="preserve">
+    <value>Funnet</value>
+  </data>
+  <data name="Applications-13" xml:space="preserve">
+    <value>innkommende søknader</value>
+  </data>
+  <data name="Applications-14" xml:space="preserve">
+    <value>Kunne ikke slette</value>
+  </data>
+  <data name="Applications-15" xml:space="preserve">
+    <value>Kunne ikke slette</value>
+  </data>
+  <data name="Applications-16" xml:space="preserve">
+    <value>Slettet</value>
+  </data>
+  <data name="Sidebar-1" xml:space="preserve">
+    <value>Startet applikasjoner</value>
+  </data>
+  <data name="Sidebar-2" xml:space="preserve">
+    <value>Søknader</value>
+  </data>
+  <data name="Sidebar-3" xml:space="preserve">
+    <value>Prosjekter</value>
+  </data>
+  <data name="Sidebar-4" xml:space="preserve">
+    <value>Meldinger</value>
+  </data>
+  <data name="Sidebar-5" xml:space="preserve">
+    <value>Personale</value>
+  </data>
+  <data name="Sidebar-6" xml:space="preserve">
+    <value>Produksjonsbedrifter</value>
+  </data>
+  <data name="Sidebar-7" xml:space="preserve">
+    <value>Skjemaer</value>
+  </data>
+  <data name="Sidebar-8" xml:space="preserve">
+    <value>Innstillinger</value>
+  </data>
+  <data name="Sidebar-9" xml:space="preserve">
+    <value>Språk</value>
+  </data>
+  <data name="CheckboxSegment-1" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+  <data name="CheckboxSegment-2" xml:space="preserve">
+    <value>Ingen</value>
+  </data>
+  <data name="HourMinuteNumericTextboxSegment-1" xml:space="preserve">
+    <value>HH 'timer' mm 'minutter'</value>
+  </data>
+  <data name="ListboxDaysLocationSegment-1" xml:space="preserve">
+    <value>Dager</value>
+  </data>
+  <data name="ListboxDaysLocationSegment-2" xml:space="preserve">
+    <value>Sted</value>
+  </data>
+  <data name="ListboxDaysLocationSegment-3" xml:space="preserve">
+    <value>Legge til</value>
+  </data>
+  <data name="ListboxNameEmailAgeSegment-1" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="ListboxNameEmailAgeSegment-2" xml:space="preserve">
+    <value>E-post</value>
+  </data>
+  <data name="ListboxNameEmailAgeSegment-3" xml:space="preserve">
+    <value>Alder</value>
+  </data>
+  <data name="ListboxNameEmailAgeSegment-4" xml:space="preserve">
+    <value>Legge til</value>
+  </data>
+  <data name="ListboxNameEmailPhonenumberGenderSegment-1" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="ListboxNameEmailPhonenumberGenderSegment-2" xml:space="preserve">
+    <value>E-post</value>
+  </data>
+  <data name="ListboxNameEmailPhonenumberGenderSegment-3" xml:space="preserve">
+    <value>Telefon</value>
+  </data>
+  <data name="ListboxNameEmailPhonenumberGenderSegment-4" xml:space="preserve">
+    <value>Legge til</value>
+  </data>
+  <data name="ListboxNameGenderSegment-1" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="ListboxNameGenderSegment-2" xml:space="preserve">
+    <value>Legge til</value>
+  </data>
+  <data name="ListboxNamePricesReceivedAttendedSegment-1" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="ListboxNamePricesReceivedAttendedSegment-2" xml:space="preserve">
+    <value>Priser</value>
+  </data>
+  <data name="ListboxNamePricesReceivedAttendedSegment-3" xml:space="preserve">
+    <value>Deltok</value>
+  </data>
+  <data name="ListboxNamePricesReceivedAttendedSegment-4" xml:space="preserve">
+    <value>Legge til</value>
+  </data>
+  <data name="Organizations-1" xml:space="preserve">
+    <value>Produksjonsselskap</value>
+  </data>
+  <data name="Organizations-2" xml:space="preserve">
+    <value>Ny</value>
+  </data>
+  <data name="Organizations-3" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="Organizations-4" xml:space="preserve">
+    <value>moms</value>
+  </data>
+  <data name="Organizations-5" xml:space="preserve">
+    <value>E-post</value>
+  </data>
+  <data name="Organizations-6" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="Organizations-7" xml:space="preserve">
+    <value>Land</value>
+  </data>
+  <data name="Organizations-8" xml:space="preserve">
+    <value>Redigere</value>
+  </data>
+  <data name="Organizations-9" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Organizations-10" xml:space="preserve">
+    <value>Spare</value>
+  </data>
+  <data name="Organizations-11" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Organizations-12" xml:space="preserve">
+    <value>Linje 1</value>
+  </data>
+  <data name="Organizations-13" xml:space="preserve">
+    <value>Linje 2</value>
+  </data>
+  <data name="Organizations-14" xml:space="preserve">
+    <value>Postnummer</value>
+  </data>
+  <data name="Organizations-15" xml:space="preserve">
+    <value>By</value>
+  </data>
+  <data name="Organizations-16" xml:space="preserve">
+    <value>Tall</value>
+  </data>
+  <data name="Organizations-17" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Organizations-18" xml:space="preserve">
+    <value>Kontonummer</value>
+  </data>
+  <data name="Organizations-19" xml:space="preserve">
+    <value>IBAN</value>
+  </data>
+  <data name="Organizations-20" xml:space="preserve">
+    <value>BIC</value>
+  </data>
+  <data name="Organizations-21" xml:space="preserve">
+    <value>Brukere</value>
+  </data>
+  <data name="Organizations-22" xml:space="preserve">
+    <value>Adresser</value>
+  </data>
+  <data name="Organizations-23" xml:space="preserve">
+    <value>Telefonnummer</value>
+  </data>
+  <data name="Organizations-24" xml:space="preserve">
+    <value>Ny</value>
+  </data>
+  <data name="Organizations-25" xml:space="preserve">
+    <value>Bankinformasjon</value>
+  </data>
+  <data name="Organizations-26" xml:space="preserve">
+    <value>Legge til</value>
+  </data>
+  <data name="Organizations-27" xml:space="preserve">
+    <value>Ny</value>
+  </data>
+  <data name="Users-1" xml:space="preserve">
+    <value>Brukere</value>
+  </data>
+  <data name="Users-2" xml:space="preserve">
+    <value>Ny</value>
+  </data>
+  <data name="Users-3" xml:space="preserve">
+    <value>Fornavn</value>
+  </data>
+  <data name="Users-4" xml:space="preserve">
+    <value>Etternavn</value>
+  </data>
+  <data name="Users-5" xml:space="preserve">
+    <value>E-post</value>
+  </data>
+  <data name="Users-6" xml:space="preserve">
+    <value>Passord</value>
+  </data>
+  <data name="Users-7" xml:space="preserve">
+    <value>Adresser</value>
+  </data>
+  <data name="Users-8" xml:space="preserve">
+    <value>Bekreft passord</value>
+  </data>
+  <data name="Users-9" xml:space="preserve">
+    <value>Linje 1</value>
+  </data>
+  <data name="Users-10" xml:space="preserve">
+    <value>Linje 2</value>
+  </data>
+  <data name="Users-11" xml:space="preserve">
+    <value>Postnummer</value>
+  </data>
+  <data name="Users-12" xml:space="preserve">
+    <value>By</value>
+  </data>
+  <data name="Users-13" xml:space="preserve">
+    <value>Land</value>
+  </data>
+  <data name="Users-14" xml:space="preserve">
+    <value>Redigere</value>
+  </data>
+  <data name="Users-15" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Users-16" xml:space="preserve">
+    <value>Spare</value>
+  </data>
+  <data name="Users-17" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Users-18" xml:space="preserve">
+    <value>Telefonnumre</value>
+  </data>
+  <data name="Users-19" xml:space="preserve">
+    <value>Tall</value>
+  </data>
+  <data name="Users-20" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Users-21" xml:space="preserve">
+    <value>Aktivert statistikk</value>
+  </data>
+  <data name="Users-22" xml:space="preserve">
+    <value>Tilknyttede organisasjoner</value>
+  </data>
+  <data name="Users-23" xml:space="preserve">
+    <value>Ny tilkobling</value>
+  </data>
+  <data name="Users-24" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="Users-25" xml:space="preserve">
+    <value>Roller</value>
+  </data>
+  <data name="Users-26" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="Users-27" xml:space="preserve">
+    <value>E-post</value>
+  </data>
+  <data name="Users-28" xml:space="preserve">
+    <value>Meldinger</value>
+  </data>
+  <data name="Users-29" xml:space="preserve">
+    <value>Siste påloggingsdato</value>
+  </data>
+  <data name="Users-30" xml:space="preserve">
+    <value>Nåværende prosjekt</value>
+  </data>
+  <data name="Users-31" xml:space="preserve">
+    <value>Aktive applikasjonstyper</value>
+  </data>
+  <data name="Schemas-1" xml:space="preserve">
+    <value>Skjemaer</value>
+  </data>
+  <data name="Schemas-2" xml:space="preserve">
+    <value>Ny</value>
+  </data>
+  <data name="Schemas-3" xml:space="preserve">
+    <value>Kontroller</value>
+  </data>
+  <data name="Schemas-4" xml:space="preserve">
+    <value>Ny</value>
+  </data>
+  <data name="Schemas-5" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="Schemas-6" xml:space="preserve">
+    <value>Beskrivelse</value>
+  </data>
+  <data name="Schemas-7" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Schemas-8" xml:space="preserve">
+    <value>Verditype</value>
+  </data>
+  <data name="Schemas-9" xml:space="preserve">
+    <value>Base</value>
+  </data>
+  <data name="Schemas-10" xml:space="preserve">
+    <value>Css</value>
+  </data>
+  <data name="Schemas-11" xml:space="preserve">
+    <value>Plassholder</value>
+  </data>
+  <data name="Schemas-12" xml:space="preserve">
+    <value>Datakilde</value>
+  </data>
+  <data name="Schemas-13" xml:space="preserve">
+    <value>Søknadsskjemaside</value>
+  </data>
+  <data name="Schemas-14" xml:space="preserve">
+    <value>Bestilling av søknadsskjema</value>
+  </data>
+  <data name="Schemas-15" xml:space="preserve">
+    <value>Seksjon for søknadsskjema</value>
+  </data>
+  <data name="Schemas-16" xml:space="preserve">
+    <value>Søknadsseksjon</value>
+  </data>
+  <data name="Schemas-17" xml:space="preserve">
+    <value>Vis på skjema</value>
+  </data>
+  <data name="Schemas-18" xml:space="preserve">
+    <value>Obligatorisk</value>
+  </data>
+  <data name="Schemas-19" xml:space="preserve">
+    <value>Spare</value>
+  </data>
+  <data name="Schemas-20" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Schemas-21" xml:space="preserve">
+    <value>Redigere</value>
+  </data>
+  <data name="Schemas-22" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Schemas-23" xml:space="preserve">
+    <value>Hendelse</value>
+  </data>
+  <data name="Schemas-24" xml:space="preserve">
+    <value>Ny</value>
+  </data>
+  <data name="Schemas-25" xml:space="preserve">
+    <value>Hendelsestype</value>
+  </data>
+  <data name="Schemas-26" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="Schemas-27" xml:space="preserve">
+    <value>Uppdatera public 360 id</value>
+  </data>
+  <data name="Schemas-28" xml:space="preserve">
+    <value>Kopiere</value>
+  </data>
+  <data name="Schemas-29" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+  <data name="Schemas-30" xml:space="preserve">
+    <value>Ingen</value>
+  </data>
+  <data name="Schemas-32" xml:space="preserve">
+    <value>Opprettet</value>
+  </data>
+  <data name="Schemas-33" xml:space="preserve">
+    <value>Oppdatert</value>
+  </data>
+  <data name="Schemas-31" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="Schemas-34" xml:space="preserve">
+    <value>Ny</value>
+  </data>
+  <data name="Settings-1" xml:space="preserve">
+    <value>Handlingstyper</value>
+  </data>
+  <data name="Settings-2" xml:space="preserve">
+    <value>Ny</value>
+  </data>
+  <data name="Settings-3" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="Settings-4" xml:space="preserve">
+    <value>Spare</value>
+  </data>
+  <data name="Settings-5" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Settings-6" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="Settings-7" xml:space="preserve">
+    <value>Tittel</value>
+  </data>
+  <data name="Settings-8" xml:space="preserve">
+    <value>Redigere</value>
+  </data>
+  <data name="Settings-9" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Settings-10" xml:space="preserve">
+    <value>Spare</value>
+  </data>
+  <data name="Settings-12" xml:space="preserve">
+    <value>Kontrolltyper</value>
+  </data>
+  <data name="Settings-11" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Settings-13" xml:space="preserve">
+    <value>Budsjetttyper for prosjekter</value>
+  </data>
+  <data name="Settings-14" xml:space="preserve">
+    <value>Dokumentleveringstyper</value>
+  </data>
+  <data name="Settings-15" xml:space="preserve">
+    <value>Dokumenttyper</value>
+  </data>
+  <data name="Settings-16" xml:space="preserve">
+    <value>Hendelsestyper</value>
+  </data>
+  <data name="Settings-17" xml:space="preserve">
+    <value>Kjønn</value>
+  </data>
+  <data name="Settings-18" xml:space="preserve">
+    <value>Meldingstyper</value>
+  </data>
+  <data name="Settings-19" xml:space="preserve">
+    <value>Kravtyper</value>
+  </data>
+  <data name="Settings-20" xml:space="preserve">
+    <value>Telefonnummertyper</value>
+  </data>
+  <data name="Settings-21" xml:space="preserve">
+    <value>Reaksjonstyper</value>
+  </data>
+  <data name="Settings-22" xml:space="preserve">
+    <value>Seksjoner</value>
+  </data>
+  <data name="Settings-23" xml:space="preserve">
+    <value>Statistikk</value>
+  </data>
+  <data name="Settings-24" xml:space="preserve">
+    <value>Statuser</value>
+  </data>
+  <data name="Settings-25" xml:space="preserve">
+    <value>Meldingsdestinasjoner</value>
+  </data>
+  <data name="Settings-26" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="Settings-27" xml:space="preserve">
+    <value>Beskrivelse</value>
+  </data>
+  <data name="Settings-28" xml:space="preserve">
+    <value>Kolonner</value>
+  </data>
+  <data name="Settings-29" xml:space="preserve">
+    <value>Rader</value>
+  </data>
+  <data name="Settings-30" xml:space="preserve">
+    <value>Enhet</value>
+  </data>
+  <data name="Settings-31" xml:space="preserve">
+    <value>Offentlig</value>
+  </data>
+  <data name="Settings-32" xml:space="preserve">
+    <value>SQL-spørring</value>
+  </data>
+  <data name="Projects-1" xml:space="preserve">
+    <value>Projekt</value>
+  </data>
+  <data name="Projects-2" xml:space="preserve">
+    <value>Her er alle prosjektene. Du kan søke ved å bruke søkefeltet ovenfor eller med filtre under hver kategori. Søket i linjen ovenfor kan gjøres på to måter: enten ved å skrive inn ett eller to nøkkelord, som ikke trenger å være stavet riktig, f.eks. 'Love mi' osv., eller ved å skrive akkurat det du leter etter , for eksempel 'Vis en liste over alle prosjekter som har kvinnelige produsenter'. Du kan også eksportere listen til Excel.</value>
+  </data>
+  <data name="Projects-3" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Projects-4" xml:space="preserve">
+    <value>Tittel</value>
+  </data>
+  <data name="Projects-5" xml:space="preserve">
+    <value>Produksjonssjef</value>
+  </data>
+  <data name="Header-1" xml:space="preserve">
+    <value>Her kan du søke etter alt...</value>
+  </data>
+  <data name="Header-2" xml:space="preserve">
+    <value>Søk</value>
+  </data>
+  <data name="Header-3" xml:space="preserve">
+    <value>Logg ut</value>
+  </data>
+  <data name="Header-4" xml:space="preserve">
+    <value>Logg inn</value>
+  </data>
+  <data name="Sidebar-10" xml:space="preserve">
+    <value>Hjem</value>
+  </data>
+  <data name="Settings-33" xml:space="preserve">
+    <value>Roller</value>
+  </data>
+  <data name="Settings-34" xml:space="preserve">
+    <value>Tag</value>
+  </data>
+  <data name="Staff-1" xml:space="preserve">
+    <value>Personale</value>
+  </data>
+  <data name="Staff-2" xml:space="preserve">
+    <value>Ny</value>
+  </data>
+  <data name="Staff-3" xml:space="preserve">
+    <value>Fornavn</value>
+  </data>
+  <data name="Staff-4" xml:space="preserve">
+    <value>Etternavn</value>
+  </data>
+  <data name="Staff-5" xml:space="preserve">
+    <value>E-post</value>
+  </data>
+  <data name="Staff-6" xml:space="preserve">
+    <value>Passord</value>
+  </data>
+  <data name="Staff-7" xml:space="preserve">
+    <value>Bekreft passord</value>
+  </data>
+  <data name="Staff-8" xml:space="preserve">
+    <value>Adresser</value>
+  </data>
+  <data name="Staff-9" xml:space="preserve">
+    <value>Linje 1</value>
+  </data>
+  <data name="Staff-10" xml:space="preserve">
+    <value>Linje 2</value>
+  </data>
+  <data name="Staff-11" xml:space="preserve">
+    <value>Postnummer</value>
+  </data>
+  <data name="Staff-12" xml:space="preserve">
+    <value>By</value>
+  </data>
+  <data name="Staff-13" xml:space="preserve">
+    <value>Land</value>
+  </data>
+  <data name="Staff-14" xml:space="preserve">
+    <value>Redigere</value>
+  </data>
+  <data name="Staff-15" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Staff-16" xml:space="preserve">
+    <value>Spare</value>
+  </data>
+  <data name="Staff-17" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Staff-18" xml:space="preserve">
+    <value>Telefonnummer</value>
+  </data>
+  <data name="Staff-19" xml:space="preserve">
+    <value>Ny</value>
+  </data>
+  <data name="Staff-20" xml:space="preserve">
+    <value>Tall</value>
+  </data>
+  <data name="Staff-21" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Staff-22" xml:space="preserve">
+    <value>Aktiv statistikk</value>
+  </data>
+  <data name="Staff-23" xml:space="preserve">
+    <value>Navn</value>
+  </data>
+  <data name="Staff-24" xml:space="preserve">
+    <value>Tilknyttede organisasjoner</value>
+  </data>
+  <data name="Staff-25" xml:space="preserve">
+    <value>Ny tilkobling</value>
+  </data>
+  <data name="Staff-26" xml:space="preserve">
+    <value>Roller</value>
+  </data>
+  <data name="Staff-27" xml:space="preserve">
+    <value>E-post</value>
+  </data>
+  <data name="Staff-28" xml:space="preserve">
+    <value>Meldinger</value>
+  </data>
+  <data name="Staff-29" xml:space="preserve">
+    <value>Sist pålogget</value>
+  </data>
+  <data name="Staff-30" xml:space="preserve">
+    <value>Siste prosjekt</value>
+  </data>
+  <data name="Staff-31" xml:space="preserve">
+    <value>Aktive applikasjonstyper</value>
+  </data>
+  <data name="StartedApplications-8" xml:space="preserve">
+    <value>Detaljvisning</value>
+  </data>
+  <data name="StartedApplications-9" xml:space="preserve">
+    <value>Oppdatert</value>
+  </data>
+  <data name="StartedApplications-10" xml:space="preserve">
+    <value>Type søknad</value>
+  </data>
+  <data name="StartedApplications-11" xml:space="preserve">
+    <value>Produksjonsselskap</value>
+  </data>
+  <data name="StartedApplications-12" xml:space="preserve">
+    <value>savnet</value>
+  </data>
+  <data name="StartedApplications-13" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
+  <data name="StartedApplications-14" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="StartedApplications-15" xml:space="preserve">
+    <value>Tittel</value>
+  </data>
+  <data name="Home-1" xml:space="preserve">
+    <value>Hjem</value>
+  </data>
+  <data name="Statistics-Januari" xml:space="preserve">
+    <value>januar</value>
+  </data>
+  <data name="Statistics-Februari" xml:space="preserve">
+    <value>februar</value>
+  </data>
+  <data name="Statistics-Mars" xml:space="preserve">
+    <value>mars</value>
+  </data>
+  <data name="Statistics-April" xml:space="preserve">
+    <value>april</value>
+  </data>
+  <data name="Statistics-Maj" xml:space="preserve">
+    <value>mai</value>
+  </data>
+  <data name="Statistics-Juni" xml:space="preserve">
+    <value>juni</value>
+  </data>
+  <data name="Statistics-Juli" xml:space="preserve">
+    <value>juli</value>
+  </data>
+  <data name="Statistics-Augusti" xml:space="preserve">
+    <value>august</value>
+  </data>
+  <data name="Statistics-September" xml:space="preserve">
+    <value>september</value>
+  </data>
+  <data name="Statistics-Oktober" xml:space="preserve">
+    <value>oktober</value>
+  </data>
+  <data name="Statistics-November" xml:space="preserve">
+    <value>november</value>
+  </data>
+  <data name="Statistics-December" xml:space="preserve">
+    <value>desember</value>
+  </data>
+  <data name="Statistics-Kr" xml:space="preserve">
+    <value>sek</value>
+  </data>
+  <data name="Statistics-Man" xml:space="preserve">
+    <value>Mann</value>
+  </data>
+  <data name="Statistics-Woman" xml:space="preserve">
+    <value>Kvinne</value>
+  </data>
+  <data name="Statistics-Both" xml:space="preserve">
+    <value>Både</value>
+  </data>
+  <data name="Statistics-Other" xml:space="preserve">
+    <value>Annen</value>
+  </data>
+  <data name="Statistics-St" xml:space="preserve">
+    <value>stk</value>
+  </data>
+  <data name="Statistics-OurContributionThisYear" xml:space="preserve">
+    <value>Vår støtte i år</value>
+  </data>
+  <data name="Statistics-ProductionCompanySupportedProjects" xml:space="preserve">
+    <value>Produksjonsselskaper med flest støttede prosjekter</value>
+  </data>
+  <data name="Statistics-TotalBudgetThisYear" xml:space="preserve">
+    <value>Budsjettbeløp i år</value>
+  </data>
+  <data name="Statistics-ProducerGenders" xml:space="preserve">
+    <value>Kjønn vs produsenter</value>
+  </data>
+  <data name="Statistics-OurContributionLastYear" xml:space="preserve">
+    <value>Vår støtte i fjor</value>
+  </data>
+  <data name="Statistics-TotalBudgetLastYear" xml:space="preserve">
+    <value>Budsjettbeløp i fjor</value>
+  </data>
+  <data name="Statistics-SupportedProjectsThisYear" xml:space="preserve">
+    <value>Støtte i år</value>
+  </data>
+  <data name="Statistics-LatestIncomingDocuments" xml:space="preserve">
+    <value>Siste innkommende dokumenter</value>
+  </data>
+  <data name="Statistics-DirectorGenders" xml:space="preserve">
+    <value>Kjønn vs direktører</value>
+  </data>
+  <data name="Statistics-SupportedProjectsLastYear" xml:space="preserve">
+    <value>Støtte i fjor</value>
+  </data>
+  <data name="Statistics-LatestIncomingMessages" xml:space="preserve">
+    <value>Siste innkommende meldinger</value>
+  </data>
+  <data name="Statistics-LatestInternalDocuments" xml:space="preserve">
+    <value>Siste interne dokumenter</value>
+  </data>
+  <data name="Statistics-LatestOutgoingMessages" xml:space="preserve">
+    <value>Siste utgående meldinger</value>
+  </data>
+  <data name="Statistics-ActivityTheLastThreeYears" xml:space="preserve">
+    <value>Søknader de siste tre årene</value>
+  </data>
+  <data name="Applications-18" xml:space="preserve">
+    <value>Er du sikker?</value>
+  </data>
+  <data name="Applications-19" xml:space="preserve">
+    <value>Du vil koble denne applikasjonen til et allerede eksisterende prosjekt, er dette ok?</value>
+  </data>
+  <data name="Applications-20" xml:space="preserve">
+    <value>Ingen</value>
+  </data>
+  <data name="Applications-21" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+  <data name="Applications-22" xml:space="preserve">
+    <value>Du må bruke et unikt prosjektnummer</value>
+  </data>
+  <data name="Applications-23" xml:space="preserve">
+    <value>Du må velge en prosjektleder</value>
+  </data>
+  <data name="Applications-24" xml:space="preserve">
+    <value>Prosjektet kunne ikke opprettes</value>
+  </data>
+  <data name="Applications-25" xml:space="preserve">
+    <value>Appen kunne ikke koble til dette prosjektet</value>
+  </data>
+  <data name="Applications-26" xml:space="preserve">
+    <value>Prosjekt: </value>
+  </data>
+  <data name="Applications-27" xml:space="preserve">
+    <value>ble opprettet og har status 'Ikke fullført'</value>
+  </data>
+  <data name="Applications-17" xml:space="preserve">
+    <value>Lag prosjekt</value>
+  </data>
+  <data name="Culture-1" xml:space="preserve">
+    <value>Velg språk:</value>
+  </data>
+  <data name="Culture-2" xml:space="preserve">
+    <value>Gjeldende brukergrensesnittkultur (brukes for lokalisering):</value>
+  </data>
+  <data name="Culture-3" xml:space="preserve">
+    <value>Gjeldende trådkultur (brukes for datoer og tallformat):</value>
+  </data>
+  <data name="Culture-4" xml:space="preserve">
+    <value>svensk</value>
+  </data>
+  <data name="Culture-5" xml:space="preserve">
+    <value>engelsk</value>
+  </data>
+  <data name="Culture-6" xml:space="preserve">
+    <value>dansk</value>
+  </data>
+  <data name="Culture-7" xml:space="preserve">
+    <value>tysk</value>
+  </data>
+  <data name="Culture-8" xml:space="preserve">
+    <value>spansk</value>
+  </data>
+  <data name="Culture-9" xml:space="preserve">
+    <value>fransk</value>
+  </data>
+  <data name="Culture-10" xml:space="preserve">
+    <value>italiensk</value>
+  </data>
+  <data name="Culture-11" xml:space="preserve">
+    <value>norsk</value>
+  </data>
+  <data name="Schemas-35" xml:space="preserve">
+    <value>Velg type handling</value>
+  </data>
+  <data name="Schemas-36" xml:space="preserve">
+    <value>Mottaker</value>
+  </data>
+  <data name="Schemas-37" xml:space="preserve">
+    <value>Destinasjon</value>
+  </data>
+  <data name="Schemas-38" xml:space="preserve">
+    <value>Reaksjonsbeskrivelse</value>
+  </data>
+  <data name="Schemas-39" xml:space="preserve">
+    <value>Beskjed</value>
+  </data>
+  <data name="Schemas-40" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Schemas-41" xml:space="preserve">
+    <value>E-postmelding</value>
+  </data>
+  <data name="Schemas-42" xml:space="preserve">
+    <value>Endre status til</value>
+  </data>
+  <data name="Schemas-43" xml:space="preserve">
+    <value>Velg melding som skal slettes</value>
+  </data>
+  <data name="Schemas-44" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Schemas-45" xml:space="preserve">
+    <value>Hendelse</value>
+  </data>
+  <data name="46" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Schemas-46" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Schemas-47" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Schemas-48" xml:space="preserve">
+    <value>Meldinger</value>
+  </data>
+  <data name="Schemas-49" xml:space="preserve">
+    <value>Ingen tidligere meldinger</value>
+  </data>
+  <data name="Schemas-50" xml:space="preserve">
+    <value>Handlingstype</value>
+  </data>
+  <data name="Schemas-51" xml:space="preserve">
+    <value>Framgang</value>
+  </data>
+  <data name="Schemas-52" xml:space="preserve">
+    <value>Nytt prosesstrinn</value>
+  </data>
+  <data name="HourMinuteNumericTextboxSegment-2" xml:space="preserve">
+    <value>timer</value>
+  </data>
+  <data name="HourMinuteNumericTextboxSegment-3" xml:space="preserve">
+    <value>minutter</value>
+  </data>
+  <data name="Messages-1" xml:space="preserve">
+    <value>Dette er alle meldingene dine</value>
+  </data>
+  <data name="Messages-2" xml:space="preserve">
+    <value>Aktiver</value>
+  </data>
+  <data name="Messages-3" xml:space="preserve">
+    <value>Gå til</value>
+  </data>
+  <data name="Messages-4" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Messages-5" xml:space="preserve">
+    <value>Slettet</value>
+  </data>
+  <data name="Messages-6" xml:space="preserve">
+    <value>Ikke fullført</value>
+  </data>
+  <data name="Messages-" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Messages-8" xml:space="preserve">
+    <value>Kontoen din er aktivert!</value>
+  </data>
+  <data name="Messages-9" xml:space="preserve">
+    <value>Brukeren er aktivert!</value>
+  </data>
+  <data name="Messages-10" xml:space="preserve">
+    <value>Du kan bruke bryteren nedenfor for å velge mellom ufullstendige og fullførte meldinger, klikk på Slett når du vil slette en melding og klikk på Gå til når du vil at systemet skal ta deg til riktig område og utføre oppgaven, etter at oppgaven er fullført denne meldingen vil bli slettet.</value>
+  </data>
+  <data name="Messages-7" xml:space="preserve">
+    <value>Melding fra Fund IT</value>
+  </data>
+  <data name="Messages-11" xml:space="preserve">
+    <value>Fant:</value>
+  </data>
+  <data name="Messages-12" xml:space="preserve">
+    <value>meldinger</value>
+  </data>
+  <data name="Messages-13" xml:space="preserve">
+    <value>Tittel</value>
+  </data>
+  <data name="Messages-14" xml:space="preserve">
+    <value>Program</value>
+  </data>
+  <data name="Messages-15" xml:space="preserve">
+    <value>Beskjed</value>
+  </data>
+  <data name="Messages-16" xml:space="preserve">
+    <value>Utløpe</value>
+  </data>
+  <data name="Settings-35" xml:space="preserve">
+    <value>Innstillinger</value>
+  </data>
+  <data name="Projects-6" xml:space="preserve">
+    <value>Prosjektleder</value>
+  </data>
+  <data name="Projects-7" xml:space="preserve">
+    <value>Ikke komplett</value>
+  </data>
+  <data name="Projects-8" xml:space="preserve">
+    <value>Søknader</value>
+  </data>
+  <data name="Projects-9" xml:space="preserve">
+    <value>Organisasjon</value>
+  </data>
+  <data name="Projects-10" xml:space="preserve">
+    <value>Utsikt</value>
+  </data>
+  <data name="Header-5" xml:space="preserve">
+    <value>Vis 50 treff</value>
+  </data>
+  <data name="Header-6" xml:space="preserve">
+    <value>Vis alle treff</value>
+  </data>
+  <data name="Projects-11" xml:space="preserve">
+    <value>Program</value>
+  </data>
+  <data name="Projects-12" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Projects-13" xml:space="preserve">
+    <value>Påført</value>
+  </data>
+  <data name="Projects-14" xml:space="preserve">
+    <value>Sist brukt</value>
+  </data>
+  <data name="Projects-15" xml:space="preserve">
+    <value>Produsent</value>
+  </data>
+  <data name="Projects-16" xml:space="preserve">
+    <value>Søkt av</value>
+  </data>
+  <data name="Projects-17" xml:space="preserve">
+    <value>Administrert av</value>
+  </data>
+  <data name="Projects-18" xml:space="preserve">
+    <value>Tilbake til søk</value>
+  </data>
+  <data name="Projects-19" xml:space="preserve">
+    <value>Skriv tittelen</value>
+  </data>
+  <data name="Projects-20" xml:space="preserve">
+    <value>Skriv navn</value>
+  </data>
+  <data name="Projects-21" xml:space="preserve">
+    <value>Skriv adresse</value>
+  </data>
+  <data name="Projects-22" xml:space="preserve">
+    <value>Skriv postnummeret</value>
+  </data>
+  <data name="Projects-23" xml:space="preserve">
+    <value>Skriv by</value>
+  </data>
+  <data name="Projects-24" xml:space="preserve">
+    <value>Skriv land</value>
+  </data>
+  <data name="Projects-25" xml:space="preserve">
+    <value>Skriv navn</value>
+  </data>
+  <data name="Projects-26" xml:space="preserve">
+    <value>Skriv e-post</value>
+  </data>
+  <data name="Projects-27" xml:space="preserve">
+    <value>Skriv telefonnummer</value>
+  </data>
+  <data name="Projects-28" xml:space="preserve">
+    <value>først</value>
+  </data>
+  <data name="Projects-29" xml:space="preserve">
+    <value>siste</value>
+  </data>
+  <data name="Projects-30" xml:space="preserve">
+    <value>Oversikt</value>
+  </data>
+  <data name="Projects-31" xml:space="preserve">
+    <value>Finansiering</value>
+  </data>
+  <data name="Projects-32" xml:space="preserve">
+    <value>Framgang</value>
+  </data>
+  <data name="Projects-33" xml:space="preserve">
+    <value>Vurderinger</value>
+  </data>
+  <data name="Projects-34" xml:space="preserve">
+    <value>LOC</value>
+  </data>
+  <data name="Projects-35" xml:space="preserve">
+    <value>Fornektelser</value>
+  </data>
+  <data name="Projects-37" xml:space="preserve">
+    <value>Dokumenter</value>
+  </data>
+  <data name="Projects-38" xml:space="preserve">
+    <value>Avansert</value>
+  </data>
+  <data name="Projects-39" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Projects-36" xml:space="preserve">
+    <value>Økonomiske oversikter</value>
+  </data>
+  <data name="Applications-28" xml:space="preserve">
+    <value>Prosjektleder</value>
+  </data>
+  <data name="Projects-40" xml:space="preserve">
+    <value>Levert</value>
+  </data>
+  <data name="Projects-41" xml:space="preserve">
+    <value>Opprettet</value>
+  </data>
+  <data name="Projects-42" xml:space="preserve">
+    <value>Prosjektleder</value>
+  </data>
+  <data name="Projects-43" xml:space="preserve">
+    <value>Tittel</value>
+  </data>
+  <data name="44" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Projects-44" xml:space="preserve">
+    <value>Tidligere titler</value>
+  </data>
+  <data name="Project-45" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Projects-45" xml:space="preserve">
+    <value>Prosjektet ble oppdatert</value>
+  </data>
+  <data name="Projects-46" xml:space="preserve">
+    <value>Applikasjonen ble oppdatert.</value>
+  </data>
+  <data name="Projects-47" xml:space="preserve">
+    <value>Her lager vi det økonomiske grunnlaget for prosjektet, lager budsjetter og fordeler dem, \n\rbudsjettverktøyet nedenfor er til internt bruk og vil påvirke mottatte beløp for prosjektet, \n\rresten er kun for å vise budsjettstrukturen i prosjektet.</value>
+  </data>
+  <data name="Projects-48" xml:space="preserve">
+    <value>Tidligere støtte mottatt</value>
+  </data>
+  <data name="Projects-49" xml:space="preserve">
+    <value>Totalt utbetalt så langt</value>
+  </data>
+  <data name="Projects-50" xml:space="preserve">
+    <value>Økonomiplan godkjent</value>
+  </data>
+  <data name="Projects-51" xml:space="preserve">
+    <value>Godkjent</value>
+  </data>
+  <data name="Projects-53" xml:space="preserve">
+    <value>Godkjenne økonomiplan</value>
+  </data>
+  <data name="Projects-54" xml:space="preserve">
+    <value>Beskrivelse</value>
+  </data>
+  <data name="Projects-55" xml:space="preserve">
+    <value>Beløp</value>
+  </data>
+  <data name="Projects-56" xml:space="preserve">
+    <value>Legge til</value>
+  </data>
+  <data name="Projects-57" xml:space="preserve">
+    <value>Her lager du alle fremdriftstrinn, kalt milepæler. Hver milepæl har krav som produsenten må oppfylle før milepælen fullføres og penger sendes ut.</value>
+  </data>
+  <data name="Schemas-53" xml:space="preserve">
+    <value>Fremdrifts-ID</value>
+  </data>
+  <data name="Schemas-54" xml:space="preserve">
+    <value>En del av 100 %</value>
+  </data>
+  <data name="Schemas-55" xml:space="preserve">
+    <value>Nytt krav</value>
+  </data>
+  <data name="Schemas-56" xml:space="preserve">
+    <value>Behov</value>
+  </data>
+  <data name="Schemas-57" xml:space="preserve">
+    <value>Leveringstype</value>
+  </data>
+  <data name="Projects-58" xml:space="preserve">
+    <value>Milepæl</value>
+  </data>
+  <data name="Projects-59" xml:space="preserve">
+    <value>Sum</value>
+  </data>
+  <data name="Projects-60" xml:space="preserve">
+    <value>Utløpe</value>
+  </data>
+  <data name="Projects-61" xml:space="preserve">
+    <value>Procent</value>
+  </data>
+  <data name="Projects-62" xml:space="preserve">
+    <value>Låse opp</value>
+  </data>
+  <data name="Projects-63" xml:space="preserve">
+    <value>Låse</value>
+  </data>
+  <data name="Projects-64" xml:space="preserve">
+    <value>Behov</value>
+  </data>
+  <data name="Projects-65" xml:space="preserve">
+    <value>Levert</value>
+  </data>
+  <data name="Projects-66" xml:space="preserve">
+    <value>Vedta</value>
+  </data>
+  <data name="Projects-67" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Projects-68" xml:space="preserve">
+    <value>Slett</value>
+  </data>
+  <data name="Projects-69" xml:space="preserve">
+    <value>Velg kravtype</value>
+  </data>
+  <data name="Projects-70" xml:space="preserve">
+    <value>Legg til krav</value>
+  </data>
+  <data name="Projects-71" xml:space="preserve">
+    <value>Kansellere</value>
+  </data>
+  <data name="Projects-72" xml:space="preserve">
+    <value>Last opp!</value>
+  </data>
+  <data name="Projects-73" xml:space="preserve">
+    <value>Type levering</value>
+  </data>
+  <data name="Projects-74" xml:space="preserve">
+    <value>Betaling</value>
+  </data>
+  <data name="Projects-75" xml:space="preserve">
+    <value>Beløp</value>
+  </data>
+  <data name="Projects-76" xml:space="preserve">
+    <value>Dato</value>
+  </data>
+  <data name="Projects-77" xml:space="preserve">
+    <value>Fakturabeløp</value>
+  </data>
+  <data name="Projects-78" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="Projects-79" xml:space="preserve">
+    <value>Legg til betaling</value>
+  </data>
+  <data name="Projects-80" xml:space="preserve">
+    <value>Last opp</value>
+  </data>
+  <data name="Projects-81" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+  <data name="Projects-82" xml:space="preserve">
+    <value>Ingen</value>
+  </data>
+  <data name="Projects-83" xml:space="preserve">
+    <value>Dokumentet ble lastet opp</value>
+  </data>
+  <data name="Projects-84" xml:space="preserve">
+    <value>Prosjektledere vurderinger</value>
+  </data>
+  <data name="Projects-85" xml:space="preserve">
+    <value>Produksjonsgruppevurderinger</value>
+  </data>
+  <data name="Projects-86" xml:space="preserve">
+    <value>Beslutningsgrunnlag</value>
+  </data>
+  <data name="Documents-1" xml:space="preserve">
+    <value>ingen mal lastet inn...</value>
+  </data>
+  <data name="Documents-2" xml:space="preserve">
+    <value>Dokumentet ditt ble oppdatert</value>
+  </data>
+  <data name="Documents-3" xml:space="preserve">
+    <value>Dokumentet ditt ble opprettet</value>
+  </data>
+  <data name="Documents-4" xml:space="preserve">
+    <value>Dokumentet ditt ble slettet</value>
+  </data>
+  <data name="Documents-5" xml:space="preserve">
+    <value>Dokumentet ditt er nå signert</value>
+  </data>
+  <data name="Documents-6" xml:space="preserve">
+    <value>Dokumentet ditt er nå sendt</value>
+  </data>
+  <data name="Documents-7" xml:space="preserve">
+    <value>Dokumentet ditt er nå låst</value>
+  </data>
+  <data name="Documents-8" xml:space="preserve">
+    <value>Dokumentet ditt er nå låst opp</value>
+  </data>
+  <data name="Documents-9" xml:space="preserve">
+    <value>Dokument</value>
+  </data>
+  <data name="Documents-10" xml:space="preserve">
+    <value>Opprettet</value>
+  </data>
+  <data name="Documents-11" xml:space="preserve">
+    <value>Låst</value>
+  </data>
+  <data name="Documents-12" xml:space="preserve">
+    <value>Signert</value>
+  </data>
+  <data name="Documents-13" xml:space="preserve">
+    <value>Sendt</value>
+  </data>
+  <data name="Documents-14" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+  <data name="Documents-15" xml:space="preserve">
+    <value>Ingen</value>
+  </data>
+  <data name="Documents-16" xml:space="preserve">
+    <value>Sende</value>
+  </data>
+  <data name="Documents-17" xml:space="preserve">
+    <value>Skilt</value>
+  </data>
+  <data name="Documents-18" xml:space="preserve">
+    <value>Låse opp</value>
+  </data>
+  <data name="Documents-19" xml:space="preserve">
+    <value>Låse</value>
+  </data>
+  <data name="Documents-20" xml:space="preserve">
+    <value>Redigere</value>
+  </data>
+  <data name="Documents-21" xml:space="preserve">
+    <value>Last inn mal</value>
+  </data>
+  <data name="Documents-22" xml:space="preserve">
+    <value>Spare</value>
+  </data>
+  <data name="Documents-23" xml:space="preserve">
+    <value>Ditt nåværende dokument</value>
+  </data>
+  <data name="Documents-24" xml:space="preserve">
+    <value>Pdf forhåndsvisning</value>
+  </data>
+  <data name="25" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Documents-25" xml:space="preserve">
+    <value>pm vurdering</value>
+  </data>
+  <data name="Documents-26" xml:space="preserve">
+    <value>Her lager prosjektleder sin vurdering for prosjektet.</value>
+  </data>
+  <data name="Documents-27" xml:space="preserve">
+    <value>pc vurdering</value>
+  </data>
+  <data name="Documents-28" xml:space="preserve">
+    <value>Her lager produksjonsgruppen sin vurdering for prosjektet.</value>
+  </data>
+  <data name="Documents-29" xml:space="preserve">
+    <value>beslutningsgrunnlag</value>
+  </data>
+  <data name="Documents-30" xml:space="preserve">
+    <value>Her lager du beslutningsgrunnlaget for prosjektet.</value>
+  </data>
+  <data name="Documents-31" xml:space="preserve">
+    <value>loc</value>
+  </data>
+  <data name="Documents-32" xml:space="preserve">
+    <value>Her oppretter du lokasjon for prosjektet.</value>
+  </data>
+  <data name="Documents-33" xml:space="preserve">
+    <value>benektelse</value>
+  </data>
+  <data name="Documents-34" xml:space="preserve">
+    <value>Her oppretter du fornektelse for prosjektet.</value>
+  </data>
+  <data name="Documents-35" xml:space="preserve">
+    <value>økonomisk oversikt</value>
+  </data>
+  <data name="Documents-36" xml:space="preserve">
+    <value>Her lager du økonomisk oversikt for prosjektet.</value>
+  </data>
+  <data name="Documents-37" xml:space="preserve">
+    <value>Generell mal</value>
+  </data>
+  <data name="Documents-38" xml:space="preserve">
+    <value>general</value>
+  </data>
+  <data name="Documents-39" xml:space="preserve">
+    <value>Dokumentnavn:</value>
+  </data>
+  <data name="Documents-40" xml:space="preserve">
+    <value>Lag offisielle dokumenter</value>
+  </data>
+  <data name="Documents-41" xml:space="preserve">
+    <value>Her oppretter du offisielle dokumenter for prosjektet.</value>
+  </data>
+  <data name="Documents-42" xml:space="preserve">
+    <value>Her lager du vurderinger for prosjektet.</value>
+  </data>
+  <data name="Documents-43" xml:space="preserve">
+    <value>Velg mal:</value>
+  </data>
+  <data name="Documents-44" xml:space="preserve">
+    <value>Her er en oversikt over alle prosjektdokumentene.</value>
+  </data>
+  <data name="Documents-45" xml:space="preserve">
+    <value>Vedlegg</value>
+  </data>
+  <data name="Documents-46" xml:space="preserve">
+    <value>Prosjektledervurderinger</value>
+  </data>
+  <data name="Documents-47" xml:space="preserve">
+    <value>Milepæl og krav</value>
+  </data>
+  <data name="Documents-48" xml:space="preserve">
+    <value>Produksjonsgruppevurderinger</value>
+  </data>
+  <data name="Documents-49" xml:space="preserve">
+    <value>Annen</value>
+  </data>
+  <data name="Documents-50" xml:space="preserve">
+    <value>LOC</value>
+  </data>
+  <data name="Documents-51" xml:space="preserve">
+    <value>Beslutningsgrunnlag</value>
+  </data>
+  <data name="Documents-52" xml:space="preserve">
+    <value>Økonomiske oversikter</value>
+  </data>
+  <data name="Documents-53" xml:space="preserve">
+    <value>Dokument</value>
+  </data>
+  <data name="Documents-54" xml:space="preserve">
+    <value>Opprettet</value>
+  </data>
+  <data name="Documents-55" xml:space="preserve">
+    <value>Sendt</value>
+  </data>
+  <data name="Documents-56" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Documents-57" xml:space="preserve">
+    <value>Milepæl</value>
+  </data>
+  <data name="Documents-58" xml:space="preserve">
+    <value>Utløpe</value>
+  </data>
+  <data name="Projects-87" xml:space="preserve">
+    <value>Tidligere tittel</value>
+  </data>
+  <data name="Projects-88" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Projects-89" xml:space="preserve">
+    <value>Endre statusen til denne applikasjonen</value>
+  </data>
+  <data name="Projects-90" xml:space="preserve">
+    <value>Tilbakestill</value>
+  </data>
+  <data name="Projects-91" xml:space="preserve">
+    <value>Tilbakestill denne applikasjonen til dens opprinnelige tilstand</value>
+  </data>
+  <data name="Projects-92" xml:space="preserve">
+    <value>Prosjektleder</value>
+  </data>
+  <data name="Projects-93" xml:space="preserve">
+    <value>Endre prosjektleder for denne applikasjonen</value>
+  </data>
+  <data name="Projects-94" xml:space="preserve">
+    <value>Produksjonssjef</value>
+  </data>
+  <data name="Projects-95" xml:space="preserve">
+    <value>Endre produksjonsleder for denne applikasjonen</value>
+  </data>
+  <data name="Projects-96" xml:space="preserve">
+    <value>Kontraktssjef</value>
+  </data>
+  <data name="Projects-97" xml:space="preserve">
+    <value>Endre kontraktsansvarlig for denne applikasjonen</value>
+  </data>
+  <data name="Projects-98" xml:space="preserve">
+    <value>Distribusjonssjef</value>
+  </data>
+  <data name="Projects-99" xml:space="preserve">
+    <value>Endre distribusjonsbehandler for denne applikasjonen</value>
+  </data>
+  <data name="Projects-100" xml:space="preserve">
+    <value>Økonomisjef</value>
+  </data>
+  <data name="Projects-101" xml:space="preserve">
+    <value>Endre økonomiansvarlig for denne applikasjonen</value>
+  </data>
+  <data name="Projects-102" xml:space="preserve">
+    <value>Script Manager</value>
+  </data>
+  <data name="Projects-103" xml:space="preserve">
+    <value>Endre skriptbehandlingen for denne applikasjonen</value>
+  </data>
+  <data name="Projects-104" xml:space="preserve">
+    <value>Applikasjonen ble tilbakestilt til sin opprinnelige tilstand</value>
+  </data>
+  <data name="Projects-105" xml:space="preserve">
+    <value>Ingen</value>
+  </data>
+  <data name="Projects-106" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+  <data name="Projects-107" xml:space="preserve">
+    <value>Bekreftelse!</value>
+  </data>
+  <data name="Projects-108" xml:space="preserve">
+    <value>Er du sikker?</value>
+  </data>
+  <data name="Schemas-58" xml:space="preserve">
+    <value>Prosjektledertag</value>
+  </data>
+  <data name="Schemas-59" xml:space="preserve">
+    <value>Måneder til utløpt</value>
+  </data>
+  <data name="Schemas-60" xml:space="preserve">
+    <value>Velg krav</value>
+  </data>
+  <data name="Schemas-61" xml:space="preserve">
+    <value>Velg leveringstype</value>
+  </data>
+  <data name="Schemas-62" xml:space="preserve">
+    <value>Nødvendige dokumenter</value>
+  </data>
+  <data name="Schemas-63" xml:space="preserve">
+    <value>Dokumenttype</value>
+  </data>
+  <data name="Schemas-64" xml:space="preserve">
+    <value>Ny</value>
+  </data>
+  <data name="Documents-59" xml:space="preserve">
+    <value>Tittel</value>
+  </data>
+  <data name="Documents-60" xml:space="preserve">
+    <value>Basis</value>
+  </data>
+  <data name="Documents-61" xml:space="preserve">
+    <value>Benektelse</value>
+  </data>
+  <data name="StartedApplications-16" xml:space="preserve">
+    <value>Importera</value>
+  </data>
+  <data name="Applications-29" xml:space="preserve">
+    <value>Begär Public 360 Id</value>
+  </data>
+  <data name="Applications-30" xml:space="preserve">
+    <value>Public 360 Id har begärts</value>
+  </data>
+  <data name="Projects-109" xml:space="preserve">
+    <value>Ansökan komplett</value>
+  </data>
+  <data name="Projects-110" xml:space="preserve">
+    <value>Sätt ansökan som komplett</value>
+  </data>
+  <data name="Projects-111" xml:space="preserve">
+    <value>Färdigfinansierad</value>
+  </data>
+  <data name="Projects-112" xml:space="preserve">
+    <value>Sätt ansökan till färdigfinansierad</value>
+  </data>
+  <data name="Projects-115" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+  <data name="Projects-114" xml:space="preserve">
+    <value>Ogiltligt datum</value>
+  </data>
+  <data name="Projects-113" xml:space="preserve">
+    <value>Du behöver välja ett datum senare än idag</value>
+  </data>
+  <data name="Projects-116" xml:space="preserve">
+    <value>Public 360 möte bokat?</value>
+  </data>
+  <data name="Projects-117" xml:space="preserve">
+    <value>Ange datum för Public 360 bokat möte</value>
+  </data>
+  <data name="Projects-118" xml:space="preserve">
+    <value>Är avtalsprocessen klar?</value>
+  </data>
+  <data name="Projects-119" xml:space="preserve">
+    <value>Sätt avtalsprocess till avklarad.</value>
+  </data>
+  <data name="projects-120" xml:space="preserve">
+    <value>ATT UTFÖRA:</value>
+  </data>
+  <data name="projects-121" xml:space="preserve">
+    <value>Projektet anses vara avslutat.</value>
+  </data>
+  <data name="Schemas-65" xml:space="preserve">
+    <value>Namn</value>
+  </data>
+  <data name="Schemas-66" xml:space="preserve">
+    <value>Beskrivning</value>
+  </data>
+  <data name="Schemas-67" xml:space="preserve">
+    <value>Uppgift</value>
+  </data>
+  <data name="Schemas-68" xml:space="preserve">
+    <value>Beroende av</value>
+  </data>
+  <data name="Schemas-69" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="Schemas-70" xml:space="preserve">
+    <value>Är först</value>
+  </data>
+  <data name="Schemas-71" xml:space="preserve">
+    <value>Är sist</value>
+  </data>
+  <data name="Schemas-72" xml:space="preserve">
+    <value>Är självstående</value>
+  </data>
+  <data name="Schemas-73" xml:space="preserve">
+    <value>Til venstre får du trinnvise tips om hva du skal gjøre videre i systemet. Samtidig som du får instruksjoner, vises også knapper og verktøy som gjør det enkelt å utføre oppgavene. Følg bare tipsene, så kan du enkelt følge prosjektets fremgang.</value>
+  </data>
+  <data name="Projects-146" xml:space="preserve">
+    <value>Projektrapport</value>
+  </data>
+  <data name="Projects-145" xml:space="preserve">
+    <value>Antal projekt:</value>
+  </data>
+  <data name="Projects-122" xml:space="preserve">
+    <value>Produktionsår</value>
+  </data>
+  <data name="Projects-123" xml:space="preserve">
+    <value>Total budget</value>
+  </data>
+  <data name="Projects-144" xml:space="preserve">
+    <value>Budget summa:</value>
+  </data>
+  <data name="Projects-124" xml:space="preserve">
+    <value>Rapporterad spend</value>
+  </data>
+  <data name="Projects-143" xml:space="preserve">
+    <value>Rapporterad spend summa:</value>
+  </data>
+  <data name="Projects-125" xml:space="preserve">
+    <value>Spendkrav</value>
+  </data>
+  <data name="Projects-142" xml:space="preserve">
+    <value>Spendkrav summa:</value>
+  </data>
+  <data name="Projects-126" xml:space="preserve">
+    <value>Vår insats</value>
+  </data>
+  <data name="Projects-141" xml:space="preserve">
+    <value>Vår insats summa:</value>
+  </data>
+  <data name="Projects-127" xml:space="preserve">
+    <value>Datum signerat avtal</value>
+  </data>
+  <data name="Projects-128" xml:space="preserve">
+    <value>Inspelningsplats</value>
+  </data>
+  <data name="Projects-129" xml:space="preserve">
+    <value>Inspelningsdagar</value>
+  </data>
+  <data name="Projects-140" xml:space="preserve">
+    <value>Inspelningsdagar summa:</value>
+  </data>
+  <data name="Projects-130" xml:space="preserve">
+    <value>Inspelningsstart</value>
+  </data>
+  <data name="Projects-131" xml:space="preserve">
+    <value>Inspelningsslut</value>
+  </data>
+  <data name="Projects-132" xml:space="preserve">
+    <value>Ansökningsår</value>
+  </data>
+  <data name="Projects-133" xml:space="preserve">
+    <value>Premiärår</value>
+  </data>
+  <data name="Projects-134" xml:space="preserve">
+    <value>Inspelningskommentar</value>
+  </data>
+  <data name="Projects-135" xml:space="preserve">
+    <value>Distributör</value>
+  </data>
+  <data name="Projects-136" xml:space="preserve">
+    <value>Producenter</value>
+  </data>
+  <data name="Projects-137" xml:space="preserve">
+    <value>Manusförfattare</value>
+  </data>
+  <data name="Projects-138" xml:space="preserve">
+    <value>Regissörer</value>
+  </data>
+  <data name="Projects-139" xml:space="preserve">
+    <value>Finansgraf</value>
+  </data>
+  <data name="Projects-147" xml:space="preserve">
+    <value>Exportera till excel</value>
+  </data>
+  <data name="Projects-148" xml:space="preserve">
+    <value>Standard vy</value>
+  </data>
+  <data name="Projects-149" xml:space="preserve">
+    <value>Ekonomi vy</value>
+  </data>
+  <data name="Projects-150" xml:space="preserve">
+    <value>Produktions vy</value>
+  </data>
+  <data name="Projects-151" xml:space="preserve">
+    <value>Återställ vy</value>
+  </data>
+  <data name="Projects-152" xml:space="preserve">
+    <value>Checklista</value>
+  </data>
+  <data name="Projects-153" xml:space="preserve">
+    <value>Revisioner</value>
+  </data>
+  <data name="Account-1" xml:space="preserve">
+    <value>Bekräftelse för återställning av lösenord</value>
+  </data>
+  <data name="Account-2" xml:space="preserve">
+    <value>Ert lösenord har blivit återställt</value>
+  </data>
+  <data name="Account-3" xml:space="preserve">
+    <value>klicka här för att logga in</value>
+  </data>
+  <data name="Account-4" xml:space="preserve">
+    <value>Återställ lösenord</value>
+  </data>
+  <data name="Account-5" xml:space="preserve">
+    <value>Återställ ert lösenord.</value>
+  </data>
+  <data name="Account-6" xml:space="preserve">
+    <value>E-post</value>
+  </data>
+  <data name="Account-7" xml:space="preserve">
+    <value>Lösenord</value>
+  </data>
+  <data name="Account-8" xml:space="preserve">
+    <value>Bekräfta lösenord</value>
+  </data>
+  <data name="Account-9" xml:space="preserve">
+    <value>Återställ</value>
+  </data>
+  <data name="Account-10" xml:space="preserve">
+    <value>Skicka bekräftelse på nytt</value>
+  </data>
+  <data name="Account-11" xml:space="preserve">
+    <value>Skriv din e-post.</value>
+  </data>
+  <data name="Account-12" xml:space="preserve">
+    <value>Skicka igen</value>
+  </data>
+  <data name="Account-13" xml:space="preserve">
+    <value>Registrerings bekräftelse</value>
+  </data>
+  <data name="Account-14" xml:space="preserve">
+    <value>Vänligen kontrollera din e-post för att godkänna ditt konto.</value>
+  </data>
+  <data name="Account-15" xml:space="preserve">
+    <value>Registrera</value>
+  </data>
+  <data name="Account-16" xml:space="preserve">
+    <value>Skapa ett nytt konto.</value>
+  </data>
+  <data name="Account-17" xml:space="preserve">
+    <value>Förnamn</value>
+  </data>
+  <data name="Account-18" xml:space="preserve">
+    <value>Efternamn</value>
+  </data>
+  <data name="Account-19" xml:space="preserve">
+    <value>Använd en annan inloggningstjänst.</value>
+  </data>
+  <data name="Account-20" xml:space="preserve">
+    <value>Utloggad</value>
+  </data>
+  <data name="Account-21" xml:space="preserve">
+    <value>Ni är nu utloggad.</value>
+  </data>
+  <data name="Account-22" xml:space="preserve">
+    <value>Bekräftelse återställningskoder</value>
+  </data>
+  <data name="Account-23" xml:space="preserve">
+    <value>Du har begärt att logga in med en återställningskod. Den här inloggningen kommer inte att kommas ihåg förrän du anger en kod från autentiseringsappen vid inloggning, eller inaktiverar tvåfaktorsautentisering (2FA) och loggar in igen.</value>
+  </data>
+  <data name="Account-24" xml:space="preserve">
+    <value>Återställningskod</value>
+  </data>
+  <data name="Account-25" xml:space="preserve">
+    <value>Logga in</value>
+  </data>
+  <data name="Account-26" xml:space="preserve">
+    <value>Tvåfaktorsautentisering</value>
+  </data>
+  <data name="Account-27" xml:space="preserve">
+    <value>Din inloggning skyddas med en autentiseringsapp. Ange din autentiseringskod nedan.</value>
+  </data>
+  <data name="Account-28" xml:space="preserve">
+    <value>Autentiseringskod</value>
+  </data>
+  <data name="Account-29" xml:space="preserve">
+    <value>Kom ihåg denna enheten</value>
+  </data>
+  <data name="Account-30" xml:space="preserve">
+    <value>Om du inte har tillgång till er autentiseringsapp? Så kan ni </value>
+  </data>
+  <data name="Account-31" xml:space="preserve">
+    <value>logga in med återställningskod</value>
+  </data>
+  <data name="Account-32" xml:space="preserve">
+    <value>Använd systemkonto för att logga in.</value>
+  </data>
+  <data name="Account-33" xml:space="preserve">
+    <value>Kom ihåg mej</value>
+  </data>
+  <data name="Account-34" xml:space="preserve">
+    <value>Glömt ert lösenord?</value>
+  </data>
+  <data name="Account-35" xml:space="preserve">
+    <value>Registrera ny användare</value>
+  </data>
+  <data name="Account-36" xml:space="preserve">
+    <value>Låst</value>
+  </data>
+  <data name="Account-37" xml:space="preserve">
+    <value>Detta konto är låst, var god försök igen senare.</value>
+  </data>
+  <data name="Account-38" xml:space="preserve">
+    <value>Felaktig användare</value>
+  </data>
+  <data name="Account-39" xml:space="preserve">
+    <value>Ogiltlig återställning av lösenord</value>
+  </data>
+  <data name="Account-40" xml:space="preserve">
+    <value>Länken för återställning av lösenord är ogiltlig.</value>
+  </data>
+  <data name="Account-41" xml:space="preserve">
+    <value>Bekräftelse för glömt lösenord</value>
+  </data>
+  <data name="Account-42" xml:space="preserve">
+    <value>Var god kontrollera er e-post för återställning av lösenord.</value>
+  </data>
+  <data name="Account-43" xml:space="preserve">
+    <value>Glömt ert lösenord?</value>
+  </data>
+  <data name="Account-44" xml:space="preserve">
+    <value>Associera ert</value>
+  </data>
+  <data name="Account-45" xml:space="preserve">
+    <value>konto.</value>
+  </data>
+  <data name="Account-46" xml:space="preserve">
+    <value>Du har autentiserat dig framgångsrikt med</value>
+  </data>
+  <data name="Account-47" xml:space="preserve">
+    <value>Vänligen ange en e-postadress för den här sidan nedan och klicka på knappen Registrera för att slutföra inloggningen.</value>
+  </data>
+  <data name="Account-48" xml:space="preserve">
+    <value>Bekräfta ändring av e-post</value>
+  </data>
+  <data name="Account-49" xml:space="preserve">
+    <value>Bekräfta e-post</value>
+  </data>
+  <data name="Account-50" xml:space="preserve">
+    <value>Åtkomst nekad</value>
+  </data>
+  <data name="Account-51" xml:space="preserve">
+    <value>Ni har inte tillträde till denna resurs</value>
+  </data>
+  <data name="Account-52" xml:space="preserve">
+    <value>Tvåfaktorsautentisering (2FA)</value>
+  </data>
+  <data name="Account-53" xml:space="preserve">
+    <value>Ni har inga koder kvar.</value>
+  </data>
+  <data name="Account-54" xml:space="preserve">
+    <value>Ni måste</value>
+  </data>
+  <data name="Account-55" xml:space="preserve">
+    <value>generera ett nytt set av återställningskoder</value>
+  </data>
+  <data name="Account-56" xml:space="preserve">
+    <value>innan du kan logga in med en återställningskod.</value>
+  </data>
+  <data name="Account-57" xml:space="preserve">
+    <value>Ni har 1 kod kvar.</value>
+  </data>
+  <data name="Account-58" xml:space="preserve">
+    <value>Ni kan</value>
+  </data>
+  <data name="Account-59" xml:space="preserve">
+    <value>Ni har</value>
+  </data>
+  <data name="Account-60" xml:space="preserve">
+    <value>koder kvar.</value>
+  </data>
+  <data name="Account-61" xml:space="preserve">
+    <value>Ni bör</value>
+  </data>
+  <data name="Account-62" xml:space="preserve">
+    <value>Glöm denna webbläsaren</value>
+  </data>
+  <data name="Account-63" xml:space="preserve">
+    <value>Inaktivera tvåfaktorsautentisering (2FA)</value>
+  </data>
+  <data name="Account-64" xml:space="preserve">
+    <value>Återställ återställningskoder</value>
+  </data>
+  <data name="Account-65" xml:space="preserve">
+    <value>Autentiseringsapp</value>
+  </data>
+  <data name="Account-66" xml:space="preserve">
+    <value>Integritets- och cookiepolicyn har inte accepterats.</value>
+  </data>
+  <data name="Account-67" xml:space="preserve">
+    <value>Du måste acceptera policyn innan du kan aktivera tvåfaktorsautentisering.</value>
+  </data>
+  <data name="Account-68" xml:space="preserve">
+    <value>Sätt lösenord</value>
+  </data>
+  <data name="Account-69" xml:space="preserve">
+    <value>Sätt ditt lösenord</value>
+  </data>
+  <data name="Account-70" xml:space="preserve">
+    <value>Du har inte ett lokalt användarnamn/lösenord för den här sidan. Lägg till ett lokalt konto så att du kan logga in utan en extern inloggning.</value>
+  </data>
+  <data name="Account-71" xml:space="preserve">
+    <value>Nytt lösenord</value>
+  </data>
+  <data name="Account-72" xml:space="preserve">
+    <value>Återställ autentiseringsnyckel</value>
+  </data>
+  <data name="Account-73" xml:space="preserve">
+    <value>Om du återställer din autentiseringsnyckel kommer din autentiseringsapp inte att fungera förrän du omkonfigurerar den.</value>
+  </data>
+  <data name="Account-74" xml:space="preserve">
+    <value>Den här processen inaktiverar tvåfaktorsautentisering (2FA) tills du verifierar din autentiseringsapp. Om du inte slutför konfigurationen av din autentiseringsapp kan du förlora åtkomst till ditt konto.</value>
+  </data>
+  <data name="Account-75" xml:space="preserve">
+    <value>Personlig data</value>
+  </data>
+  <data name="Account-76" xml:space="preserve">
+    <value>Ditt konto innehåller personuppgifter som du har gett oss. Den här sidan låter dig ladda ner eller ta bort dessa uppgifter.</value>
+  </data>
+  <data name="Account-77" xml:space="preserve">
+    <value>Om du tar bort dessa uppgifter kommer ditt konto att tas bort permanent, och detta kan inte återställas.</value>
+  </data>
+  <data name="Account-78" xml:space="preserve">
+    <value>Ladda ner</value>
+  </data>
+  <data name="Account-79" xml:space="preserve">
+    <value>Radera</value>
+  </data>
+  <data name="Account-80" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+  <data name="Account-81" xml:space="preserve">
+    <value>Användarnamn</value>
+  </data>
+  <data name="Account-82" xml:space="preserve">
+    <value>Telefonnummer</value>
+  </data>
+  <data name="Account-83" xml:space="preserve">
+    <value>Spara</value>
+  </data>
+  <data name="Account-84" xml:space="preserve">
+    <value>Generera återställningskoder för tvåfaktorsautentisering (2FA)</value>
+  </data>
+  <data name="Account-85" xml:space="preserve">
+    <value>Förvara dessa koder på en säker plats.</value>
+  </data>
+  <data name="Account-86" xml:space="preserve">
+    <value>Om du förlorar din enhet och inte har återställningskoderna kommer du att förlora åtkomst till ditt konto.</value>
+  </data>
+  <data name="Account-87" xml:space="preserve">
+    <value>Generera nya återställningskoder ändrar inte de nycklar som används i autentiseringsappar. Om du vill ändra nyckeln som används i en autentiseringsapp bör du </value>
+  </data>
+  <data name="Account-88" xml:space="preserve">
+    <value>återställa din autentiseringsnyckel och sedan konfigurera om appen med den nya nyckeln.</value>
+  </data>
+  <data name="Account-89" xml:space="preserve">
+    <value>Generera återställningskoder</value>
+  </data>
+  <data name="Account-90" xml:space="preserve">
+    <value>Hantera dina externa inloggningar</value>
+  </data>
+  <data name="Account-91" xml:space="preserve">
+    <value>Registrerade inloggningstjänster inloggningar</value>
+  </data>
+  <data name="Account-92" xml:space="preserve">
+    <value>Lägg till annan tjänst för att logga in.</value>
+  </data>
+  <data name="Account-93" xml:space="preserve">
+    <value>Konfigurera autentiseringsapp</value>
+  </data>
+  <data name="Account-94" xml:space="preserve">
+    <value>To use an authenticator app go through the following steps:</value>
+  </data>
+  <data name="Account-95" xml:space="preserve">
+    <value>Ladda ner en tvåfaktorsautentiseringsapp som Microsoft Authenticator för </value>
+  </data>
+  <data name="Account-96" xml:space="preserve">
+    <value>och</value>
+  </data>
+  <data name="Account-97" xml:space="preserve">
+    <value>eller</value>
+  </data>
+  <data name="Account-98" xml:space="preserve">
+    <value>Skanna QR-koden eller ange denna nyckel</value>
+  </data>
+  <data name="Account-99" xml:space="preserve">
+    <value>i din tvåfaktorsautentiseringsapp. Mellanslag och versalisering spelar ingen roll.</value>
+  </data>
+  <data name="Account-100" xml:space="preserve">
+    <value>Lär er hur</value>
+  </data>
+  <data name="Account-101" xml:space="preserve">
+    <value>Google Authenticator för</value>
+  </data>
+  <data name="Account-102" xml:space="preserve">
+    <value>aktivera QR-kodgenereringe QR code generation</value>
+  </data>
+  <data name="Account-103" xml:space="preserve">
+    <value>När du har skannat QR-koden eller angett nyckeln ovan kommer din tvåfaktorsautentiseringsapp att ge dig en unik kod. Ange koden i bekräftelserutan nedan.</value>
+  </data>
+  <data name="Account-104" xml:space="preserve">
+    <value>Verifikationskod</value>
+  </data>
+  <data name="Account-105" xml:space="preserve">
+    <value>Verifiera</value>
+  </data>
+  <data name="Account-106" xml:space="preserve">
+    <value>Hantera e-post</value>
+  </data>
+  <data name="Account-107" xml:space="preserve">
+    <value>Skicka verifiering</value>
+  </data>
+  <data name="Account-108" xml:space="preserve">
+    <value>Ny e-post</value>
+  </data>
+  <data name="Account-109" xml:space="preserve">
+    <value>Ändra e-post</value>
+  </data>
+  <data name="Account-110" xml:space="preserve">
+    <value>Inaktivera tvåfaktorsautentisering (2FA)</value>
+  </data>
+  <data name="Account-111" xml:space="preserve">
+    <value>Den här åtgärden inaktiverar endast tvåfaktorsautentisering (2FA).</value>
+  </data>
+  <data name="Account-112" xml:space="preserve">
+    <value>Inaktivering av tvåfaktorsautentisering (2FA) ändrar inte de nycklar som används i autentiseringsappar. Om du vill ändra nyckeln som används i en autentiseringsapp bör du</value>
+  </data>
+  <data name="Account-113" xml:space="preserve">
+    <value>återställa autentiseringsnyckeln och sedan konfigurera om appen med den nya nyckeln.</value>
+  </data>
+  <data name="Account-114" xml:space="preserve">
+    <value>Inaktivera 2FA</value>
+  </data>
+  <data name="Account-115" xml:space="preserve">
+    <value>Radera personlig information</value>
+  </data>
+  <data name="Account-116" xml:space="preserve">
+    <value>Att ta bort dessa uppgifter tar permanent bort ditt konto, och det kan inte återställas.</value>
+  </data>
+  <data name="Account-117" xml:space="preserve">
+    <value>Radera min data och stäng mitt konto.</value>
+  </data>
+  <data name="Account-118" xml:space="preserve">
+    <value>Ändra lösenord</value>
+  </data>
+  <data name="Account-119" xml:space="preserve">
+    <value>Nuvarande lösenord</value>
+  </data>
+  <data name="Account-120" xml:space="preserve">
+    <value>Nytt lösenord</value>
+  </data>
+  <data name="Account-121" xml:space="preserve">
+    <value>Uppdatera lösenord</value>
+  </data>
+  <data name="Account-122" xml:space="preserve">
+    <value>Hantera API nycklar</value>
+  </data>
+  <data name="Account-123" xml:space="preserve">
+    <value>Avfärda</value>
+  </data>
+  <data name="Account-124" xml:space="preserve">
+    <value>Återställningskoder</value>
+  </data>
+  <data name="Account-125" xml:space="preserve">
+    <value>Förvara dessa koder på en säker plats.</value>
+  </data>
+  <data name="Account-126" xml:space="preserve">
+    <value>Om du förlorar din enhet och inte har återställningskoderna kommer du att förlora åtkomst till ditt konto.</value>
+  </data>
+  <data name="Account-127" xml:space="preserve">
+    <value>Lägg till authentikator app</value>
+  </data>
+  <data name="Account-128" xml:space="preserve">
+    <value>Ställ in authentikator app</value>
+  </data>
+  <data name="Account-129" xml:space="preserve">
+    <value>Återställ authentikator app</value>
+  </data>
+  <data name="Account-130" xml:space="preserve">
+    <value>Hantera ert konto</value>
+  </data>
+  <data name="Account-131" xml:space="preserve">
+    <value>Ändra era kontoinställningar</value>
+  </data>
+  <data name="Projects-154" xml:space="preserve">
+    <value>Ställ frågor om projektet här...</value>
+  </data>
+  <data name="Projects-155" xml:space="preserve">
+    <value>Assistenten</value>
+  </data>
+  <data name="Applications-31" xml:space="preserve">
+    <value>Ansökningar</value>
+  </data>
+  <data name="Applications-32" xml:space="preserve">
+    <value>Skicka in ansökan eller fortsätt på en redan påbörjad. För att påbörja en ny ansökan så väljer ni passane schema i dropdown-listan nedan. Om dropdown-listan med redan påbörjade ansökingar visas så finns minst en påbörjad ansökan. välj från denna lista direkt om ni vill fortsätta på en påbörjad ansökan.</value>
+  </data>
+  <data name="Applications-33" xml:space="preserve">
+    <value>Scheman</value>
+  </data>
+  <data name="Applications-34" xml:space="preserve">
+    <value>Välj en av följande:</value>
+  </data>
+  <data name="Applications-35" xml:space="preserve">
+    <value>Antal scheman:</value>
+  </data>
+  <data name="Applications-36" xml:space="preserve">
+    <value>Det finns inga scheman</value>
+  </data>
+  <data name="Applications-37" xml:space="preserve">
+    <value>Eller</value>
+  </data>
+  <data name="Applications-38" xml:space="preserve">
+    <value>Påbörjade ansökningar</value>
+  </data>
+  <data name="Applications-39" xml:space="preserve">
+    <value>Välj en av följande:</value>
+  </data>
+  <data name="Applications-40" xml:space="preserve">
+    <value>Påbörjad ansökan</value>
+  </data>
+  <data name="Applications-41" xml:space="preserve">
+    <value>Antal ansökningar:</value>
+  </data>
+  <data name="Applications-42" xml:space="preserve">
+    <value>Inga påbörjade ansökningar</value>
+  </data>
+  <data name="Settings-36" xml:space="preserve">
+    <value>Meddelande</value>
+  </data>
+  <data name="Messages-17" xml:space="preserve">
+    <value>Svara</value>
+  </data>
+  <data name="Messages-18" xml:space="preserve">
+    <value>Ångra</value>
+  </data>
+  <data name="Messages-21" xml:space="preserve">
+    <value>Meddelandet är skickat till producenten.</value>
+  </data>
+  <data name="Messages-19" xml:space="preserve">
+    <value>Detta är ett svar från</value>
+  </data>
+  <data name="Messages-20" xml:space="preserve">
+    <value>gällande meddelandet:</value>
+  </data>
+  <data name="Word-1" xml:space="preserve">
+    <value>Handläggarbedömning</value>
+  </data>
+  <data name="Word-2" xml:space="preserve">
+    <value>Projekt:</value>
+  </data>
+  <data name="Word-3" xml:space="preserve">
+    <value>Produktionsbolag:</value>
+  </data>
+  <data name="Word-4" xml:space="preserve">
+    <value>Producent:</value>
+  </data>
+  <data name="Word-5" xml:space="preserve">
+    <value>Regissör:</value>
+  </data>
+  <data name="Word-6" xml:space="preserve">
+    <value>Ansökningsbelopp:</value>
+  </data>
+  <data name="Word-7" xml:space="preserve">
+    <value>Totalbudget:</value>
+  </data>
+  <data name="Word-8" xml:space="preserve">
+    <value>Handläggare:</value>
+  </data>
+  <data name="Word-9" xml:space="preserve">
+    <value>Skapat av:</value>
+  </data>
+  <data name="Word-10" xml:space="preserve">
+    <value>Bedömning:</value>
+  </data>
+  <data name="Word-11" xml:space="preserve">
+    <value>Rekommendation:</value>
+  </data>
+  <data name="Word-12" xml:space="preserve">
+    <value>Produktionsguppens bedömning:</value>
+  </data>
+  <data name="Word-13" xml:space="preserve">
+    <value>Hej</value>
+  </data>
+  <data name="Word-14" xml:space="preserve">
+    <value>Tack för att ni visat intresse för att samproducera med Film i Väst.</value>
+  </data>
+  <data name="Word-15" xml:space="preserve">
+    <value>Efter handläggning och diskussion i produktionsgruppen har vi beslutat tacka nej till att samproducera projektet</value>
+  </data>
+  <data name="Word-16" xml:space="preserve">
+    <value>Vi önskar er lycka till med produktionen.</value>
+  </data>
+  <data name="Word-17" xml:space="preserve">
+    <value>Med vänlig hälsning,</value>
+  </data>
+  <data name="Word-18" xml:space="preserve">
+    <value>Produktionsgruppen</value>
+  </data>
+  <data name="Word-19" xml:space="preserve">
+    <value>Härmed bekräftas att Film i Väst kommer att investera</value>
+  </data>
+  <data name="Word-20" xml:space="preserve">
+    <value>SEK i</value>
+  </data>
+  <data name="Word-21" xml:space="preserve">
+    <value>producerad av</value>
+  </data>
+  <data name="Word-22" xml:space="preserve">
+    <value>av manusförfattaren</value>
+  </data>
+  <data name="Word-23" xml:space="preserve">
+    <value>och regisserad av</value>
+  </data>
+  <data name="Word-24" xml:space="preserve">
+    <value>Detta LoC är giltigt under förutsättning att Film i Väst kan godkänna manus, budget, finansieringsplan, distribution och andra viktiga element för Filmens produktion samt att enighet kan nås om utformningen och innehållet i ett samproduktionsavtal gällande Filmen. Filmen ska produceras enligt "Film i Västs regelverk för samproduktion".</value>
+  </data>
+  <data name="Word-25" xml:space="preserve">
+    <value>Detta LoC är giltigt till och med</value>
+  </data>
+  <data name="Word-26" xml:space="preserve">
+    <value>Beslut</value>
+  </data>
+  <data name="Word-27" xml:space="preserve">
+    <value>Ekonomisk översikt</value>
+  </data>
+  <data name="Word-28" xml:space="preserve">
+    <value>Projekt information:</value>
+  </data>
+  <data name="Word-29" xml:space="preserve">
+    <value>Projektnummer:</value>
+  </data>
+  <data name="Word-30" xml:space="preserve">
+    <value>Projektnamn:</value>
+  </data>
+  <data name="Word-31" xml:space="preserve">
+    <value>Produktionsbolag:</value>
+  </data>
+  <data name="Word-32" xml:space="preserve">
+    <value>Produktionsbolagets telefon:</value>
+  </data>
+  <data name="Word-33" xml:space="preserve">
+    <value>Produktionsbolagets mobil:</value>
+  </data>
+  <data name="Word-36" xml:space="preserve">
+    <value>Projekttyp:</value>
+  </data>
+  <data name="Word-37" xml:space="preserve">
+    <value>Budgetår:</value>
+  </data>
+  <data name="Word-38" xml:space="preserve">
+    <value>Beslutsdatum:</value>
+  </data>
+  <data name="Word-39" xml:space="preserve">
+    <value>DISPONERAT BELOPP</value>
+  </data>
+  <data name="Word-40" xml:space="preserve">
+    <value>Svensk långfilm</value>
+  </data>
+  <data name="Word-41" xml:space="preserve">
+    <value>Internationell långfilm</value>
+  </data>
+  <data name="Word-42" xml:space="preserve">
+    <value>Kortfilm</value>
+  </data>
+  <data name="Word-43" xml:space="preserve">
+    <value>Tv</value>
+  </data>
+  <data name="Word-44" xml:space="preserve">
+    <value>Dokumentär</value>
+  </data>
+  <data name="Word-45" xml:space="preserve">
+    <value>KONTERING</value>
+  </data>
+  <data name="Word-46" xml:space="preserve">
+    <value>Utbetalningskommentarer:</value>
+  </data>
+  <data name="Word-47" xml:space="preserve">
+    <value>Datum:</value>
+  </data>
+  <data name="Projects-156" xml:space="preserve">
+    <value>Compare as chart</value>
+  </data>
+  <data name="Projects-157" xml:space="preserve">
+    <value>Column</value>
+  </data>
+  <data name="Projects-158" xml:space="preserve">
+    <value>Line</value>
+  </data>
+  <data name="Projects-159" xml:space="preserve">
+    <value>Area</value>
+  </data>
+  <data name="Projects-160" xml:space="preserve">
+    <value>Staples</value>
+  </data>
+  <data name="Projects-161" xml:space="preserve">
+    <value>Donut</value>
+  </data>
+  <data name="Projects-162" xml:space="preserve">
+    <value>Waterfall</value>
+  </data>
+  <data name="Projects-163" xml:space="preserve">
+    <value>Circel</value>
+  </data>
+  <data name="Projects-164" xml:space="preserve">
+    <value>Export to PDF</value>
+  </data>
+  <data name="Projects-165" xml:space="preserve">
+    <value>Export to Excel</value>
+  </data>
+  <data name="Projects-166" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="Projects-167" xml:space="preserve">
+    <value>No data avalible.</value>
+  </data>
+  <data name="Projects-168" xml:space="preserve">
+    <value>Create Defaults</value>
+  </data>
+  <data name="Projects-169" xml:space="preserve">
+    <value>Create New</value>
+  </data>
+</root>

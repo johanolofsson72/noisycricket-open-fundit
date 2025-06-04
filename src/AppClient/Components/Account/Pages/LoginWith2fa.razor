@@ -1,0 +1,110 @@
+@page "/Account/LoginWith2fa"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using AppClient.Data
+
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+@inject IdentityRedirectManager RedirectManager
+@inject ILogger<LoginWith2fa> Logger
+
+<PageTitle>@LocalizationService.StringFromResource("Account-26")</PageTitle>
+
+<div class="mt-8 mx-auto max-w-lg">
+    <Heading1>@LocalizationService.StringFromResource("Account-26")</Heading1>
+    <StatusMessage Message="@message" />
+    <p class="my-4">@LocalizationService.StringFromResource("Account-27")</p>
+    <div class="mt-3 shadow overflow-hidden sm:rounded-md">
+        <div class="px-4 bg-white dark:bg-black sm:p-6">
+            <EditForm Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValidSubmitAsync" method="post">
+                <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
+                <input type="hidden" name="RememberMe" value="@RememberMe" />
+                <DataAnnotationsValidator />
+                <ValidationSummary class="mb-3 text-danger text-center font-semibold" />
+
+                <div class="flex flex-col gap-y-4">
+                    <div>
+                        <label for="two-factor-code" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-28")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText id="two-factor-code" type="text" @bind-Value="Input.TwoFactorCode" class="@TextInput.InputClasses" autocomplete="off" />
+                        </div>
+                        <ValidationMessage For="() => Input.TwoFactorCode" class="mt-2 text-danger text-sm" />
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <InputCheckbox id="remember-machine" @bind-Value="Input.RememberMachine" class="@CheckboxInput.InputClasses" />
+                            <label for="remember-machine" class="ml-2 block text-sm text-gray-900 dark:text-gray-50 select-none">
+                                @LocalizationService.StringFromResource("Account-29")
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <PrimaryButton type="submit">@LocalizationService.StringFromResource("Account-25")</PrimaryButton>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+<p class="mt-4">
+    @LocalizationService.StringFromResource("Account-30")
+    <HyperLink class="font-semibold" id="recovery-code-login" href=@($"Account/LoginWithRecoveryCode?ReturnUrl={ReturnUrl}")>@LocalizationService.StringFromResource("Account-31")</HyperLink>.
+</p>
+
+@code {
+    private string? message;
+    private User user = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery]
+    private bool RememberMe { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Ensure the user has gone through the username & password screen first
+        user = await SignInManager.GetTwoFactorAuthenticationUserAsync() ??
+            throw new InvalidOperationException("Unable to load two-factor authentication user.");
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        var authenticatorCode = Input.TwoFactorCode!.Replace(" ", string.Empty).Replace("-", string.Empty);
+        var result = await SignInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, RememberMe, Input.RememberMachine);
+        var userId = await UserManager.GetUserIdAsync(user);
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", userId);
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("User with ID '{UserId}' account locked out.", userId);
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            Logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", userId);
+            message = "Error: Invalid authenticator code.";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Text)]
+        [Display(Name = "Authenticator code")]
+        public string? TwoFactorCode { get; set; }
+
+        [Display(Name = "Remember this machine")]
+        public bool RememberMachine { get; set; }
+    }
+}

@@ -1,0 +1,186 @@
+@using System.Text.RegularExpressions
+@using global::Shared.Projects.DTOs
+
+@inject IJSRuntime JS
+
+@if (ChartMetas is null || ChartMetas.Count == 0 || ActiveTabIndex >= ChartMetas.Count)
+{
+    <p>@LocalizationService.StringFromResource("Projects-166")</p>
+}
+else
+{
+    
+    @if (ChartMetas.Any() && ChartData.Any())
+    {
+        <div class="d-flex align-items-center mb-3">
+            <TelerikButton OnClick="@ExportActiveChartAsPdf" Icon="FontIcon.FilePdf" Class="me-2">
+                @LocalizationService.StringFromResource("Projects-164")
+            </TelerikButton>
+
+            <TelerikButton OnClick="@ExportToExcel" Icon="FontIcon.FileExcel" Class="me-2">
+                @LocalizationService.StringFromResource("Projects-165")
+            </TelerikButton>
+        </div>
+
+        <TelerikTabStrip ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged="@OnTabSelect">
+            @for (var i = 0; i < ChartMetas.Count; i++)
+            {
+                var cm = ChartMetas[i];
+                if (cm is null) continue;
+                var title = cm.Label;
+                var id = $"chart-container-{i}";
+                <TabStripTab Title="@title">
+                    <div id="@id">
+                        <TelerikChart>
+                            <ChartTitle Text="@title"/>
+                            <ChartSeriesItems>
+                                <ChartSeries Type="@cm.Type"
+                                             Data="@ChartData[cm.Label]"
+                                             Name="@cm.Label"
+                                             Field="Value"
+                                             CategoryField="Category"
+                                             Color="@GetSeriesColor(cm.Label)"/>
+                            </ChartSeriesItems>
+                            <ChartCategoryAxes>
+                                <ChartCategoryAxis>
+                                    <ChartCategoryAxisLabels>
+                                        <ChartCategoryAxisLabelsRotation Angle="45"/>
+                                    </ChartCategoryAxisLabels>
+                                </ChartCategoryAxis>
+                            </ChartCategoryAxes>
+                            <ChartTooltip Visible="true"/>
+                        </TelerikChart>
+                    </div>
+                </TabStripTab>
+            }
+        </TelerikTabStrip>
+    }
+    else
+    {
+        <p class="p-4 text-muted">@LocalizationService.StringFromResource("Projects-167")</p>
+    }
+}
+
+
+@code {
+    [Parameter] public List<ProjectSearchResultDto> ProjectList { get; set; } = new();
+    [Parameter] public string Field { get; set; } = string.Empty;
+    
+    private int ActiveTabIndex = 0;
+    private List<ChartMeta> ChartMetas { get; set; } = new();
+    private Dictionary<string, List<ChartDatum>> ChartData { get; set; } = new();
+    private Dictionary<string, string> SeriesColors { get; set; } = new();
+    
+    private string GetRandomColor()
+    {
+        var rand = new Random();
+        return $"#{rand.Next(0x1000000):X6}";
+    }
+    
+    private void OnTabSelect(int index)
+    {
+        if (index >= 0 && index < ChartMetas.Count)
+        {
+            ActiveTabIndex = index;
+        }
+        var selectedLabel = ChartMetas[index].Label;
+        SeriesColors[selectedLabel] = GetRandomColor();
+    }
+    
+    private string GetSeriesColor(string label)
+    {
+        if (!SeriesColors.ContainsKey(label))
+            SeriesColors[label] = GetRandomColor();
+
+        return SeriesColors[label];
+    }
+    
+    private async Task ExportActiveChartAsPdf()
+    {
+        if (ActiveTabIndex < 0 || ActiveTabIndex >= ChartMetas.Count)
+            return;
+        
+        var chartId = $"chart-container-{ActiveTabIndex}";
+        await JS.InvokeVoidAsync("exportChartToPdf", chartId, $"diagram-{ActiveTabIndex}.pdf");
+    }
+
+    protected override void OnInitialized()
+    {
+        ChartMetas = new List<ChartMeta>
+        {
+            new() { Label = @LocalizationService.StringFromResource("Projects-157"), Type = (ChartSeriesType)Telerik.Blazor.ChartSeriesType.Column },
+            new() { Label = @LocalizationService.StringFromResource("Projects-158"), Type = (ChartSeriesType)Telerik.Blazor.ChartSeriesType.Line },
+            new() { Label = @LocalizationService.StringFromResource("Projects-159"), Type = (ChartSeriesType)Telerik.Blazor.ChartSeriesType.Area },
+            new() { Label = @LocalizationService.StringFromResource("Projects-160"), Type = (ChartSeriesType)Telerik.Blazor.ChartSeriesType.Bar },
+            new() { Label = @LocalizationService.StringFromResource("Projects-161"), Type = (ChartSeriesType)Telerik.Blazor.ChartSeriesType.Donut },
+            new() { Label = @LocalizationService.StringFromResource("Projects-162"), Type = (ChartSeriesType)Telerik.Blazor.ChartSeriesType.Waterfall },
+            new() { Label = @LocalizationService.StringFromResource("Projects-163"), Type = (ChartSeriesType)Telerik.Blazor.ChartSeriesType.Pie }
+
+        };
+
+        foreach (var meta in ChartMetas)
+        {
+            ChartData[meta.Label] = ProjectList
+                .Where(p => p.Applications?.Any() == true)
+                .Select(p => new ChartDatum
+                {
+                    Category = Regex.Unescape(p.Title) ?? "(nn)",
+                    Value = p.Applications.Sum(a => GetValueByField(a, Field))
+                })
+                .ToList();
+        }
+    }
+
+    private static double GetValueByField(ProjectApplicationSearchResultDto app, string field)
+    {
+        if (app == null || string.IsNullOrWhiteSpace(field)) return 0;
+
+        return field switch
+        {
+            "ProductionYear" => app.ProductionYear,
+            "ApplicationYear" => app.ApplicationYear,
+            "PremiereYear" => app.PremiereYear,
+            "RecordingDays" => app.RecordingDays,
+            "TotalBudget" => (double)app.TotalBudget,
+            "ReportedSpend" => (double)app.ReportedSpend,
+            "SpendRequirement" => (double)app.SpendRequirement,
+            "OurContribution" => (double)app.OurContribution,
+            _ => 0
+        };
+    }
+    
+    private async Task ExportToExcel()
+    {
+        if (ProjectList?.Any() != true || string.IsNullOrWhiteSpace(Field))
+            return;
+
+        using var workbook = new ClosedXML.Excel.XLWorkbook();
+        var worksheet = workbook.AddWorksheet("Diagramdata");
+
+        // Header
+        worksheet.Cell(1, 1).Value = "Title";
+        worksheet.Cell(1, 2).Value = Field;
+
+        // Data
+        int row = 2;
+        foreach (var project in ProjectList)
+        {
+            var value = project.Applications?.Sum(a => GetValueByField(a, Field)) ?? 0;
+            worksheet.Cell(row, 1).Value = project.Title ?? "(okänt)";
+            worksheet.Cell(row, 2).Value = value;
+            row++;
+        }
+
+        // Format
+        worksheet.Columns().AdjustToContents();
+
+        // Returnera som nedladdningsbar fil
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        stream.Position = 0;
+
+        var fileName = $"diagramdata-{Field}.xlsx";
+        await JS.InvokeVoidAsync("BlazorDownloadFile", fileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", stream.ToArray());
+    }
+
+}

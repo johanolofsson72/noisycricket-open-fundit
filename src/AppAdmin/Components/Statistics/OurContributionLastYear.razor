@@ -1,0 +1,18 @@
+@using global::Shared.Extensions
+@inject IConfiguration Configuration
+
+<div style="width: 100%; text-align: right; font-size: 2.2vw;">@TotalBudget.FormatNumber(2)@* @LocalizationService.StringFromResource("Statistics-Kr")*@</div>
+
+@code {
+    [Parameter] public decimal TotalBudget { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (Configuration.GetValue<bool>("DemoMode"))
+        {
+            TotalBudget = new Bogus.Faker().Random.Decimal(10000000, 100000000);
+            StateHasChanged();
+        }
+    }
+
+}

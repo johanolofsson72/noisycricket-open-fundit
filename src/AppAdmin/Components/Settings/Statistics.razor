@@ -1,0 +1,196 @@
+
+@using global::Shared.Global.Services
+@using global::Shared.Statistics.DTOs
+@using global::Shared.Statistics.Services
+
+
+@inject StatisticService StatisticService
+
+<style>
+    div.k-grid tbody tr{
+        height: 40px !important;
+        white-space: nowrap!important;
+    }
+    div.k-grid th a, .k-virtual-scrollable-wrap td {
+        white-space: nowrap!important;
+    }
+    #grid th a, .k-virtual-scrollable-wrap td {
+        white-space: nowrap!important;
+    }
+</style>
+
+<h5>@LocalizationService.StringFromResource("Settings-23")</h5>
+
+<TelerikGrid @ref="GridRef" 
+             Data="@Items"
+             ConfirmDelete="true"
+             EditMode="@GridEditMode.Popup"
+             Pageable="true"
+             PageSize="12"
+             OnUpdate="@UpdateHandler"
+             OnDelete="@DeleteHandler"
+             OnModelInit="@(() => new StatisticDto())">
+    <GridToolBarTemplate>
+        <GridCommandButton Enabled="@Enabled" Command="Add" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Settings-2")</GridCommandButton>
+    </GridToolBarTemplate>
+    <GridSettings>
+        <GridPopupEditSettings Width="550px" MaxHeight="95vh" MaxWidth="95vw"></GridPopupEditSettings>
+        <GridPopupEditFormSettings Context="formContext">
+            <FormTemplate>
+                @{
+                    EditItem = formContext.Item as StatisticDto;
+                    if (EditItem is null) return;
+                    <TelerikForm Model="@EditItem"
+                                 ColumnSpacing="20px"
+                                 Columns="2"
+                                 ButtonsLayout="@FormButtonsLayout.Stretch"
+                                 OnValidSubmit="@UpdateHandler">
+                        <FormItems>
+                            <FormItem Field="@nameof(StatisticDto.Name)" LabelText="@LocalizationService.StringFromResource("Settings-26")"></FormItem>
+                            <FormItem Field="@nameof(StatisticDto.Description)" LabelText="@LocalizationService.StringFromResource("Settings-27")">
+                                <Template>
+                                    <label>@LocalizationService.StringFromResource("Settings-27")
+                                        <TelerikTextArea @bind-Value="@EditItem.Description" Width="100%" Rows="2"></TelerikTextArea>
+                                    </label>
+                                </Template>
+                            </FormItem>
+                            <FormItem Field="@nameof(StatisticDto.Columns)" LabelText="@LocalizationService.StringFromResource("Settings-28")"></FormItem>
+                            <FormItem Field="@nameof(StatisticDto.Rows)" LabelText="@LocalizationService.StringFromResource("Settings-29")"></FormItem>
+                            <FormItem Field="@nameof(StatisticDto.Unit)" LabelText="@LocalizationService.StringFromResource("Settings-30")"></FormItem>
+                            <FormItem Field="@nameof(StatisticDto.IsPublic)" LabelText="@LocalizationService.StringFromResource("Settings-31")"></FormItem>
+                            <FormItem Field="@nameof(StatisticDto.Query)" LabelText="@LocalizationService.StringFromResource("Settings-32")">
+                                <Template>
+                                    <label>@LocalizationService.StringFromResource("Settings-32")
+                                        <TelerikTextArea @bind-Value="@EditItem.Query" Width="100%" Rows="10"></TelerikTextArea>
+                                    </label>
+                                </Template>
+                            </FormItem>
+                        </FormItems>
+                        <FormButtons>
+                            <TelerikButton Enabled="@Enabled" Icon="@nameof(SvgIcon.Save)">@LocalizationService.StringFromResource("Settings-4")</TelerikButton>
+                            <TelerikButton Enabled="@Enabled" Icon="@nameof(SvgIcon.Cancel)" ButtonType="@ButtonType.Button" @onclick="CancelHandler">@LocalizationService.StringFromResource("Settings-5")</TelerikButton>
+                        </FormButtons>
+                    </TelerikForm>
+                }
+            </FormTemplate>
+        </GridPopupEditFormSettings>
+    </GridSettings>
+    <GridColumns>
+        <GridColumn Field="@nameof(StatisticDto.Id)" Title="@LocalizationService.StringFromResource("Settings-6")" />
+        <GridColumn Field="@nameof(StatisticDto.Name)" Title="@LocalizationService.StringFromResource("Settings-26")" />
+        <GridColumn Field="@nameof(StatisticDto.Columns)" Title="@LocalizationService.StringFromResource("Settings-28")" />
+        <GridColumn Field="@nameof(StatisticDto.Rows)" Title="@LocalizationService.StringFromResource("Settings-29")" />
+        <GridColumn Field="@nameof(StatisticDto.Unit)" Title="@LocalizationService.StringFromResource("Settings-30")" />
+        <GridColumn Field="@nameof(StatisticDto.IsPublic)" Title="@LocalizationService.StringFromResource("Settings-31")" />
+        <GridCommandColumn Context="item" Width="200px">
+            <GridCommandButton Enabled="@Enabled" Command="Edit" Icon="@SvgIcon.Pencil" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Settings-8")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Settings-9")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" Command="Save" Icon="SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" ShowInEdit="true">@LocalizationService.StringFromResource("Settings-10")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" Command="Cancel" Icon="SvgIcon.Cancel" ShowInEdit="true">@LocalizationService.StringFromResource("Settings-11")</GridCommandButton>
+        </GridCommandColumn>
+    </GridColumns>
+</TelerikGrid>
+
+@code {
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    private TelerikGrid<StatisticDto> GridRef { get; set; } = new();
+    private List<StatisticDto> Items { get; set; } = default!;
+    private StatisticDto? EditItem { get; set; } = new();
+    private List<int> RequiredItems { get; set; } = Enumerable.Range(1, 41).ToList();
+    private bool Enabled { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var result = await StatisticService.AllStatisticsAsync();
+        
+        if (!result.IsOk) return;
+        
+        Items = result.Value.ToList() ?? [];
+    }
+
+    private async Task UpdateHandler()
+    {
+        var item = EditItem;
+        
+        if (item is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        if (item.Id == 0)
+        {
+            var result = await StatisticService.CreateStatisticAsync(new CreateStatisticDto()
+            {
+                Name = item.Name,
+                Description = item.Description,
+                Query = item.Query,
+                Unit = item.Unit,
+                Columns = item.Columns,
+                Rows = item.Rows,
+                IsPublic = item.IsPublic
+            }, new CancellationToken());
+        }
+        else
+        {
+            var result = await StatisticService.UpdateStatisticAsync(item.Id, new UpdateStatisticDto()
+            {
+                Name = item.Name,
+                Description = item.Description,
+                Query = item.Query,
+                Unit = item.Unit,
+                Columns = item.Columns,
+                Rows = item.Rows,
+                IsPublic = item.IsPublic
+            }, new CancellationToken());
+        }
+        
+        await LoadData();
+        await ExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task DeleteHandler(GridCommandEventArgs args)
+    {
+        var item = (StatisticDto)args.Item;
+
+        if (RequiredItems.Contains(item.Id)) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await StatisticService.DeleteStatisticAsync(item.Id, new CancellationToken());
+        
+        await LoadData();
+        await ExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CancelHandler()
+    {
+        await ExitEditAsync();
+    }
+    
+    private async Task ExitEditAsync()
+    {
+        var state = GridRef.GetState();
+        state.OriginalEditItem = null!;
+        state.EditItem = null!;
+        state.InsertedItem = null!;
+        await GridRef.SetStateAsync(state);
+    }
+
+
+}

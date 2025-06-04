@@ -1,0 +1,35 @@
+@page "/Account/Manage/PersonalData"
+
+@inject IdentityUserAccessor UserAccessor
+
+<PageTitle>@LocalizationService.StringFromResource("Account-75")</PageTitle>
+
+<Heading3>@LocalizationService.StringFromResource("Account-75")</Heading3>
+
+<div class="max-w-xl">
+    <StatusMessage />
+
+    <div class="flex flex-col gap-4">
+        <p>@LocalizationService.StringFromResource("Account-76")</p>
+        <p>
+            <strong>@LocalizationService.StringFromResource("Account-77")</strong>
+        </p>
+        <form id="download-data" action="Account/Manage/DownloadPersonalData" method="post">
+            <AntiforgeryToken />
+            <PrimaryButton type="submit">@LocalizationService.StringFromResource("Account-78")</PrimaryButton>
+        </form>
+        <p>
+            <PrimaryButton Style="ButtonStyle.Red" id="delete" href="Account/Manage/DeletePersonalData">@LocalizationService.StringFromResource("Account-79")</PrimaryButton>
+        </p>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    private HttpContext httpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _ = await UserAccessor.GetRequiredUserAsync(httpContext);
+    }
+}

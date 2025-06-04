@@ -1,0 +1,324 @@
+@using global::Shared.Applications.Entities
+@using global::Shared.Milestones.Services
+@using AppAdmin.Components.Segments
+@using AppAdmin.State
+
+@inject NavigationManager NavigationManager
+@inject ApplicationService ApplicationService
+@inject IConfiguration Configuration
+@inject NotificationService NotificationService
+@inject MilestoneService MilestoneService
+
+<style>
+    .k-form .k-form-legend, .k-form-inline .k-form-legend {
+        display: none;
+    }
+</style>
+
+@if (Application.Id > 0)
+{
+<TelerikForm Model="@Application">
+    <FormValidation>
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+    </FormValidation>
+    <FormItems>
+        <FormGroup Columns="3" ColumnSpacing="25px">
+            <FormItem ColSpan="3">
+                <Template>
+                    <p style="white-space: pre-wrap; margin-bottom: -7px">
+                        @LocalizationService.StringFromResource("Projects-47")
+                    </p>
+                </Template>
+            </FormItem>
+            
+            <FormGroup Columns="2" ColumnSpacing="25px">
+                <FormItem>
+                    <Template>
+                        <SegmentHandler Control="EarlierControl" Readonly="true"/>
+                    </Template>
+                </FormItem>
+                <FormItem><Template>&nbsp;</Template></FormItem>
+                <FormItem>
+                    <Template>
+                        <SegmentHandler Control="PayoutControl" Readonly="true"/>
+                    </Template>
+                </FormItem>
+                <FormItem><Template>&nbsp;</Template></FormItem>
+                <FormItem>
+                    <Template>
+                        <SegmentHandler Control="EconomyControl" Readonly="true"/>
+                    </Template>
+                </FormItem>
+                <FormItem><Template>&nbsp;</Template></FormItem>
+                @if (BudgetsApproved)
+                {
+                    <FormItem>
+                        <Template>
+                            <SegmentHandler Control="ApprovedControl" Readonly="true"/>
+                        </Template>
+                    </FormItem>
+                    <FormItem><Template>&nbsp;</Template></FormItem>
+                }
+                else
+                {
+                    <FormItem><Template>&nbsp;</Template></FormItem>
+                    <FormItem><Template>&nbsp;</Template></FormItem>
+                }
+                
+
+
+            </FormGroup>
+            <FormGroup ColumnSpacing="25px">
+                <FormItem>
+                    <Template>
+                        <SegmentHandler Control="BudgetControl" OnSegmentControlChanged="@((c) => OnControlChanged(c))"/>
+                    </Template>
+                </FormItem>
+                <FormItem>
+                    <Template>
+                        <SegmentHandler Control="AppliedControl" OnSegmentControlChanged="@((c) => OnControlChanged(c))"/>
+                    </Template>
+                </FormItem>
+                <FormItem>
+                    <Template>
+                        <SegmentHandler Control="OurContributionControl" OnSegmentControlChanged="@((c) => OnControlChanged(c))"/>
+                    </Template>
+                </FormItem>
+                <FormItem>
+                    <Template>
+                        <SegmentHandler Control="ProcentControl" Readonly="true"/>
+                    </Template>
+                </FormItem>
+            </FormGroup>
+            <FormGroup>
+
+                @if (BudgetsApproved)
+                {
+                    <FormItem>
+                        <Template>
+                            <TelerikChart Width="100%" Height="280px" @ref="TelerikChart1">
+
+                                <ChartSeriesItems>
+                                    <ChartSeries Type="ChartSeriesType.Donut"
+                                                 Data="@BudgetData"
+                                                 ExplodeField="@nameof(DonutData.IsSeparated)"
+                                                 ColorField="@nameof(DonutData.SegmentColor)"
+                                                 Field="@nameof(DonutData.SegmentValue)"
+                                                 CategoryField="@nameof(DonutData.SegmentName)">
+                                    </ChartSeries>
+                                </ChartSeriesItems>
+
+                                <ChartTitle Text="Budget allocation for the project"></ChartTitle>
+
+                                <ChartLegend Position="ChartLegendPosition.Right" />
+
+                            </TelerikChart>
+                        </Template>
+                    </FormItem>
+                }
+                else
+                {
+                    <FormItem><Template>&nbsp;</Template></FormItem>
+                }
+            </FormGroup>
+            
+        </FormGroup>
+        <FormGroup Columns="3" ColumnSpacing="25px">
+            @foreach (var budgetType in AppState.ApplicationBudgetTypes.Where(x => x.OrganizationApplicationBudgetTypeIdentifier > 1).ToList())
+            {
+                <FormItem ColSpan="1">
+                    <Template>
+                        <ProjectApplicationFinancingBudget Application="@Application"
+                                                           ApplicationBudgetType="@(new ApplicationBudgetTypeDto { Id = budgetType.OrganizationApplicationBudgetTypeIdentifier, Names = budgetType.Names })"                                                          
+                                                           OnUpdatedBudget="(c) => OnBudgetUpdate(c)" />
+                        <Spacer Height="30px" />
+                        </Template>
+                </FormItem>
+            }
+            <FormItem ColSpan="3">
+                <Template>
+                    <div style="display: flex; flex-direction: row">
+                        <TelerikButton Enabled="@(!BudgetsApproved && Enabled)" ThemeColor="@(ThemeConstants.Button.ThemeColor.Secondary)" @onclick="HandleApproveSubmit">@LocalizationService.StringFromResource("Projects-53")</TelerikButton>
+                    </div>
+                </Template>
+            </FormItem>
+        </FormGroup>
+    </FormItems>
+    <FormButtons />
+</TelerikForm>
+}
+
+@code {
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public int ApplicationId { get; set; } 
+    [Parameter] public EventCallback<int> OnUpdated { get; set; }
+    
+    private ApplicationControlDto BudgetControl { get; set; } = new ();
+    private ApplicationControlDto AppliedControl { get; set; } = new ();
+    private ApplicationControlDto OurContributionControl { get; set; } = new ();
+    private ApplicationControlDto PayoutControl { get; set; } = new ();
+    private ApplicationControlDto EarlierControl { get; set; } = new ();
+    private ApplicationControlDto EconomyControl { get; set; } = new ();
+    private ApplicationControlDto ApprovedControl { get; set; } = new ();
+    private ApplicationControlDto ProcentControl { get; set; } = new ();
+    private bool Enabled { get; set; } = true;
+    
+    private EconomyApplicationDto Application { get; set; } = new ();
+    TelerikChart TelerikChart1 { get; set; } = new TelerikChart();
+    private bool BudgetsApproved { get; set; } = false;
+    private int BudgetsCount { get; set; } = 0;
+    private DateTime BudgetsApprovedDate { get; set; } = DateTime.MinValue;
+    private List<DonutData> BudgetData { get; set; } = new List<DonutData>();
+    private List<string> Colors { get; set; } = new List<string> { "#FF8C42", "#1b6ec2", "#009FFD", "#A30000", "#70AE6E", "#F9DC5C", "#7DDF64", "#8A4F7D" };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        var result = await ApplicationService.EconomyApplicationByIdAsync(ApplicationId, new CancellationToken());
+        if (!result.IsOk) return;
+
+        Application = result.Value;
+
+        var applicationBudgets = Application.InternalBudgets.ToList();
+
+        BudgetsCount = 0;
+        BudgetsApproved = false;
+        BudgetsApprovedDate = DateTime.MinValue;
+        BudgetData = new List<DonutData>();
+
+        foreach (var item in applicationBudgets)
+        {
+            BudgetsCount++;
+            if (item.ApprovedDate == DateTime.MinValue)
+            {
+                BudgetsApproved = false;
+                BudgetsApprovedDate = DateTime.MinValue;
+                break;
+            }
+            else
+            {
+                BudgetsApproved = true;
+                BudgetsApprovedDate = item.ApprovedDate;
+            }
+
+            BudgetData.Add(await BuildDonutPart(item.Name, (double) item.Amount, Colors.OrderBy(s => Guid.NewGuid()).First()));
+        }
+
+        TelerikChart1.Refresh();
+        
+        BudgetControl = Application.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("00010001"))!;
+        AppliedControl = Application.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("00000002"))!;
+        OurContributionControl = Application.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("01000001"))!;
+        ProcentControl = Application.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("00100001"))!;
+        ProcentControl.ControlTypeId = 1_000_000;
+        EarlierControl = new ApplicationControlDto
+        {
+            Id = 1000000,
+            Labels = [@LocalizationService.StringFromResource("Projects-48")],
+            ControlTypeId = 2,
+            Value = Application.EarlierSupportTotalAmount.ToString("0.00", new CultureInfo("sv-SE"))
+        };
+        PayoutControl = new ApplicationControlDto
+        {
+            Id = 1000001,
+            Labels = [@LocalizationService.StringFromResource("Projects-49")],
+            ControlTypeId = 2,
+            Value = Application.MilestonePayoutTotalAmount.ToString("0.00", new CultureInfo("sv-SE"))
+        };
+        EconomyControl = new ApplicationControlDto
+        {
+            Id = 1000002,
+            Labels = [@LocalizationService.StringFromResource("Projects-50")],
+            ControlTypeId = 6,
+            Value = BudgetsApproved.ToString()
+        };
+        ApprovedControl = new ApplicationControlDto
+        {
+            Id = 1000003,
+            Labels = [@LocalizationService.StringFromResource("Projects-51")],
+            ControlTypeId = 16,
+            Value = BudgetsApprovedDate.ToString()
+        };
+    }
+    
+    private async Task OnControlChanged(ApplicationControlDto updatedControl)
+    {
+        if (Application is null) return;
+        
+        var updateApplicationResult = await ApplicationService
+            .UpdateEconomyApplicationControlAsync(Application.Id, updatedControl.Id, updatedControl.Value, new CancellationToken());
+        
+        if (!updateApplicationResult.IsOk) NotificationService.Error(updateApplicationResult.Error.Message);
+        
+        NotificationService.Success(@LocalizationService.StringFromResource("Projects-45"));
+        
+        await Load();
+    }
+
+    private async Task OnBudgetUpdate(EconomyApplicationDto application)
+    {
+        var updateResult = await ApplicationService.UpdateEconomyApplicationAndControlAsync(application, new CancellationToken());
+
+        if (!updateResult.IsOk)
+        {
+            NotificationService.Error(updateResult.Error.ToString());
+            return;
+        }
+
+        await Load();
+    }
+
+    private async Task HandleApproveSubmit(MouseEventArgs args)
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        
+        foreach (var item in Application.InternalBudgets)
+        {
+            item.StatusId = 2;
+            item.Amount = item.Amount;
+            item.ApprovedDate = DateTime.UtcNow;
+            item.Name = item.Name;
+        }
+
+        NotificationService.Success(@LocalizationService.StringFromResource("Projects-45"));
+
+        Application.InternalBudgetsApproved = true;
+        
+        var result = await ApplicationService.UpdateEconomyApplicationAndControlAsync(Application, new CancellationToken());
+        if (!result.IsOk)
+        {
+            NotificationService.Error(result.Error.Message);
+            return;
+        }
+        
+        await Load();
+        
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task<DonutData> BuildDonutPart(string title, double value, string color)
+    {
+        await Task.Delay(0);
+        return new DonutData
+        {
+            SegmentName = title,
+            SegmentValue = value,
+            SegmentColor = color,
+            IsSeparated = false
+        };
+    }
+    
+    private class DonutData
+    {
+        public string SegmentName { get; set; } = string.Empty;
+        public double SegmentValue { get; set; } = 0f;
+        public string SegmentColor { get; set; } = string.Empty;
+        public bool IsSeparated { get; set; } = false;
+    }
+}

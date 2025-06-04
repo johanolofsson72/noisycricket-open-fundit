@@ -1,0 +1,330 @@
+@page "/Account/Register"
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using AppClient.Data
+@using global::Shared.Email.Services
+@using global::Shared.Users.Enums
+@using Microsoft.CodeAnalysis.Elfie.Diagnostics
+
+@inject UserManager<User> UserManager
+@inject IUserStore<User> UserStore
+@inject SignInManager<User> SignInManager
+@inject IEmailSender<User> EmailSender
+@inject ILogger<Register> Logger
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+@inject UserService UserService
+@inject OrganizationService OrganizationService
+@inject NotificationService NotificationService
+@inject EmailService EmailService
+
+<PageTitle>@LocalizationService.StringFromResource("Account-15")</PageTitle>
+
+<TelerikRootComponent>
+<div class="mt-8 mx-auto max-w-lg">
+    <Heading1>@LocalizationService.StringFromResource("Account-15")</Heading1>
+
+    <StatusMessage Message="@Message" />
+    <div class="mt-3 shadow overflow-hidden sm:rounded-md">
+        <div class="px-4 bg-white dark:bg-black sm:p-6">
+            <EditForm id="registerForm" Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
+                <Heading3>@LocalizationService.StringFromResource("Account-16")</Heading3>
+                <DataAnnotationsValidator />
+                <ValidationSummary class="mb-3 text-danger text-center font-semibold" />
+                <div class="flex flex-col gap-y-4">
+                    <div>
+                        <label for="organizationNumber" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-134")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText type="text" id="organizationNumber" @bind-Value="Input.OrganizationNumber" class="@TextInput.InputClasses" autocomplete="organizationName" aria-required="true" placeholder="1231234567" />
+                        </div>
+                        <ValidationMessage For="() => Input.OrganizationNumber" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="organizationName" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-135")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText type="text" id="organizationName" @bind-Value="Input.OrganizationName" class="@TextInput.InputClasses" autocomplete="organizationName" aria-required="true" placeholder="Company AB" />
+                        </div>
+                        <ValidationMessage For="() => Input.OrganizationName" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="bankname" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-136")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText type="text" id="bankname" @bind-Value="Input.BankName" class="@TextInput.InputClasses" autocomplete="bankname" aria-required="true" placeholder="SEB" />
+                        </div>
+                        <ValidationMessage For="() => Input.BankName" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="accountNumber" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-137")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText type="text" id="accountNumber" @bind-Value="Input.AccountNumber" class="@TextInput.InputClasses" autocomplete="accountNumber" aria-required="true" placeholder="00 22 6754321" />
+                        </div>
+                        <ValidationMessage For="() => Input.AccountNumber" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="iban" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-138")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText type="text" id="iban" @bind-Value="Input.Iban" class="@TextInput.InputClasses" autocomplete="iban" aria-required="true" placeholder="SE876532109876353" />
+                        </div>
+                        <ValidationMessage For="() => Input.Iban" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="bic" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-139")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText type="text" id="bic" @bind-Value="Input.Bic" class="@TextInput.InputClasses" autocomplete="bic" aria-required="true" placeholder="BINAADADXXX" />
+                        </div>
+                        <ValidationMessage For="() => Input.Bic" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="firstname" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-17")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText id="firstname" type="text" @bind-Value="Input.FirstName" class="@TextInput.InputClasses" autocomplete="firstname" aria-required="true" placeholder="John" />
+                        </div>
+                        <ValidationMessage For="() => Input.FirstName" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="lastname" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-18")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText id="lastname" type="text" @bind-Value="Input.LastName" class="@TextInput.InputClasses" autocomplete="lastname" aria-required="true" placeholder="Doe" />
+                        </div>
+                        <ValidationMessage For="() => Input.LastName" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="address" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-140")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText id="address" type="text" @bind-Value="Input.Address" class="@TextInput.InputClasses" autocomplete="address" aria-required="true" placeholder="Lingonberry road 7" />
+                        </div>
+                        <ValidationMessage For="() => Input.Address" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="postalcode" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-141")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText id="postalcode" type="text" @bind-Value="Input.Postalcode" class="@TextInput.InputClasses" autocomplete="postalcode" aria-required="true" placeholder="372 73" />
+                        </div>
+                        <ValidationMessage For="() => Input.Postalcode" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="city" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-142")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText id="city" type="text" @bind-Value="Input.City" class="@TextInput.InputClasses" autocomplete="city" aria-required="true" placeholder="Torrevieja" />
+                        </div>
+                        <ValidationMessage For="() => Input.City" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="country" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-143")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText id="country" type="text" @bind-Value="Input.Country" class="@TextInput.InputClasses" autocomplete="country" aria-required="true" placeholder="Spain" />
+                        </div>
+                        <ValidationMessage For="() => Input.Country" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="phone" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-144")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText id="phone" type="text" @bind-Value="Input.PhoneNumber" class="@TextInput.InputClasses" autocomplete="phone" aria-required="true" placeholder="+46 709 161669" />
+                        </div>
+                        <ValidationMessage For="() => Input.PhoneNumber" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="url" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-145")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText id="url" type="text" @bind-Value="Input.Url" class="@TextInput.InputClasses" autocomplete="url" aria-required="true" placeholder="https://www.funditbyus.com" />
+                        </div>
+                    </div>
+                    <div>
+                        <label for="email" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-6")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText id="email" type="text" @bind-Value="Input.Email" class="@TextInput.InputClasses" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                        </div>
+                        <ValidationMessage For="() => Input.Email" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="password" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-7")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText id="password" type="password" @bind-Value="Input.Password" class="@TextInput.InputClasses" autocomplete="new-password" aria-required="true" placeholder="password" />
+                        </div>
+                        <ValidationMessage For="() => Input.Password" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <label for="confirm-password" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-8")</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <InputText id="confirm-password" type="password" @bind-Value="Input.ConfirmPassword" class="@TextInput.InputClasses" autocomplete="new-password" aria-required="true" placeholder="password" />
+                        </div>
+                        <ValidationMessage For="() => Input.ConfirmPassword" class="mt-2 text-danger text-sm" />
+                    </div>
+                    <div>
+                        <PrimaryButton id="registerSubmit" type="submit">@LocalizationService.StringFromResource("Account-15")</PrimaryButton>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+    <div class="mt-8">
+        <section>
+            <Heading3>@LocalizationService.StringFromResource("Account-19")</Heading3>
+            <ExternalLoginPicker />
+        </section>
+    </div>
+</div>
+</TelerikRootComponent>
+
+@code {
+    private IEnumerable<IdentityError>? identityErrors;
+    [SupplyParameterFromForm] private InputModel Input { get; set; } = new();
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+
+    private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
+
+    protected override void OnInitialized()
+    {
+        Input ??= new();
+    }
+
+    public async Task RegisterUser(EditContext editContext)
+    {
+        var user = CreateUser();
+
+        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+        var emailStore = GetEmailStore();
+        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+        var result = await UserManager.CreateAsync(user, Input.Password);
+
+        if (!result.Succeeded)
+        {
+            identityErrors = result.Errors;
+            return;
+        }
+
+        Logger.LogInformation("User created a new account with password.");
+
+        var registerResult = await UserService.RegisterClientUserAsync(
+            new RegisterClientUserDto()
+            {
+                Id = user.Id,
+                OrganizationId = 0,
+                OrganizationName = Input.OrganizationName,
+                OrganizationNumber = Input.OrganizationNumber,
+                BankName = Input.BankName,
+                AccountNumber = Input.AccountNumber,
+                Iban = Input.Iban,
+                Bic = Input.Bic,
+                Address = Input.Address,
+                Postalcode = Input.Postalcode,
+                City = Input.City,
+                Country = Input.Country,
+                PhoneNumber = Input.PhoneNumber,
+                Url = Input.Url,
+                Email = Input.Email,
+                FirstName = Input.FirstName,
+                LastName = Input.LastName,
+                Provider = "",
+                ProviderKey = ""
+            }, new CancellationToken());
+        if (!registerResult.IsOk)
+        {
+            identityErrors = new List<IdentityError>() { new IdentityError { Code = "UserNotRegistered", Description = "User not registered." } };
+            return;
+        }
+
+        NavigationManager.NavigateTo("/Account/RegisterOk");
+    }
+    
+    private User CreateUser()
+    {
+        try
+        {
+            return Activator.CreateInstance<User>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(User)}'. " +
+                $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor.");
+        }
+    }
+
+    private IUserEmailStore<User> GetEmailStore()
+    {
+        if (!UserManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException("The default UI requires a user store with email support.");
+        }
+        return (IUserEmailStore<User>)UserStore;
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "Vat Number")]
+        public string OrganizationNumber { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "Organization")]
+        public string OrganizationName { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "Bank Name")]
+        public string BankName { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "Account Number")]
+        public string AccountNumber { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "Iban")]
+        public string Iban { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "Bic")]
+        public string Bic { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "Address")]
+        public string Address { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "Postal Code")]
+        public string Postalcode { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "City")]
+        public string City { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "Country")]
+        public string Country { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "Phone Number")]
+        public string PhoneNumber { get; set; } = string.Empty;
+        [Display(Name = "Url")]
+        public string Url { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; } = "";
+        
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; } = "";
+        
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Email")]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; } = "";
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } = "";
+    }
+}

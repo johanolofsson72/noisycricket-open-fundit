@@ -1,0 +1,119 @@
+@using System.Text.Json
+@using System.Text.RegularExpressions
+@using AppAdmin.Resources
+@inject SharedService SharedService
+
+<div class="application-segment">
+    <fieldset>
+        <legend class="application-segment-fieldset-legend">@Control.Labels[Index]</legend>
+        <div class="application-sub-label" style="display: @ShowSubLabel">@Control.SubLabels[Index]</div>
+        <div class="application-segment-header">
+            <div class="application-segment-main">
+                <div class="application-segment">
+                    <label class="application-label">@LocalizationService.StringFromResource("ListboxDaysLocationSegment-1")<br/>
+                        <TelerikNumericTextBox @bind-Value="Days"/>
+                    </label>
+                </div>
+                <div class="application-segment">
+                    <label class="application-label">@LocalizationService.StringFromResource("ListboxDaysLocationSegment-2")<br/>
+                        <TelerikTextBox @bind-Value="Location"/>
+                    </label>
+                </div>
+            </div>
+            <div class="application-segment-radio">
+                <TelerikButton Enabled="@Enabled" Title="Lägg till" @onclick="OnAdd" >@LocalizationService.StringFromResource("ListboxDaysLocationSegment-3")</TelerikButton>
+            </div>
+        </div>
+        <div class="application-segment">
+            <TelerikListView Data="ListViewValues" Class="application-segment-listview" OnDelete="@OnListViewDelete" @ref="@ListViewRef">
+                <Template>
+                    <div class="application-segment-listview-items">
+                        <div class="application-segment-listview-item">@context.Days</div>
+                        <div class="application-segment-listview-item">@context.Location</div>
+                        <div class="application-segment-listview-item-last">
+                            <ListViewCommandButton Command="Delete" ThemeColor="@ThemeConstants.Button.ThemeColor.Error" Icon="@Telerik.SvgIcons.SvgIcon.Trash" />
+                        </div>
+                    </div>
+                </Template>
+            </TelerikListView>
+        </div>
+    </fieldset>
+</div>
+
+@code {
+    [Parameter] public ApplicationControlDto Control { get; set; } = new();
+    [Parameter] public EventCallback<ApplicationControlDto> OnControlChanged { get; set; }
+    private TelerikListView<ListboxDaysLocationDto> ListViewRef { get; set; } = new();
+    private List<ListboxDaysLocationDto>? ListViewValues { get; set; } = [];
+    private int Days { get; set; } = 0;
+    private string Location { get; set; } = string.Empty;
+    private string ShowSubLabel => Control.SubLabels.Any(x => x.Length > 0) ? "block" : "none";
+    private int Index { get; set; } = 0;
+    private bool Enabled { get; set; } = true;
+
+    private void ResetValues()
+    {
+        Days = 0;
+        Location = string.Empty;
+    }
+
+    protected override void OnInitialized()
+    {
+        Index = SharedService.IndexByCulture();
+        if (Control.Labels.Count == 1) Index = 0;
+        ListViewValues!.Clear();
+        ResetValues();
+        Control.Value = Regex.Unescape(Control.Value);
+        if (!string.IsNullOrWhiteSpace(Control.Value))
+        {
+            ListViewValues = JsonSerializer.Deserialize<List<ListboxDaysLocationDto>>(Control.Value);
+        }
+
+        Enabled = true;
+    }
+
+    private async Task Save()
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        Control.Value = JsonSerializer.Serialize(ListViewValues);
+        await OnControlChanged.InvokeAsync(Control);
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnAdd()
+    {
+        if (ListViewValues is not null)
+        {
+            ListViewValues.Add(new ListboxDaysLocationDto()
+            {
+                Days = Days,
+                Location = Location
+            });
+
+            ResetValues();
+
+            await Save();
+
+            ListViewRef.Rebind();
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnListViewDelete(ListViewCommandEventArgs arg)
+    {
+        if (arg.Item is not null && ListViewValues is not null)
+        {
+            ListViewValues.Remove((ListboxDaysLocationDto)arg.Item);
+
+            await Save();
+
+            ListViewRef.Rebind();
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+}

@@ -1,0 +1,323 @@
+@using System.Diagnostics
+@using AppAdmin.State
+
+@inject IConfiguration Configuration
+@inject ProjectService ProjectService
+@inject ApplicationService ApplicationService
+@inject NotificationService NotificationService
+
+<style>
+    .checkmark-button{}
+    .ai-button{}
+    .audit-button{}
+    .button-common {
+        width: 50px;              /* Width of the button */
+        height: 50px;             /* Height of the button (same as width to make it round) */
+        background-color: #3d78c5; /* Background color */
+        border: none;             /* Remove the border */
+        border-radius: 5px;       /* Rounded corners */
+        color: white;             /* Text color */
+        font-size: 24px;          /* Font size */
+        text-align: center;       /* Center the text horizontally */
+        line-height: 50px;        /* Center the text vertically */
+        cursor: pointer;          /* Show pointer on hover */
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* Optional shadow for a 3D effect */
+        transition: background-color 0.3s ease; /* Smooth background change on hover */
+        margin-bottom: 5px;
+    }
+
+    .button-common:hover {
+        background-color: #30429f; /* Darker color on hover */
+    }
+
+    .sticky {
+        position: sticky;
+        top: 40%;
+        float: right;
+        margin-right: -55px;    margin-top: -100px;
+    }
+    .popup{
+        margin-top: -40vh !important;
+        border-radius: 5px !important;
+    }
+    .k-popup {
+        border-radius: 5px !important;
+    }
+    .badge {
+        margin-left: -3px;
+        margin-top: -3px;
+    }
+
+</style>
+<div class="sticky">
+    <TelerikButton @onclick="CheckmarkClicked" Class="button-common checkmark-button">
+        <i class="fas fa-check"></i>
+        @if (CheckmarkCounter > 0)
+        {
+        <TelerikBadge @ref="TelerikCheckmarkBadge" Class="badge" Position="BadgePosition.Inside" ThemeColor="ThemeConstants.SvgIcon.ThemeColor.Error"
+                      HorizontalAlign="BadgeHorizontalAlign.Start"
+                      VerticalAlign="BadgeVerticalAlign.Top">
+            @CheckmarkCounter
+        </TelerikBadge>
+        }
+    </TelerikButton>
+    <br/>
+    <TelerikButton @onclick="AuditsClicked" Class="button-common audit-button">
+        <i class="fas fa-clipboard-list"></i>
+        @if (AuditCounter > 0)
+        {
+        <TelerikBadge @ref="TelerikAuditBadge" Class="badge" Position="BadgePosition.Inside" ThemeColor="ThemeConstants.SvgIcon.ThemeColor.Error"
+                      HorizontalAlign="BadgeHorizontalAlign.Start"
+                      VerticalAlign="BadgeVerticalAlign.Top">
+            @AuditCounter
+        </TelerikBadge>
+        }
+    </TelerikButton>
+    <br/>
+    <TelerikButton @onclick="AiClicked" Class="button-common ai-button">
+        <i class="fas fa-robot"></i> <!-- AI / Robot ikon -->
+        @if (AiCounter > 0)
+        {
+        <TelerikBadge @ref="TelerikAiBadge" Class="badge" Position="BadgePosition.Inside" ThemeColor="ThemeConstants.SvgIcon.ThemeColor.Error"
+                      HorizontalAlign="BadgeHorizontalAlign.Start"
+                      VerticalAlign="BadgeVerticalAlign.Top">
+            @AiCounter
+        </TelerikBadge>
+        }
+    </TelerikButton>
+
+    <TelerikPopup @ref="PopupCheckmarkRef"
+                  AnchorSelector=".checkmark-button"
+                  AnimationType="AnimationType.SlideLeft"
+                  AnimationDuration="500"
+                  Width="33vw" Height="80vh" Class="popup">
+        <div style="border-radius: 5px; width: 33vw; height: 80vh; background-color: transparent; overflow: auto; color: black;">
+            <ProjectApplicationEventPopup ApplicationId="SelectedApplication.Id" OnClose="() => PopupCheckmarkRef.Hide()" />
+        </div>
+    </TelerikPopup>
+    <TelerikPopup @ref="PopupAuditRef"
+                  AnchorSelector=".audit-button"
+                  AnimationType="AnimationType.SlideLeft"
+                  AnimationDuration="500"
+                  Width="33vw" Height="80vh" Class="popup">
+        <div style="border-radius: 5px; width: 33vw; height: 80vh; background-color: transparent; overflow: auto; color: black;">
+            <ProjectApplicationAuditPopup ApplicationId="SelectedApplication.Id" OnClose="() => PopupAuditRef.Hide()" />
+        </div>
+    </TelerikPopup>
+    <TelerikPopup @ref="PopupAiRef"
+                  AnchorSelector=".ai-button"
+                  AnimationType="AnimationType.SlideLeft"
+                  AnimationDuration="500"
+                  Width="33vw" Height="80vh" Class="popup">
+        <div style="border-radius: 5px; width: 33vw; height: 80vh; background-color: transparent; overflow: auto; color: black;">
+            <ProjectApplicationAiPopup ApplicationId="SelectedApplication.Id" OnClose="() => PopupAiRef.Hide()" />
+        </div>
+    </TelerikPopup>
+</div>
+
+
+@if (ApplicationId > 0)
+{
+    <TelerikTabStrip @ref="TelerikTabStripInstance" @bind-ActiveTabIndex="@ActiveTabIndex">
+        <TabStripTab Title="@LocalizationService.StringFromResource("Projects-30")">
+            <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+                <ProjectApplicationOverview ApplicationId="ApplicationId" OnUpdated="Refresh" />
+            </Animate>
+        </TabStripTab>
+        <TabStripTab Title="@LocalizationService.StringFromResource("Projects-31")">
+            <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+                <ProjectApplicationFinancing ApplicationId="ApplicationId" OnUpdated="Refresh" />
+            </Animate>
+        </TabStripTab>
+        <TabStripTab Title="@LocalizationService.StringFromResource("Projects-32")" Disabled="@(SelectedApplication?.OurContribution < 1)">
+            <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+                <ProjectApplicationProgress ApplicationId="ApplicationId" OnUpdated="Refresh" />
+            </Animate>
+        </TabStripTab>
+        <TabStripTab Title="@LocalizationService.StringFromResource("Projects-33")">
+            <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+                <ProjectApplicationAssessments ApplicationId="ApplicationId" DocumentId="DocumentId" TabIndex="TabIndex" TabItem="@TabItem" OnUpdated="Refresh" />
+            </Animate>
+        </TabStripTab>
+        <TabStripTab Title="@LocalizationService.StringFromResource("Documents-40")">
+            <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+                <ProjectApplicationOfficialDocuments ApplicationId="ApplicationId" DocumentId="DocumentId" TabIndex="TabIndex" TabItem="@TabItem" OnUpdated="Refresh" />
+            </Animate>
+        </TabStripTab>
+        <TabStripTab Title="@LocalizationService.StringFromResource("Projects-37")">
+            <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+                <ProjectApplicationDocuments ApplicationId="ApplicationId" DocumentId="DocumentId" OnUpdated="Refresh" />
+            </Animate>
+        </TabStripTab>
+    </TelerikTabStrip>
+}
+
+
+@code {
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public EventCallback<int> OnUpdated { get; set; }
+    [Parameter] public int ApplicationId { get; set; } = 0;
+    [Parameter] public int DocumentId { get; set; } = 0;
+    [Parameter] public int TabIndex { get; set; } = 0;
+    [Parameter] public int TabItem { get; set; } = 0;
+    
+    private CounterApplicationDto SelectedApplication { get; set; } = default!;
+    private int ActiveTabIndex { get; set; } = 0;
+    private TelerikTabStrip TelerikTabStripInstance { get; set; } = null!;
+    private TelerikPopup PopupCheckmarkRef { get; set; } = null!;
+    private TelerikPopup PopupAuditRef { get; set; } = null!;
+    private TelerikPopup PopupAiRef { get; set; } = null!;
+    private TelerikBadge TelerikCheckmarkBadge { get; set; } = null!;
+    private TelerikBadge TelerikAuditBadge { get; set; } = null!;
+    private TelerikBadge TelerikAiBadge { get; set; } = null!;
+    private int CheckmarkCounter { get; set; } = 0;
+    private int AuditCounter { get; set; } = 0;
+    private int AiCounter { get; set; } = 0;
+    
+    private readonly Lock _lockObject = new Lock();
+    private DateTime _lastExecuted = DateTime.MinValue;
+    private static Timer _debounceTimer = default!;
+    private const double DebounceIntervalMs = 1000;
+
+    private void HandlePropertyChanged(StatePropertyChangedArgs args)
+    {
+        ExecutePropertyChangedForEconomy(args);
+        ExecutePropertyChangedForRefreshApplicationEventCounter(args);
+    }
+    
+    private void ExecutePropertyChangedForEconomy(StatePropertyChangedArgs args)
+    {
+        if (args.PropertyName != "Notify" || args.NewValue?.ToString() != NotificationType.Economy.ToString()) return;
+        lock (_lockObject)
+        {
+            _debounceTimer?.Dispose();
+        
+            _debounceTimer = new Timer((state) =>
+            {
+                lock (_lockObject)
+                {
+                    if ((DateTime.UtcNow - _lastExecuted).TotalMilliseconds < DebounceIntervalMs)
+                        return;
+
+                    _lastExecuted = DateTime.UtcNow;
+                    ExecutePropertyJobForEconomy(args).WaitAsync(new CancellationToken());
+                }
+            }, null, (int)DebounceIntervalMs, Timeout.Infinite);
+        }
+    }
+    
+    private void ExecutePropertyChangedForRefreshApplicationEventCounter(StatePropertyChangedArgs args)
+    {
+        if (args.PropertyName != "RefreshApplicationEventCounter") return;
+        lock (_lockObject)
+        {
+            _debounceTimer?.Dispose();
+        
+            _debounceTimer = new Timer((state) =>
+            {
+                lock (_lockObject)
+                {
+                    if ((DateTime.UtcNow - _lastExecuted).TotalMilliseconds < DebounceIntervalMs)
+                        return;
+
+                    _lastExecuted = DateTime.UtcNow;
+                    ExecutePropertyJobForRefreshApplicationEventCounter(args).WaitAsync(new CancellationToken());
+                }
+            }, null, (int)DebounceIntervalMs, Timeout.Infinite);
+        }
+    }
+
+    private async Task ExecutePropertyJobForEconomy(StatePropertyChangedArgs args)
+    {
+        await Load();
+        await InvokeAsync(StateHasChanged);
+
+        //NotificationService.Info("Updated");
+    }
+
+    private async Task ExecutePropertyJobForRefreshApplicationEventCounter(StatePropertyChangedArgs args)
+    {
+        await LoadApplicationAndCounters();
+        await InvokeAsync(StateHasChanged);
+
+        //NotificationService.Info("Updated");
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine("ProjectApplication.razor OnInitializedAsync");
+        AppState.RegisterCallback(EventCallback.Factory.Create<StatePropertyChangedArgs>(this, HandlePropertyChanged));
+        await Load();
+    }
+    
+    private async Task Load()
+    {
+        if (TabIndex > 0)
+        {
+            ActiveTabIndex = TabIndex;
+        }
+
+        await LoadApplicationAndCounters();
+        
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task LoadApplicationAndCounters()
+    {
+        var result = await ApplicationService.CounterApplicationByIdAsync(ApplicationId, new CancellationToken());
+        if (!result.IsOk) return;
+        
+        SelectedApplication = result.Value;
+        CheckmarkCounter = SelectedApplication.NewEventCounter;
+        AuditCounter = SelectedApplication.NewAuditCounter;
+    }
+
+    private async Task Refresh(int projectId)
+    {
+        if (ActiveTabIndex == 0)
+        {
+            var index = ActiveTabIndex;
+
+            ActiveTabIndex = index + 1;
+            await InvokeAsync(StateHasChanged);
+        
+            ActiveTabIndex = index;
+            await InvokeAsync(StateHasChanged);
+        }
+        await OnUpdated.InvokeAsync(projectId);
+    }
+    
+    private async Task CheckmarkClicked()
+    {
+        if (CheckmarkCounter > 0)
+        {
+            CheckmarkCounter = 0;
+            _ = await ApplicationService.ResetApplicationNewEventCounterAsync(SelectedApplication.Id, new CancellationToken());
+        }
+        PopupCheckmarkRef.Show();
+    }
+
+    private async Task AuditsClicked()
+    {
+        if (AuditCounter > 0)
+        {
+            AuditCounter = 0;
+            _ = await ApplicationService.ResetApplicationNewAuditCounterAsync(SelectedApplication.Id, new CancellationToken());
+        }
+        PopupAuditRef.Show();
+    }
+    
+    private void AiClicked()
+    {
+        if (AiCounter > 0)
+        {
+            AiCounter = 0;
+            //_ = await ApplicationService.ResetApplicationNewAuditCounterAsync(SelectedApplication.Id, new CancellationToken());
+        }
+        PopupAiRef.Show();
+    }
+
+
+
+
+}

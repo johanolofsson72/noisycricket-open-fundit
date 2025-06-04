@@ -1,0 +1,11 @@
+@page "/messages"
+
+@attribute [Authorize(Policy = "Admin")]
+
+<TelerikRootComponent>
+    <div class="component-page">
+        <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+            <Messages />
+        </Animate>
+    </div>
+</TelerikRootComponent>

@@ -1,0 +1,52 @@
+@using Microsoft.AspNetCore.Identity;
+@using AppClient.Components.Pages.Account.Manage
+@using AppClient.Data;
+
+@inject NavigationManager NavigationManager
+@inject SignInManager<User> SignInManager
+
+<ul class="mt-4">
+    <li>
+        <NavLink class="@ManageNavPages.IndexNavClass(NavigationManager)" 
+                 id="profile" href="@ManageNavPages.Index" Match="NavLinkMatch.All">@LocalizationService.StringFromResource("Account-80")</NavLink>
+    </li>
+    <li>
+        <NavLink class="@ManageNavPages.EmailNavClass(NavigationManager)" 
+                 id="manage-email" href="@ManageNavPages.Email">@LocalizationService.StringFromResource("Account-6")</NavLink>
+    </li>
+    <li>
+        <NavLink class="@ManageNavPages.ChangePasswordNavClass(NavigationManager)" 
+                 id="change-password" href="@ManageNavPages.ChangePassword">@LocalizationService.StringFromResource("Account-7")</NavLink>
+    </li>
+    @if (hasExternalLogins)
+    {
+        <li id="external-logins">
+            <NavLink class="@ManageNavPages.ExternalLoginsNavClass(NavigationManager)" 
+                     id="external-login" href="@ManageNavPages.ExternalLogins">External logins</NavLink>
+        </li>
+    }
+    <li>
+        <NavLink class="@ManageNavPages.TwoFactorAuthenticationNavClass(NavigationManager)" 
+                 id="two-factor" href="@ManageNavPages.TwoFactorAuthentication">@LocalizationService.StringFromResource("Account-52")</NavLink>
+    </li>
+    <li>
+        <NavLink class="@ManageNavPages.PersonalDataNavClass(NavigationManager)" 
+                 id="personal-data" href="@ManageNavPages.PersonalData">@LocalizationService.StringFromResource("Account-75")</NavLink>
+    </li>
+    @*@if (HostContext.AppHost.HasPlugin<ApiKeysFeature>())
+    {
+        <li>
+            <NavLink class="@ManageNavPages.PageNavClass(NavigationManager, "Account/Manage/ApiKeys")" 
+                     id="api-keys" href="Account/Manage/ApiKeys">API Keys</NavLink>
+        </li>
+    }*@
+</ul>
+
+@code {
+    private bool hasExternalLogins;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+    }
+}

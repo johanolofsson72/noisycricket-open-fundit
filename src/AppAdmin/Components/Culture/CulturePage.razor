@@ -1,0 +1,71 @@
+@page "/culture"
+
+@attribute [Authorize(Policy = "Admin")]
+@rendermode @(new InteractiveServerRenderMode(false))
+@inject NavigationManager NavigationManager
+
+
+<Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)">
+    <h5>@LocalizationService.StringFromResource("Culture-1")</h5>
+    <br/>
+    <div>
+        <TelerikDropDownList Data="@Cultures" Enabled="@Enabled"
+                             Value="@SelectedCulture"
+                             ValueChanged="@(async (string value) => { await OnValueChanged(value); })"
+                             TextField="@nameof(CultureData.Text)"
+                             ValueField="@nameof(CultureData.Value)">
+            <DropDownListSettings>
+                <DropDownListPopupSettings Height="auto" />
+            </DropDownListSettings>
+        </TelerikDropDownList>
+    </div>
+</Animate>
+
+@code
+{
+    private bool Enabled { get; set; } = true;
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    public class CultureData
+    {
+        public string Text { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
+    }
+
+    private List<CultureData> Cultures { get; set; } = new List<CultureData>()
+    {
+        new  CultureData() { Text = @LocalizationService.StringFromResource("Culture-4"), Value = "sv-SE" },
+        new  CultureData() { Text = @LocalizationService.StringFromResource("Culture-5"), Value = "en-US" },
+        new  CultureData() { Text = @LocalizationService.StringFromResource("Culture-6"), Value = "da-DK" },
+        new  CultureData() { Text = @LocalizationService.StringFromResource("Culture-7"), Value = "de-DE" },
+        new  CultureData() { Text = @LocalizationService.StringFromResource("Culture-8"), Value = "es-ES" },
+        new  CultureData() { Text = @LocalizationService.StringFromResource("Culture-9"), Value = "fr-FR" },
+        new  CultureData() { Text = @LocalizationService.StringFromResource("Culture-10"), Value = "it-IT" },
+        new  CultureData() { Text = @LocalizationService.StringFromResource("Culture-11"), Value = "nb-NO" }
+    };
+
+    private string SelectedCulture { get; set; } = Thread.CurrentThread.CurrentUICulture.Name;
+
+    private async Task OnValueChanged(string eventArgs)
+    {
+        SelectedCulture = eventArgs;
+
+        await SetCulture(eventArgs);
+    }
+
+    private async Task SetCulture(string culture)
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        ChangeLoaderVisibilityAction(true);
+        
+        var uri = new Uri(NavigationManager.Uri).GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);
+        var query = $"?culture={Uri.EscapeDataString(culture)}&redirectUri={Uri.EscapeDataString(uri)}";
+
+        // use a path that matches your culture redirect controller from the previous steps
+        NavigationManager.NavigateTo($"{NavigationManager.BaseUri}culture{query}", forceLoad: true);
+        
+        ChangeLoaderVisibilityAction(false);
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+}

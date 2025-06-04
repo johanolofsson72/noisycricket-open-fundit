@@ -1,0 +1,131 @@
+@using System.Diagnostics
+@inject NavigationManager NavigationManager
+@inject ApplicationService ApplicationService
+@inject IConfiguration Configuration
+@inject SharedService SharedService
+
+<style>
+    .arrow {
+        margin: 8px -4px 5px -4px;
+    }
+    .arrowtext{
+        font-size: large;
+        margin: 5px 15px 5px 15px;
+    }
+</style>
+
+@if (ProjectId > 0 && Applications.Any())
+{
+    <div style="display: flex; flex-direction: row">
+        @if (Applications.Count > 1)
+        {
+            <TelerikFontIcon Icon="@FontIcon.ArrowLeft" Size="@ThemeConstants.FontIcon.Size.ExtraLarge" Class="arrow" />
+            <div class="arrowtext">@LocalizationService.StringFromResource("Projects-28")</div>
+        }
+        <TelerikButtonGroup SelectionMode="ButtonGroupSelectionMode.Single">
+            @{
+                var index = SharedService.IndexByCulture();
+                foreach (var application in Applications)
+                {
+                    if (!application.DeletedOrDenied)
+                    {
+                        <ButtonGroupToggleButton ThemeColor="@(ThemeConstants.Button.ThemeColor.Primary)" Selected="application.Selected" OnClick="(args) => SelectedApplicationChanged(args, application.Id)">@application.SchemaNames[index]</ButtonGroupToggleButton>
+                    }
+                    else
+                    {
+                        <ButtonGroupToggleButton ThemeColor="@(ThemeConstants.Button.ThemeColor.Error)" Selected="application.Selected" OnClick="(args) => SelectedApplicationChanged(args, application.Id)">@application.SchemaNames[index]</ButtonGroupToggleButton>
+                    }
+                }
+            }
+        </TelerikButtonGroup>
+        @if (Applications.Count > 1)
+        {
+            <div class="arrowtext">@LocalizationService.StringFromResource("Projects-29")</div>
+            <TelerikFontIcon Icon="@FontIcon.ArrowRight" Size="@ThemeConstants.FontIcon.Size.ExtraLarge" Class="arrow" />
+        }
+    </div>
+    <Spacer Height="29px" />
+    <ProjectApplication ApplicationId="SelectedApplication.Id" DocumentId="DocumentId" TabIndex="TabIndex" TabItem="TabItem" OnUpdated="Refresh" />
+}
+
+@code
+{
+    [Parameter] public int ProjectId { get; set; } = 0;
+    [Parameter] public int ApplicationId { get; set; } = 0;
+    [Parameter] public int DocumentId { get; set; } = 0;
+    [Parameter] public int TabIndex { get; set; } = 0;
+    [Parameter] public int TabItem { get; set; } = 0;
+    [Parameter] public int ApplicationIndex { get; set; } = 0;
+    [Parameter] public EventCallback<int> OnUpdated { get; set; }
+    
+    private List<ApplicationTabItemDto> Applications { get; set; } = [];
+    private ApplicationTabItemDto SelectedApplication { get; set; } = new();
+    
+    
+    private async Task Refresh(int projectId)
+    {
+        await OnUpdated.InvokeAsync(projectId);
+    }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        Console.WriteLine("ProjectApplications.razor OnParametersSetAsync start");
+        try
+        {
+            if (ProjectId > 0)
+            {
+                var result = await ApplicationService.ApplicationTabItemsAsync(ProjectId, ApplicationId, new CancellationToken());
+                if (!result.IsOk) return;
+
+                Applications = result.Value.ToList();
+
+                if (Applications.Count == 0) return;
+
+                if (ApplicationId > 0 && Applications.Any(x => x.Selected))
+                {
+                    SelectedApplication = Applications.FirstOrDefault(x => x.Selected)!;
+                }
+                else
+                {
+                    Applications.LastOrDefault()!.Selected = true;
+                    SelectedApplication = Applications.LastOrDefault()!;
+                }
+
+                ApplicationIndex = Applications.FindIndex(x => x.Id == SelectedApplication.Id);
+            }
+            Console.WriteLine("ProjectId: " + ProjectId);
+            Console.WriteLine("ApplicationIndex: " + ApplicationIndex);
+            Console.WriteLine("SelectedApplication.Id: " + SelectedApplication.Id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("ProjectApplications.razor OnParametersSetAsync error");
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+        Console.WriteLine("ProjectApplications.razor OnParametersSetAsync end");
+    }
+
+    private async Task SelectedApplicationChanged(MouseEventArgs args, int applicationId)
+    {
+        try
+        {
+            foreach (var application in Applications)
+            {
+                application.Selected = false;
+            }
+            Applications.First(x => x.Id == applicationId).Selected = true;
+            SelectedApplication = Applications.FirstOrDefault(x => x.Selected)!;
+            ApplicationIndex = Applications.FindIndex(x => x.Id == SelectedApplication.Id);
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+    }
+    
+}
+

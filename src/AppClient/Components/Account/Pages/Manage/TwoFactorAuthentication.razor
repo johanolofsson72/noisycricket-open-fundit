@@ -1,0 +1,107 @@
+@page "/Account/Manage/TwoFactorAuthentication"
+
+@using Microsoft.AspNetCore.Http.Features
+@using Microsoft.AspNetCore.Identity
+@using AppClient.Data
+
+@inject UserManager<User> UserManager
+@inject SignInManager<User> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>@LocalizationService.StringFromResource("Account-52")</PageTitle>
+
+<Heading3>@LocalizationService.StringFromResource("Account-52")</Heading3>
+
+<div class="max-w-xl">
+    <StatusMessage class="mb-3" />
+
+    @if (canTrack)
+    {
+        if (is2faEnabled)
+        {
+            if (recoveryCodesLeft == 0)
+            {
+                <Alert Type="AlertType.Error">
+                    <strong>@LocalizationService.StringFromResource("Account-53")</strong>
+                    <p>@LocalizationService.StringFromResource("Account-54") <HyperLink href="Account/Manage/GenerateRecoveryCodes">@LocalizationService.StringFromResource("Account-55")</HyperLink> @LocalizationService.StringFromResource("Account-56")</p>
+                </Alert>
+            }
+            else if (recoveryCodesLeft == 1)
+            {
+                <Alert Type="AlertType.Error">
+                    <strong>@LocalizationService.StringFromResource("Account-57")</strong>
+                    <p>@LocalizationService.StringFromResource("Account-58") <HyperLink href="Account/Manage/GenerateRecoveryCodes">@LocalizationService.StringFromResource("Account-55")</HyperLink>.</p>
+                </Alert>
+            }
+            else if (recoveryCodesLeft <= 3)
+            {
+                <Alert Type="AlertType.Error">
+                    <strong>@LocalizationService.StringFromResource("Account-59") @recoveryCodesLeft @LocalizationService.StringFromResource("Account-60")</strong>
+                    <p>@LocalizationService.StringFromResource("Account-61") <HyperLink href="Account/Manage/GenerateRecoveryCodes">@LocalizationService.StringFromResource("Account-55")</HyperLink>.</p>
+                </Alert>
+            }
+
+            if (isMachineRemembered)
+            {
+                <form class="inline-block" @formname="forget-browser" @onsubmit="OnSubmitForgetBrowserAsync" method="post">
+                    <PrimaryButton type="submit">@LocalizationService.StringFromResource("Account-62")</PrimaryButton>
+                </form>
+            }
+
+            <PrimaryButton href="Account/Manage/Disable2fa">@LocalizationService.StringFromResource("Account-63")</PrimaryButton>
+            <PrimaryButton href="Account/Manage/GenerateRecoveryCodes">@LocalizationService.StringFromResource("Account-64")</PrimaryButton>
+        }
+
+        <div class="mt-4">
+            <Heading4 class="mb-4">@LocalizationService.StringFromResource("Account-65")</Heading4>
+            @if (!hasAuthenticator)
+            {
+                <PrimaryButton id="enable-authenticator" href="Account/Manage/EnableAuthenticator">@LocalizationService.StringFromResource("Account-127")</PrimaryButton>
+            }
+            else
+            {
+                <PrimaryButton id="enable-authenticator" href="Account/Manage/EnableAuthenticator">@LocalizationService.StringFromResource("Account-128")</PrimaryButton>
+                <PrimaryButton id="reset-authenticator" href="Account/Manage/ResetAuthenticator">@LocalizationService.StringFromResource("Account-129")</PrimaryButton>
+            }
+        </div>
+    }
+    else
+    {
+        <Alert Type="AlertType.Error">
+            <strong>@LocalizationService.StringFromResource("Account-66")</strong>
+            <p>@LocalizationService.StringFromResource("Account-67")</p>
+        </Alert>
+    }
+
+</div>
+
+@code {
+    private bool canTrack;
+    private bool hasAuthenticator;
+    private int recoveryCodesLeft;
+    private bool is2faEnabled;
+    private bool isMachineRemembered;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        canTrack = HttpContext.Features.Get<ITrackingConsentFeature>()?.CanTrack ?? true;
+        hasAuthenticator = await UserManager.GetAuthenticatorKeyAsync(user) is not null;
+        is2faEnabled = await UserManager.GetTwoFactorEnabledAsync(user);
+        isMachineRemembered = await SignInManager.IsTwoFactorClientRememberedAsync(user);
+        recoveryCodesLeft = await UserManager.CountRecoveryCodesAsync(user);
+    }
+
+    private async Task OnSubmitForgetBrowserAsync()
+    {
+        await SignInManager.ForgetTwoFactorClientAsync();
+
+        RedirectManager.RedirectToCurrentPageWithStatus(
+            "The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.",
+            HttpContext);
+    }
+}

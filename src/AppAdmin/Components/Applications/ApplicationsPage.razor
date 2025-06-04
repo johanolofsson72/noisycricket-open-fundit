@@ -1,0 +1,17 @@
+@page "/applications"
+@page "/applications/{ApplicationId:int}"
+
+@attribute [Authorize(Policy = "Admin")]
+
+<TelerikRootComponent>
+    <div class="component-page">
+        <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+            <Applications ApplicationId="ApplicationId"/>
+        </Animate>
+    </div>
+</TelerikRootComponent>
+
+@code {
+    [Parameter] public int ApplicationId { get; set; } = 0;
+
+}

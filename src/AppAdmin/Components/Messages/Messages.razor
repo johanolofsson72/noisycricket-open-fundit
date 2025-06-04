@@ -1,0 +1,346 @@
+@using AppAdmin.State
+@using global::Shared.Email.Services
+@using global::Shared.Events.Services
+@using global::Shared.Extensions
+@using global::Shared.Messages.DTOs
+@using global::Shared.Messages.Services
+
+@rendermode @(new InteractiveServerRenderMode(false))
+
+@inject MessageService MessageService
+@inject UserService UserService
+@inject BlazorRenderer BlazorRenderer
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@inject EmailService EmailService
+@inject SharedService SharedService
+@inject EventService EventService
+
+<style>
+    .message-area {
+        height: 30vh;
+        width: 50vw;
+    }
+</style>
+<style>
+    div.k-grid tbody tr{
+        height: 40px !important;
+        white-space: nowrap!important;
+    }
+    div.k-grid th a, .k-virtual-scrollable-wrap td {
+        white-space: nowrap!important;
+    }
+    #grid th a, .k-virtual-scrollable-wrap td {
+        white-space: nowrap!important;
+    }
+    .k-table-td {
+        vertical-align: top !important;
+    }
+</style>
+
+<h5>@LocalizationService.StringFromResource("Messages-1")</h5>
+<p>@LocalizationService.StringFromResource("Messages-10")</p>
+
+<TelerikRootComponent>
+    <br />
+    <TelerikSwitch Width="100px" Value="@StatusIsOn" OnLabel="@StatusOn" OffLabel="@StatusOff" ValueChanged="@((bool val) => StatusChangedHandlerAsync(val))"></TelerikSwitch>
+    <br />
+    <br />
+    <TelerikGrid @ref="GridRef"
+                 Data="@Items"
+                 Pageable="true"
+                 PageSize="12"
+                 ConfirmDelete="true"
+                 EditMode="@GridEditMode.Popup"
+                 OnDelete="@OnDelete">
+        <GridColumns>
+            <GridColumn Field="@nameof(SlimMessageDto.ApplicationTitle)" Title="@LocalizationService.StringFromResource("Messages-13")" Width="250px" />
+            <GridColumn Field="@nameof(SlimMessageDto.SchemaId)" Title="@LocalizationService.StringFromResource("Messages-14")" Width="220px">
+                <Template>
+                    @{
+                        if (context is not SlimMessageDto item) return;
+                        <span>@SharedService.ValueByCulture(item.SchemaNames)</span>
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Field="@nameof(SlimMessageDto.Title)" Title="@LocalizationService.StringFromResource("Messages-15")">
+                <Template>
+                    @{
+                        if (context is not SlimMessageDto item) return;
+                        <span style="white-space: normal;">@item.Title.ExtractCommaSeparatedTextFromHtml()</span>
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Field="@nameof(SlimMessageDto.ExpireDate)" Title="@LocalizationService.StringFromResource("Messages-16")" Width="120px">
+                <Template>
+                    @{
+                        if (context is not SlimMessageDto item) return;
+                        <span>@item.ExpireDate.ToString("yyyy-MM-dd")</span>
+                    }
+                </Template>
+            </GridColumn>
+            <GridCommandColumn Width="200px">
+                @{
+                    if (context is not SlimMessageDto item) return;
+                    if (item.Incoming == true)
+                    {
+                        <GridCommandButton OnClick="@OnReply" Icon="@SvgIcon.Accessibility" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Messages-17")</GridCommandButton>
+                    }
+                    else if (item.MessageTypeId == 1001)
+                    {
+                        <GridCommandButton OnClick="@OnActivate" Icon="@SvgIcon.Check" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Messages-3")</GridCommandButton>
+                    }
+                    else
+                    {
+                        <GridCommandButton OnClick="@OnGoTo" Icon="@SvgIcon.GlobeLink" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Messages-3")</GridCommandButton>
+                    }
+                }
+                <GridCommandButton Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error" Command="Delete">@LocalizationService.StringFromResource("Messages-4")</GridCommandButton>
+            </GridCommandColumn>
+        </GridColumns>
+    </TelerikGrid>
+
+    <TelerikDialog @bind-Visible="@ReplyDialogVisible" Title="@LocalizationService.StringFromResource("Messages-17")">
+        <DialogContent>
+            <EditForm FormName="Reply" Context="item" OnValidSubmit="SendMessage" Model="TextModel">
+                <InputTextArea @bind-Value="TextModel.Text" Class="form-control custom-textarea-class message-area" />
+                <br />
+                <TelerikButton OnClick="SendMessage" Icon="@Telerik.SvgIcons.SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Messages-17")</TelerikButton>
+                <TelerikButton OnClick="Cancel" Icon="@Telerik.SvgIcons.SvgIcon.Cancel" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Messages-18")</TelerikButton>
+            </EditForm>
+        </DialogContent>
+    </TelerikDialog>
+    
+</TelerikRootComponent>
+
+@code {
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    [CascadingParameter] public required AppState AppState { get; set; }
+    private TelerikGrid<SlimMessageDto> GridRef { get; set; } = new();
+    private List<SlimMessageDto> Items { get; set; } = default!;
+    private SlimMessageDto SelectedItem { get; set; } = default!;
+    private bool StatusIsOn { get; set; }
+    private string StatusOn { get; set; } = string.Empty;
+    private string StatusOff { get; set; } = string.Empty;
+    private bool ShowDeletedMessages { get; set; } = false;
+    private bool ReplyDialogVisible { get; set; } = false;
+    private bool Enabled { get; set; } = true;
+    
+    private class TextAreaModel
+    {
+        public string Text { get; set; } = string.Empty;
+    }
+    private TextAreaModel TextModel { get; set; } = new TextAreaModel();
+    private int UserId { get; set; } = 0;
+    private int StatusId { get; set; } = 3; // 24 = "Ej läst", 19 = "Deleted"
+
+    protected override async Task OnInitializedAsync()
+    {
+        StatusOn = @LocalizationService.StringFromResource("Messages-5");
+        StatusOff = @LocalizationService.StringFromResource("Messages-6");
+
+        UserId = AppState.User.Id;
+        
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var statusId = StatusIsOn ? 19 : 3; // 3 = "Ej läst", 19 = "Deleted"
+        var result = await MessageService.MessagesByUserIdAsync(UserId, statusId, new CancellationToken());
+        
+        if (!result.IsOk) return;
+        
+        Items = result.Value.ToList() ?? [];
+        
+        NotificationService.Info(@LocalizationService.StringFromResource("Messages-11") + $" {Items.Count} " + @LocalizationService.StringFromResource("Messages-12"));
+
+    }
+
+    private async Task StatusChangedHandlerAsync(bool value)
+    {
+        StatusIsOn = value;
+        await LoadData();
+    }
+    
+    private void OnGoTo(GridCommandEventArgs arg)
+    {
+        var item = (SlimMessageDto)arg.Item;
+        
+        if (item is null) return;
+        
+        Enabled = false;
+        StateHasChanged();
+        
+        var projectId = item.ProjectId;
+        var applicationId = item.ApplicationId;
+        var destination = item.SystemMessageDestination switch
+        {
+            1 => "/",
+            2 => $"/application/{applicationId}",
+            3 => $"/project/{projectId}/application/{applicationId}",
+            4 => $"/project/{projectId}/application/{applicationId}/tabindex/3/tabitem/1",
+            5 => $"/project/{projectId}/application/{applicationId}/tabindex/4/tabitem/2",
+            6 => $"/project/{projectId}/application/{applicationId}/tabindex/2",
+            7 => $"/project/{projectId}/application/{applicationId}/tabindex/4/tabitem/1",
+            8 => $"/project/{projectId}/application/{applicationId}/tabindex/5",
+            9 => $"/project/{projectId}/application/{applicationId}/tabindex/3/tabitem/3",
+            _ => "/"
+        };
+        NavigationManager.NavigateTo(destination);
+        
+        Enabled = true;
+        StateHasChanged();
+    }
+    
+    private async Task OnActivate(GridCommandEventArgs arg)
+    {
+        var item = (SlimMessageDto)arg.Item;
+        
+        if (item is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        _ = int.TryParse(item.DocumentLink, out var userId);
+        
+        if (userId > 0)
+        {
+            var activate = await UserService.ActivateUserAsync(userId, new CancellationToken());
+            if (!activate.IsOk) NotificationService.Error(activate.Error.ToString());
+
+            var result = await MessageService.DeleteMessageAsync(item.Id, new CancellationToken());
+            if (!result.IsOk) NotificationService.Error(result.Error.ToString());
+
+            var user = await UserService.GetUserByIdAsync(userId, new CancellationToken());
+            if (!user.IsOk) NotificationService.Error(user.Error.ToString());
+
+            await EmailService.SendEmailAsync(
+                user.Value.Email!, 
+                @LocalizationService.StringFromResource("Messages-7"),
+                @LocalizationService.StringFromResource("Messages-8"));
+
+            NotificationService.Success(@LocalizationService.StringFromResource("Messages-9"));
+
+            await LoadData();
+        }
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnDelete(GridCommandEventArgs args)
+    {
+        var item = (SlimMessageDto)args.Item;
+        
+        if (item is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await MessageService.DeleteMessageAsync(item.Id, new CancellationToken());
+        if (!result.IsOk) NotificationService.Error(result.Error.ToString());
+
+        if (item.SystemMessageDestination == 9)
+        {
+            var eventResult = await EventService.CheckNextEvent(item.ApplicationId, new CancellationToken());
+            if (eventResult is { IsOk: true, Value.ApplicationEventIdentifier: 22 })
+            {
+                // Event 19: När VD:n tar bort meddelandet om beslutsunderlag.
+                var ev = await EventService.TriggerNextEventById(item.ApplicationId, 19, new CancellationToken());
+                if (!ev.IsOk)
+                {
+                    NotificationService.Error(ev.Error.Message, 30000);
+                    Console.WriteLine(ev.Error.Message);
+                }
+            }
+        }
+        
+        await LoadData();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnReply(GridCommandEventArgs obj)
+    {
+        var item = (SlimMessageDto)obj.Item;
+        
+        if (item is null) return;
+
+        SelectedItem = item;
+        
+        ReplyDialogVisible = true;
+    }
+
+    private async Task SendMessage()
+    {
+        var item = SelectedItem;
+        
+        _ = int.TryParse(item.DocumentLink, out var userId);
+        
+        if (userId is 0) return;
+        
+        var user = await UserService.GetUserByIdAsync(userId, new CancellationToken());
+        if (!user.IsOk) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var messageTitle = $"{@LocalizationService.StringFromResource("Messages-19")} {AppState.User.FullName} {@LocalizationService.StringFromResource("Messages-20")} " + item.Title + ", " + System.Web.HttpUtility.HtmlEncode(TextModel.Text).Replace("'", "&#39;");
+        var receiver = user.Value;
+
+        var message = new CreateMessageDto()
+        {
+            Receiver = new MessageContactDto(){ ContactIdentifier = receiver.Id, Name = receiver.FullName, Email = receiver.Email },
+            EventId = 0,
+            EventTypeId = 0,
+            MessageTypeId = 0,
+            Outgoing = true,
+            Incoming = false,
+            StatusId = 3,
+            OrganizationId = item.OrganizationId,
+            OrganizationName = item.OrganizationName,
+            ProjectId = item.ProjectId,
+            ProjectTitle = item.Title,
+            ProjectNumber = item.ProjectNumber,
+            ApplicationId = item.ApplicationId,
+            ApplicationTitle = item.Title,
+            ApplicationStatusId = item.StatusId,
+            SchemaId = item.SchemaId,
+            DocumentLink = string.Empty,
+            DocumentTypeId = 0,
+            Title = messageTitle,
+            ReactionDescriptionId = 0,
+            SystemMessageDestinationId = 0,
+            ExecutionDate = DateTime.Now,
+            ExpireDate = DateTime.Now.AddDays(7)
+        };
+
+        var messageResult = await MessageService.CreateMessageAsync(message, new CancellationToken());
+        if (!messageResult.IsOk) throw new Exception(messageResult.Error.ToString());
+
+        var deleteResult = await MessageService.DeleteMessageAsync(item.Id, new CancellationToken());
+        if (!deleteResult.IsOk) throw new Exception(deleteResult.Error.ToString());
+
+        NotificationService.Info(@LocalizationService.StringFromResource("Messages-21"), 2000);
+        
+        ReplyDialogVisible = false;
+        SelectedItem = null!;
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void Cancel()
+    {
+        ReplyDialogVisible = false;
+    }
+
+}

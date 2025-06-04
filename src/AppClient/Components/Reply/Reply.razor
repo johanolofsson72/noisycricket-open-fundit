@@ -1,0 +1,118 @@
+﻿@using AppClient.State
+@using global::Shared.Extensions
+@using global::Shared.Messages.DTOs
+@using global::Shared.Messages.Services
+@inject ProjectService ProjectService
+@inject MessageService MessageService
+@inject ApplicationService ApplicationService
+@inject IConfiguration Configuration
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<style>
+    .message-area {
+        height: 30vh;
+        width: 50vw;
+    }
+</style>
+
+<div style="max-width: 40%;">
+    <div class="card-body">
+        <h5 class="card-title">@LocalizationService.StringFromResource("Reply-1")</h5>
+        <p>
+            @LocalizationService.StringFromResource("Reply-2")
+        </p>
+        <br><br>
+        <EditForm FormName="Reply" Context="item" OnValidSubmit="SendMessage" Model="TextModel">
+            <InputTextArea @bind-Value="TextModel.Text" Class="form-control custom-textarea-class message-area" />
+            <br />
+            <TelerikButton Enabled="@Enabled" OnClick="SendMessage" Icon="@Telerik.SvgIcons.SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Reply-3")</TelerikButton>
+            <TelerikButton OnClick="Cancel" Icon="@Telerik.SvgIcons.SvgIcon.Cancel" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Reply-4")</TelerikButton>
+        </EditForm>
+    </div>
+</div>
+
+
+@code 
+{
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public int MessageId { get; set; }
+    [Parameter] public int ApplicationId { get; set; }
+    [Parameter] public string OriginalMessageContent { get; set; } = string.Empty;
+    private string FullName { get; set; } = string.Empty;
+    private bool Enabled { get; set; } = true;
+
+    private class TextAreaModel
+    {
+        public string Text { get; set; } = string.Empty;
+    }
+    private TextAreaModel TextModel { get; set; } = new TextAreaModel();
+    
+    private async Task SendMessage()
+    {
+        try
+        {
+            Enabled = false;
+            ChangeLoaderVisibilityAction(true);
+            await InvokeAsync(StateHasChanged);
+            var applicationResult = await ApplicationService.ReplyApplicationByIdAsync(ApplicationId, new CancellationToken());
+            if (!applicationResult.IsOk) throw new Exception(applicationResult.Error.ToString());
+            var application = applicationResult.Value;
+
+            if (application.Id < 1) throw new Exception("Application not found");
+
+            var messageTitle = $"{@LocalizationService.StringFromResource("Reply-6")} {AppState.User.FullName} {@LocalizationService.StringFromResource("Reply-7")} " + OriginalMessageContent + ", " + System.Web.HttpUtility.HtmlEncode(TextModel.Text).Replace("'", "&#39;");
+            var receiver = application.ProjectManager;
+
+            var message = new CreateMessageDto()
+            {
+                Receiver = new MessageContactDto(){ ContactIdentifier = receiver.ContactIdentifier, Name = receiver.Name, Email = receiver.Email },
+                EventId = 0,
+                EventTypeId = 0,
+                MessageTypeId = 0,
+                Outgoing = false,
+                Incoming = true,
+                StatusId = 3,
+                OrganizationId = application.Organization.ContactIdentifier,
+                OrganizationName = application.Organization.Name,
+                ProjectId = application.ProjectId,
+                ProjectTitle = application.Title,
+                ProjectNumber = application.ProjectNumber,
+                ApplicationId = ApplicationId,
+                ApplicationTitle = application.Title,
+                ApplicationStatusId = application.StatusId,
+                SchemaId = application.SchemaId,
+                DocumentLink = AppState.User.Id.ToString(),
+                DocumentTypeId = 0,
+                Title = messageTitle,
+                ReactionDescriptionId = 0,
+                SystemMessageDestinationId = 0,
+                ExecutionDate = DateTime.Now,
+                ExpireDate = DateTime.Now.AddDays(7)
+            };
+
+            var messageResult = await MessageService.CreateMessageAsync(message, new CancellationToken());
+            if (!messageResult.IsOk) throw new Exception(messageResult.Error.ToString());
+
+            var deleteResult = await MessageService.DeleteMessageAsync(MessageId, new CancellationToken());
+            if (!deleteResult.IsOk) throw new Exception(deleteResult.Error.ToString());
+
+            NotificationService.Info(@LocalizationService.StringFromResource("Reply-5"), 2000);
+            Enabled = true;
+            ChangeLoaderVisibilityAction(true);
+            await InvokeAsync(StateHasChanged);
+            NavigationManager.NavigateTo("/", true);
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Error(ex.ToString());
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/", true);
+    }
+    
+}

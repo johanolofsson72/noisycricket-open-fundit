@@ -1,0 +1,76 @@
+@page "/chatbot"
+@using global::Shared.OpenAi.Services
+@using Markdig
+@using Syncfusion.Blazor.InteractiveChat
+@inject OpenAiService OpenAiService
+@inject IJSRuntime Js
+
+<style>
+    .aia-assist-container {
+        margin: 20px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .prompt-item-content,
+    .response-content {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .prompt-header {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .promptcontent {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .response-content p {
+        margin-bottom: 1em;
+    }
+
+    .response-content ul {
+        margin-left: 20px;
+        margin-bottom: 1em;
+    }
+</style>
+
+<div class="aia-assist-container" id="aiaAssistContainer">
+    <SfAIAssistView PromptPlaceholder="Skriv din fråga här..." PromptRequested="@PromptRequest">
+        <AssistViews>
+            <AssistView>
+                <PromptItemTemplate>
+                    <div class="prompt-item-content">
+                        <div class="prompt-header">
+                            Du
+                            <span class="e-icons e-user"></span>
+                        </div>
+                        <div class="prompt-content">@context.Prompt</div>
+                    </div>
+                </PromptItemTemplate>
+                <ResponseItemTemplate>
+                    <div class="response-content">
+                        <span>@(new MarkupString(Markdown.ToHtml(context.Response)))</span>
+                    </div>
+                </ResponseItemTemplate>
+            </AssistView>
+        </AssistViews>
+    </SfAIAssistView>
+</div>
+
+@code {
+    private async Task PromptRequest(AssistViewPromptRequestedEventArgs args)
+    {
+        args.Response = await Chat(args.Prompt);
+        await Js.InvokeVoidAsync("scrollToBottom", "aiaAssistContainer");
+    }
+    private async Task<string> Chat(string question)
+    {
+        return await OpenAiService.ChatPrivate("", question);
+    }
+}

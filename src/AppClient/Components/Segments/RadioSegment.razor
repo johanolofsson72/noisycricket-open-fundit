@@ -1,0 +1,56 @@
+@using System.Text.Json
+@using System.Text.RegularExpressions
+@inject SharedService SharedService
+
+<div class="application-segment">
+    <label for="@Control.Id.ToString()" class="application-label">@Control.Labels[Index]<br/>
+        <div class="application-sub-label" style="display: @ShowSubLabel">@Control.SubLabels[Index]</div>
+        <TelerikRadioGroup Data="@DataSource"
+                           Value="@Value" Enabled="@Enabled" 
+                           ValueChanged="@( (string value) => OnValueChanged(value) )">
+        </TelerikRadioGroup>
+    </label>
+</div>
+
+@code {
+    [Parameter] public ApplicationControlDto Control { get; set; } = new();
+    [Parameter] public EventCallback<ApplicationControlDto> OnControlChanged { get; set; }
+    private List<string> DataSource { get; set; } = [];
+    private string Value { get; set; } = string.Empty;
+    private string ShowSubLabel => Control.SubLabels.Any(x => x.Length > 0) ? "block" : "none";
+    private int Index { get; set; } = 0;
+    private bool Enabled { get; set; } = true;
+
+
+    protected override void OnInitialized()
+    {
+        Index = SharedService.IndexByCulture();
+        if (Control.Labels.Count == 1) Index = 0;
+        Control.DataSource = Regex.Unescape(Control.DataSource);
+        var dataSource = JsonSerializer.Deserialize<List<string>>(Control.DataSource);
+        Control.Value = Regex.Unescape(Control.Value);
+        if (!string.IsNullOrWhiteSpace(Control.Value) && dataSource is not null)
+        {
+            DataSource = dataSource;
+            Value = Control.Value;
+        }
+        else if (dataSource is not null)
+        {
+            DataSource = dataSource;
+            Value = DataSource.First();
+        }
+        Enabled = true;
+    }
+
+    private async Task OnValueChanged(string value)
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        Value = value;
+        Control.Value = value;
+        await OnControlChanged.InvokeAsync(Control);
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

@@ -1,0 +1,167 @@
+@page "/Account/Login"
+@using System.Text.RegularExpressions
+@using AppClient.Data
+@using Microsoft.Extensions.Options
+
+@inject SignInManager<User> SignInManager
+@inject ILogger<Login> Logger
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+@inject UserService UserService
+@inject IServiceProvider ServiceProvider
+@inject IConfiguration Configuration
+
+<PageTitle>@LocalizationService.StringFromResource("Account-25")</PageTitle>
+
+<div class="mt-12 mx-auto max-w-lg">
+    <div class="max-w-xl">
+        <Heading1>@LocalizationService.StringFromResource("Account-32")</Heading1>
+        <StatusMessage class="mb-3" Message="@errorMessage" />
+        <section class="mt-4 sm:shadow overflow-hidden sm:rounded-md">
+            <EditForm id="account" Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+                <div class="px-4 bg-white dark:bg-black sm:p-6">
+                    <ValidationSummary class="mb-3 text-danger text-center font-semibold" />
+                    <div class="flex flex-col gap-y-4">
+                        <div>
+                            <div>
+                                <label for="vat" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-132")</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <InputText id="vat" type="text" @bind-Value="Input.Vat" class="@TextInput.InputClasses" autocomplete="vat" aria-required="true" placeholder="0101015566" />
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div>
+                                <label for="email" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-6")</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <InputText id="email" type="text" @bind-Value="Input.Email" class="@TextInput.InputClasses" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div>
+                                <label for="password" class="@TextInput.LabelClasses">@LocalizationService.StringFromResource("Account-7")</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <InputText id="password" type="password" @bind-Value="Input.Password" class="@TextInput.InputClasses" autocomplete="current-password" aria-required="true" placeholder="password" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <InputCheckbox id="remember-me" @bind-Value="Input.RememberMe" class="@CheckboxInput.InputClasses" />
+                                <label for="remember-me" class="ml-2 block text-sm text-gray-900 dark:text-gray-50 select-none">@LocalizationService.StringFromResource("Account-33")</label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <PrimaryButton id="login-submit" type="submit">@LocalizationService.StringFromResource("Account-25")</PrimaryButton>
+                        </div>
+
+                        <div class="mt-8 text-sm">
+                            <p class="mb-3">
+                                <HyperLink class="font-semibold" id="forgot-password" href="Account/ForgotPassword">@LocalizationService.StringFromResource("Account-34")</HyperLink>
+                            </p>
+                            <p class="mb-3">
+                                <HyperLink class="font-semibold" href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">@LocalizationService.StringFromResource("Account-35")</HyperLink>
+                            </p>
+                            <p class="mb-3">
+                                <HyperLink class="font-semibold" id="resend-confirmation" href="Account/ResendEmailConfirmation">@LocalizationService.StringFromResource("Account-12")</HyperLink>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        </section>
+        <div class="mt-8">
+            <section>
+                <Heading3>@LocalizationService.StringFromResource("Account-19")</Heading3>
+                <ExternalLoginPicker />
+            </section>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? errorMessage;
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            // Clear the existing external cookie to ensure a clean login process
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+        
+        if (Configuration.GetValue<bool>("DemoMode"))
+        {
+            Input.Vat = "5567144950";
+            Input.Email = "jool@me.com";
+            Input.Password = "Zrtv6Pk!";
+            await LoginUser();
+        }
+    }
+
+    public async Task LoginUser()
+    {
+        var email = Input.Email.ToLower();
+        var vat = Input.Vat.Replace("-", "").Replace("_", "").Trim().ToLower();
+        var user = await UserService.GetUserAsync(0, email, vat, new CancellationToken());
+        
+        if (!user.IsOk || user.Value.StatusId != 2)
+        {
+            errorMessage = "Error: Invalid login attempt.";
+            return;
+        }
+        
+        // This doesn't count login failures towards account lockout
+        // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        if (result.Succeeded)
+        {
+            RedirectManager.RedirectTo(ReturnUrl ?? "/");
+        }
+        else if (result.RequiresTwoFactor)
+        {
+            RedirectManager.RedirectTo(
+                "Account/LoginWith2fa",
+                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("User account locked out.");
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            errorMessage = "Error: Invalid login attempt.";
+        }
+    }
+
+    public class InputModel
+    {
+        [Required]
+        [VatNumber]
+        public string Vat { get; set; } = "";
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        [Display(Name = "Remember me?")]
+        public bool RememberMe { get; set; }
+    }
+    
+}

@@ -1,0 +1,165 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "TextSummarizer/1.0.0": {
+        "dependencies": {
+          "System.Runtime.Caching": "8.0.0-rc.2.23479.6",
+          "TextRank": "1.0.0"
+        },
+        "runtime": {
+          "TextSummarizer.dll": {}
+        }
+      },
+      "System.Configuration.ConfigurationManager/8.0.0-rc.2.23479.6": {
+        "dependencies": {
+          "System.Diagnostics.EventLog": "8.0.0-rc.2.23479.6",
+          "System.Security.Cryptography.ProtectedData": "8.0.0-rc.2.23479.6"
+        },
+        "runtime": {
+          "lib/net8.0/System.Configuration.ConfigurationManager.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.47906"
+          }
+        }
+      },
+      "System.Diagnostics.EventLog/8.0.0-rc.2.23479.6": {
+        "runtime": {
+          "lib/net8.0/System.Diagnostics.EventLog.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.47906"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net8.0/System.Diagnostics.EventLog.Messages.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win/lib/net8.0/System.Diagnostics.EventLog.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.47906"
+          }
+        }
+      },
+      "System.Runtime.Caching/8.0.0-rc.2.23479.6": {
+        "dependencies": {
+          "System.Configuration.ConfigurationManager": "8.0.0-rc.2.23479.6"
+        },
+        "runtime": {
+          "lib/net8.0/System.Runtime.Caching.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.47906"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net8.0/System.Runtime.Caching.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.47906"
+          }
+        }
+      },
+      "System.Security.Cryptography.ProtectedData/8.0.0-rc.2.23479.6": {
+        "runtime": {
+          "lib/net8.0/System.Security.Cryptography.ProtectedData.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.47906"
+          }
+        }
+      },
+      "PageRank/1.0.0": {
+        "runtime": {
+          "PageRank.dll": {}
+        }
+      },
+      "TextRank/1.0.0": {
+        "dependencies": {
+          "PageRank": "1.0.0"
+        },
+        "runtime": {
+          "TextRank.dll": {}
+        }
+      },
+      "OpenNLP/1.0.6211.31491": {
+        "runtime": {
+          "OpenNLP.dll": {
+            "assemblyVersion": "1.0.6211.31491",
+            "fileVersion": "1.0.6211.31491"
+          }
+        }
+      },
+      "SharpEntropy/1.0.6211.31255": {
+        "runtime": {
+          "SharpEntropy.dll": {
+            "assemblyVersion": "1.0.6211.31255",
+            "fileVersion": "1.0.6211.31255"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "TextSummarizer/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "System.Configuration.ConfigurationManager/8.0.0-rc.2.23479.6": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-xrca21E/7vnHe45MvfcS4J2sj0vzTUsnQxO2dhe2Ex49RZ5qfeZF9bTDp7es+zTp6YZA2xUJLbrFySbrpHqW4Q==",
+      "path": "system.configuration.configurationmanager/8.0.0-rc.2.23479.6",
+      "hashPath": "system.configuration.configurationmanager.8.0.0-rc.2.23479.6.nupkg.sha512"
+    },
+    "System.Diagnostics.EventLog/8.0.0-rc.2.23479.6": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-HMyVSVGuhpzOV1y8j/+y2HZAAo7E1m8WhSZCDsgDG6GDzrUL3voCURbrBlAeLNParK8QNO5Ht06ccWuXOMLYIA==",
+      "path": "system.diagnostics.eventlog/8.0.0-rc.2.23479.6",
+      "hashPath": "system.diagnostics.eventlog.8.0.0-rc.2.23479.6.nupkg.sha512"
+    },
+    "System.Runtime.Caching/8.0.0-rc.2.23479.6": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-J291mFd0zDVZLUz2pExfJNEv6y30Qj75o+gH8ChMS4xPlpJOtjyGTFa2s/MhO0doWMcvnMH3wbPxMByg0Q9Llg==",
+      "path": "system.runtime.caching/8.0.0-rc.2.23479.6",
+      "hashPath": "system.runtime.caching.8.0.0-rc.2.23479.6.nupkg.sha512"
+    },
+    "System.Security.Cryptography.ProtectedData/8.0.0-rc.2.23479.6": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-PhyL+Qv4bYnWlh/AxIdye89bBxwsyJdGXEFugJgICTQaVbq39p9q1Bal5a+HF14goo2vICFxwEEyb0Gr0jln/w==",
+      "path": "system.security.cryptography.protecteddata/8.0.0-rc.2.23479.6",
+      "hashPath": "system.security.cryptography.protecteddata.8.0.0-rc.2.23479.6.nupkg.sha512"
+    },
+    "PageRank/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "TextRank/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "OpenNLP/1.0.6211.31491": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "SharpEntropy/1.0.6211.31255": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

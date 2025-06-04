@@ -1,0 +1,1239 @@
+﻿@using System.Net
+@using System.Text.RegularExpressions
+@using AppClient.State
+@using global::Shared.Documents.DTOs
+@using global::Shared.Events.Services
+@using global::Shared.Messages.Services
+@using global::Shared.Milestones.Services
+@using HeyRed.Mime
+@using Telerik.Windows.Documents.Fixed.Model
+@using Telerik.Windows.Documents.Fixed.Model.ColorSpaces
+@using Telerik.Windows.Documents.Fixed.Model.Editing
+
+@inject MilestoneService MilestoneService
+@inject DocumentService DocumentService
+@inject ApplicationService ApplicationService
+@inject MessageService MessageService
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@inject IConfiguration Configuration
+@inject EventService EventService
+@inject SharedService SharedService
+
+@*
++--+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|Id|Names                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
++--+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|1 |["Default","Standard","Default","Standard","Predeterminado","Par d\u00E9faut","Predefinito","Standard"]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|2 |["Ej valt","Not Selected","Ikke valgt","Nicht gew\u00E4hlt","No seleccionado","Non s\u00E9lectionn\u00E9","Non selezionato","Ikke valgt"]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+|3 |["Producenten ska skicka in datum f\u00F6r inspelningsstart","Producer Must Submit Start Date for Filming","Producenten skal indsende startdato for optagelserne","Produzent muss Startdatum f\u00FCr Dreharbeiten einreichen","El productor debe enviar la fecha de inicio de filmaci\u00F3n","Le producteur doit soumettre la date de d\u00E9but de tournage","Il produttore deve inviare la data di inizio delle riprese","Produsenten m\u00E5 sende inn startdato for innspilling"]                                                                                                                                                                                                                                                                                                                                                     |
+|4 |["Producenten ska skicka in datum f\u00F6r inspelningsslut","Producer Must Submit End Date for Filming","Producenten skal indsende slutdato for optagelserne","Produzent muss Enddatum f\u00FCr Dreharbeiten einreichen","El productor debe enviar la fecha de finalizaci\u00F3n de filmaci\u00F3n","Le producteur doit soumettre la date de fin de tournage","Il produttore deve inviare la data di fine delle riprese","Produsenten m\u00E5 sende inn sluttdato for innspilling"]                                                                                                                                                                                                                                                                                                                                                         |
+|5 |["Producenten ska skicka in datum f\u00F6r Svensk, international och festival premi\u00E4r","Producer Must Submit Dates for Swedish, International and Festival Premieres","Producenten skal indsende datoer for svensk, international og festivalpremiere","Produzent muss Daten f\u00FCr schwedische, internationale und Festivalpremieren einreichen","El productor debe enviar las fechas para las premieres sueca, internacional y de festivales","Le producteur doit soumettre les dates pour les premi\u00E8res su\u00E9doises, internationales et de festival","Il produttore deve inviare le date per le prime svedesi, internazionali e festival","Produsenten m\u00E5 sende inn datoer for svensk, internasjonal og festivalpremierer"]                                                                                          |
+Används ej |6 |["Producenten ska skicka in manus, ekonomi plan, projektbeskrivning och andra dokument","Producer Must Submit Manuscript, Financial Plan, Project Description and Other Documents","Producenten skal indsende manuskript, \u00F8konomiplan, projektbeskrivelse og andre dokumenter","Produzent muss Manuskript, Finanzplan, Projektbeschreibung und andere Dokumente einreichen","El productor debe enviar el manuscrito, el plan financiero, la descripci\u00F3n del proyecto y otros documentos","Le producteur doit soumettre le manuscrit, le plan financier, la description du projet et d\u0027autres documents","Il produttore deve inviare il manoscritto, il piano finanziario, la descrizione del progetto e altri documenti","Produsenten m\u00E5 sende inn manus, \u00F8konomisk plan, prosjektbeskrivelse og andre dokumenter"]|
+|7 |["Producenten ska skicka in teamlista","Producer Must Submit Team List","Producenten skal indsende holdliste","Produzent muss Teamliste einreichen","El productor debe enviar la lista del equipo","Le producteur doit soumettre la liste de l\u0027\u00E9quipe","Il produttore deve inviare la lista del team","Produsenten m\u00E5 sende inn teamliste"]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+Används ej |8 |["Producenten ska skicka in faktura f\u00F6r rat 1","Producer Must Submit Invoice for Draft 1","Producenten skal indsende faktura for udkast 1","Produzent muss Rechnung f\u00FCr Entwurf 1 einreichen","El productor debe enviar la factura del borrador 1","Le producteur doit soumettre la facture du brouillon 1","Il produttore deve inviare la fattura per la bozza 1","Produsenten m\u00E5 sende inn faktura for utkast 1"]                                                                                                                                                                                                                                                                                                                                                                                                          |
+|9 |["Producenten ska skicka in datum f\u00F6r Dcp","Producer Must Submit Date for DCP","Producenten skal indsende dato for DCP","Produzent muss Datum f\u00FCr DCP einreichen","El productor debe enviar la fecha para el DCP","Le producteur doit soumettre la date pour le DCP","Il produttore deve inviare la data per il DCP","Produsenten m\u00E5 sende inn dato for DCP"]                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+|10|["Producenten ska skicka in artistisk och ekonomisk redovisning","Producer Must Submit Artistic and Financial Accounting","Producenten skal indsende kunstnerisk og \u00F8konomisk opg\u00F8relse","Produzent muss k\u00FCnstlerische und finanzielle Abrechnung einreichen","El productor debe enviar el informe art\u00EDstico y financiero","Le producteur doit soumettre le compte-rendu artistique et financier","Il produttore deve inviare la rendicontazione artistica e finanziaria","Produsenten m\u00E5 sende inn kunstnerisk og \u00F8konomisk rapport"]                                                                                                                                                                                                                                                                        |
++--+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+*@
+
+
+<div style="max-width: 40%;">
+    <div class="card-body">
+        <h5 class="card-title">@LocalizationService.StringFromResource("Communication-1")</h5>
+        <p>
+            @LocalizationService.StringFromResource("Communication-2")
+        </p>
+        <br><br>
+        <p>
+            <span style="color: #9bc53d;">&check;</span>&nbsp;@LocalizationService.StringFromResource("projects-120") <span style="font-weight: 600; color:  black; font-style: italic">@(WebUtility.UrlDecode(ReactionTypeName))</span>
+        </p>
+        <br><br>
+        @switch (ReactionTypeId)
+        {
+            // Producenten ska skicka in datum för inspelningsstart
+            case 3:
+                <label>
+                    @LocalizationService.StringFromResource("Communication-6")
+                    <TelerikDatePicker Enabled="@Enabled" @bind-Value="RecordingStartDate" OnChange="OnRecordingStartDateValueChanged"/>
+                </label>
+                <br><br>
+                <TelerikButton OnClick="SaveRecordingStartDate" Enabled="@(SaveRecordingStartDateVisible && Enabled)" Icon="@Telerik.SvgIcons.SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Communication-4")</TelerikButton>
+                break;
+            // Producenten ska skicka in datum för inspelningsslut
+            case 4:
+                <label>
+                    @LocalizationService.StringFromResource("Communication-7")
+                    <TelerikDatePicker Enabled="@Enabled" @bind-Value="RecordingEndDate" OnChange="OnRecordingEndDateValueChanged"/>
+                </label>
+                <br><br>
+                <TelerikButton OnClick="SaveRecordingEndDate" Enabled="@(SaveRecordingEndDateVisible && Enabled)" Icon="@Telerik.SvgIcons.SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Communication-4")</TelerikButton>
+                break;
+            // Producenten ska skicka in datum för Svensk, international och festival premiär
+            case 5:
+                <label>
+                    @LocalizationService.StringFromResource("Communication-8")
+                    <TelerikDatePicker Enabled="@Enabled" @bind-Value="SwedishPremiereDate" OnChange="OnSwedishPremiereDateValueChanged"/>
+                </label>
+                <label>
+                    @LocalizationService.StringFromResource("Communication-20")
+                    <TelerikDatePicker Enabled="@Enabled" @bind-Value="InternationalPremiereDate" OnChange="OnInternationalPremiereDateValueChanged"/>
+                </label>
+                <label>
+                    @LocalizationService.StringFromResource("Communication-9")
+                    <TelerikDatePicker Enabled="@Enabled" @bind-Value="FestivalDate" OnChange="OnFestivalDateValueChanged"/>
+                </label>
+                <br><br>
+                <TelerikButton OnClick="SavePremiereDates" Enabled="@(SavePremiereDatesVisible && Enabled)" Icon="@Telerik.SvgIcons.SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Communication-4")</TelerikButton>
+                break;
+            // Producenten ska skicka in manus, ekonomi plan, projektbeskrivning och andra dokument
+            case 6:
+                <label>
+                    @LocalizationService.StringFromResource("Communication-10")
+                    <TelerikUpload Enabled="@Enabled" OnSuccess="@OnUploadScriptSuccess" OnUpload="@OnUploadScriptHandler" OnRemove="@OnRemoveScriptHandler" WithCredentials="true" Multiple="true" RemoveUrl="upload/remove" SaveUrl="upload/save" />
+                </label>
+                <label>
+                    @LocalizationService.StringFromResource("Communication-11")
+                    <TelerikUpload Enabled="@Enabled" OnSuccess="@OnUploadEconomyPlanSuccess" OnUpload="@OnUploadEconomyPlanHandler" OnRemove="@OnRemoveEconomyPlanHandler" WithCredentials="true" Multiple="true" RemoveUrl="upload/remove" SaveUrl="upload/save" />
+                </label>
+                <label>
+                    @LocalizationService.StringFromResource("Communication-12")
+                    <TelerikUpload Enabled="@Enabled" OnSuccess="@OnUploadProjectDescriptionSuccess" OnUpload="@OnUploadProjectDescriptionHandler" OnRemove="@OnRemoveProjectDescriptionHandler" WithCredentials="true" Multiple="true" RemoveUrl="upload/remove" SaveUrl="upload/save" />
+                </label>
+                <label>
+                    @LocalizationService.StringFromResource("Communication-13")
+                    <TelerikUpload Enabled="@Enabled" OnSuccess="@OnUploadOtherSuccess" OnUpload="@OnUploadOtherHandler" OnRemove="@OnRemoveOtherHandler" WithCredentials="true" Multiple="true" RemoveUrl="upload/remove" SaveUrl="upload/save" />
+                </label>
+                <br><br>
+                <TelerikButton OnClick="SaveScriptProjectDescriptionAndOther" Enabled="@(SaveScriptProjectDescriptionAndOtherVisible && Enabled)" Icon="@Telerik.SvgIcons.SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Communication-4")</TelerikButton>
+                break;
+            // Producenten ska skicka in teamlista
+            case 7:
+                <label>
+                    @LocalizationService.StringFromResource("Communication-14")
+                    <TelerikUpload Enabled="@Enabled" OnSuccess="@OnUploadTeamListSuccess" OnUpload="@OnUploadTeamListHandler" OnRemove="@OnRemoveTeamListHandler" WithCredentials="true" Multiple="true" RemoveUrl="upload/remove" SaveUrl="upload/save" />
+                </label>
+                <br><br>
+                <TelerikButton OnClick="SaveTeamList" Enabled="@(SaveTeamListVisible && Enabled)" Icon="@Telerik.SvgIcons.SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Communication-4")</TelerikButton>
+                break;
+            // Producenten ska skicka in faktura för rat 1
+            case 8:
+                <label>
+                    @LocalizationService.StringFromResource("Communication-15")
+                    <TelerikUpload Enabled="@Enabled" OnSuccess="@OnUploadRateOneSuccess" OnUpload="@OnUploadRateOneHandler" OnRemove="@OnRemoveRateOneHandler" WithCredentials="true" Multiple="true" RemoveUrl="upload/remove" SaveUrl="upload/save" />
+                </label>
+                <br><br>
+                <TelerikButton OnClick="SaveInvoiceRateOne" Enabled="@(SaveInvoiceRateOneVisible && Enabled)" Icon="@Telerik.SvgIcons.SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Communication-4")</TelerikButton>
+                break;
+            // Producenten ska skicka in datum för Dcp
+            case 9:
+                <label>
+                    @LocalizationService.StringFromResource("Communication-16")
+                    <TelerikDatePicker Enabled="@Enabled" @bind-Value="DcpDate" OnChange="OnDcpDateValueChanged"/>
+                </label>
+                <br><br>
+                <TelerikButton OnClick="SaveDcpDate" Enabled="@(SaveDcpDateVisible && Enabled)" Icon="@Telerik.SvgIcons.SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Communication-4")</TelerikButton>
+                break;
+            // Producenten ska skicka in artistisk och ekonomisk redovisning
+            case 10:
+                <label>
+                    @LocalizationService.StringFromResource("Communication-17")
+                    <TelerikUpload Enabled="@Enabled" OnSuccess="@OnUploadArtisticReportSuccess" OnUpload="@OnUploadArtisticReportHandler" OnRemove="@OnRemoveArtisticReportHandler" WithCredentials="true" Multiple="true" RemoveUrl="upload/remove" SaveUrl="upload/save" />
+                </label>
+                <label>
+                    @LocalizationService.StringFromResource("Communication-18")
+                    <TelerikUpload Enabled="@Enabled" OnSuccess="@OnUploadEconomyReportSuccess" OnUpload="@OnUploadEconomyReportHandler" OnRemove="@OnRemoveEconomyReportHandler" WithCredentials="true" Multiple="true" RemoveUrl="upload/remove" SaveUrl="upload/save" />
+                </label>
+                <br><br>
+                <TelerikButton OnClick="SaveArtisticAndEconomyReports" Enabled="@(SaveArtisticAndEconomyReportsVisible && Enabled)" Icon="@Telerik.SvgIcons.SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Communication-4")</TelerikButton>
+                break;
+        }
+        &nbsp;<TelerikButton OnClick="Cancel" Icon="@Telerik.SvgIcons.SvgIcon.Cancel" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Communication-5")</TelerikButton>
+    </div>
+</div>
+
+@code 
+{
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public int MessageId { get; set; }
+    [Parameter] public int ApplicationId { get; set; }
+    [Parameter] public int ReactionTypeId { get; set; }
+    [Parameter] public string ReactionTypeName { get; set; } = string.Empty;
+    private SlimApplicationDto? SelectedApplication { get; set; }
+    private string ScriptPath { get; set; } = string.Empty;
+    private string EconomyPlanPath { get; set; } = string.Empty;
+    private string ProjectDescriptionPath { get; set; } = string.Empty;
+    private string OtherPath { get; set; } = string.Empty;
+    private string TeamListPath { get; set; } = string.Empty;
+    private string RateOnePath { get; set; } = string.Empty;
+    private string ArtisticReportPath { get; set; } = string.Empty;
+    private string EconomyReportPath { get; set; } = string.Empty;
+    private bool SaveRecordingStartDateVisible { get; set; } = false;
+    private bool SaveRecordingEndDateVisible { get; set; } = false;
+    private bool SavePremiereDatesVisible { get; set; } = false;
+    private bool SaveScriptProjectDescriptionAndOtherVisible { get; set; } = false;
+    private bool SaveTeamListVisible { get; set; } = false;
+    private bool SaveInvoiceRateOneVisible { get; set; } = false;
+    private bool SaveDcpDateVisible { get; set; } = false;
+    private bool SaveArtisticAndEconomyReportsVisible { get; set; } = false;
+    private DateTime RecordingStartDate { get; set; } = DateTime.MinValue;
+    private DateTime RecordingEndDate { get; set; } = DateTime.MinValue;
+    private DateTime SwedishPremiereDate { get; set; } = DateTime.MinValue;
+    private DateTime InternationalPremiereDate { get; set; } = DateTime.MinValue;
+    private DateTime FestivalDate { get; set; } = DateTime.MinValue;
+    private DateTime DcpDate { get; set; } = DateTime.MinValue;
+    private int NextEventId { get; set; } = 0;
+    private string NextEventStatus { get; set; } = "";
+    private bool Enabled { get; set; } = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var applicationResult = await ApplicationService.SlimApplicationByIdAsync(ApplicationId, new CancellationToken());
+        if (!applicationResult.IsOk) throw new Exception(applicationResult.Error.ToString());
+        SelectedApplication = applicationResult.Value;
+        
+        switch (ReactionTypeId)
+        {
+            case 6:
+                ScriptPath = InitializeTempFileDirectory();
+                EconomyPlanPath = InitializeTempFileDirectory();
+                ProjectDescriptionPath = InitializeTempFileDirectory();
+                break; 
+            case 7:
+                TeamListPath = InitializeTempFileDirectory();
+                break; 
+            case 8:
+                RateOnePath = InitializeTempFileDirectory();
+                break;  
+            case 10:
+                ArtisticReportPath = InitializeTempFileDirectory();
+                EconomyReportPath = InitializeTempFileDirectory();
+                break;  
+        }
+
+        Enabled = true;
+        await CheckNextEvent();
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task<ApplicationEventDto> CheckNextEvent()
+    {
+        var nextEvent = new ApplicationEventDto();
+        
+        if (SelectedApplication is null) return nextEvent;
+        
+        var eventResult = await EventService.CheckNextEvent(SelectedApplication.Id, new CancellationToken());
+        if (!eventResult.IsOk) return nextEvent;
+        
+        nextEvent = eventResult.Value;
+        NextEventId = nextEvent.ApplicationEventIdentifier;
+        NextEventStatus = nextEvent.Labels[SharedService.IndexByCulture()];
+
+        return nextEvent;
+    }
+
+    private void OnUploadScriptHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(ScriptPath, ScriptPath); 
+    }
+
+    private void OnUploadEconomyPlanHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(EconomyPlanPath, EconomyPlanPath); 
+    }
+
+    private void OnUploadProjectDescriptionHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(ProjectDescriptionPath, ProjectDescriptionPath); 
+    }
+
+    private void OnUploadOtherHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(OtherPath, OtherPath); 
+    }
+
+    private void OnUploadTeamListHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(TeamListPath, TeamListPath); 
+    }
+
+    private void OnUploadRateOneHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(RateOnePath, RateOnePath); 
+    }
+
+    private void OnUploadArtisticReportHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(ArtisticReportPath, ArtisticReportPath); 
+    }
+
+    private void OnUploadEconomyReportHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(EconomyReportPath, EconomyReportPath); 
+    }
+    
+
+    private void OnRemoveScriptHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(ScriptPath, ScriptPath);
+        SaveScriptProjectDescriptionAndOtherVisible = CheckScript() && CheckProjectDescription() && CheckEconomyPlan();
+    }
+
+    private void OnRemoveEconomyPlanHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(EconomyPlanPath, EconomyPlanPath);
+        SaveScriptProjectDescriptionAndOtherVisible = CheckScript() && CheckProjectDescription() && CheckEconomyPlan();
+    }
+
+    private void OnRemoveProjectDescriptionHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(ProjectDescriptionPath, ProjectDescriptionPath);
+        SaveScriptProjectDescriptionAndOtherVisible = CheckScript() && CheckProjectDescription() && CheckEconomyPlan();
+    }
+
+    private void OnRemoveOtherHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(OtherPath, OtherPath);
+        SaveScriptProjectDescriptionAndOtherVisible = CheckScript() && CheckProjectDescription() && CheckEconomyPlan();
+    }
+
+    private void OnRemoveTeamListHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(TeamListPath, TeamListPath);
+        SaveTeamListVisible = CheckTeamList();
+    }
+
+    private void OnRemoveRateOneHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(RateOnePath, RateOnePath);
+        SaveInvoiceRateOneVisible = CheckRateOne();
+    }
+
+    private void OnRemoveArtisticReportHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(ArtisticReportPath, ArtisticReportPath);
+        SaveArtisticAndEconomyReportsVisible = CheckArtisticReport() && CheckEconomyReport();
+    }
+
+    private void OnRemoveEconomyReportHandler(UploadEventArgs args)
+    {
+        args.RequestData.Add(EconomyReportPath, EconomyReportPath);
+        SaveArtisticAndEconomyReportsVisible = CheckArtisticReport() && CheckEconomyReport();
+    }
+    
+
+    private void OnUploadScriptSuccess(UploadSuccessEventArgs args)
+    {
+        if (args.Request.Status == 200)
+        {
+            SaveScriptProjectDescriptionAndOtherVisible = CheckScript() && CheckProjectDescription() && CheckEconomyPlan();
+        }
+    }
+    
+    private void OnUploadEconomyPlanSuccess(UploadSuccessEventArgs args)
+    {
+        if (args.Request.Status == 200)
+        {
+            SaveScriptProjectDescriptionAndOtherVisible = CheckScript() && CheckProjectDescription() && CheckEconomyPlan();
+        }
+    }
+    
+    private void OnUploadProjectDescriptionSuccess(UploadSuccessEventArgs args)
+    {
+        if (args.Request.Status == 200)
+        {
+            SaveScriptProjectDescriptionAndOtherVisible = CheckScript() && CheckProjectDescription() && CheckEconomyPlan();
+        }
+    }
+    
+    private void OnUploadOtherSuccess(UploadSuccessEventArgs args)
+    {
+        if (args.Request.Status == 200)
+        {
+            SaveScriptProjectDescriptionAndOtherVisible = CheckScript() && CheckProjectDescription() && CheckEconomyPlan() && CheckOther();
+        }
+    }
+    
+    private void OnUploadTeamListSuccess(UploadSuccessEventArgs args)
+    {
+        if (args.Request.Status == 200)
+        {
+            SaveTeamListVisible = CheckTeamList();
+        }
+    }
+    
+    private void OnUploadRateOneSuccess(UploadSuccessEventArgs args)
+    {
+        if (args.Request.Status == 200)
+        {
+            SaveInvoiceRateOneVisible = CheckRateOne();
+        }
+    }
+    
+    private void OnUploadArtisticReportSuccess(UploadSuccessEventArgs args)
+    {
+        if (args.Request.Status == 200)
+        {
+            SaveArtisticAndEconomyReportsVisible = CheckArtisticReport() && CheckEconomyReport();
+        }
+    }
+    
+    private void OnUploadEconomyReportSuccess(UploadSuccessEventArgs args)
+    {
+        if (args.Request.Status == 200)
+        {
+            SaveArtisticAndEconomyReportsVisible = CheckArtisticReport() && CheckEconomyReport();
+        }
+    }
+    
+    
+    private bool CheckScript()
+    {
+        return new DirectoryInfo(ScriptPath).GetFiles().Length > 0;
+    }
+    
+    private bool CheckEconomyPlan()
+    {
+        return new DirectoryInfo(EconomyPlanPath).GetFiles().Length > 0;
+    }
+    
+    private bool CheckProjectDescription()
+    {
+        return new DirectoryInfo(ProjectDescriptionPath).GetFiles().Length > 0;
+    }
+    
+    private bool CheckOther()
+    {
+        return new DirectoryInfo(OtherPath).GetFiles().Length > 0;
+    }
+    
+    private bool CheckTeamList()
+    {
+        return new DirectoryInfo(TeamListPath).GetFiles().Length > 0;
+    }
+    
+    private bool CheckRateOne()
+    {
+        return new DirectoryInfo(RateOnePath).GetFiles().Length > 0;
+    }
+    
+    private bool CheckArtisticReport()
+    {
+        return new DirectoryInfo(ArtisticReportPath).GetFiles().Length > 0;
+    }
+    
+    private bool CheckEconomyReport()
+    {
+        return new DirectoryInfo(EconomyReportPath).GetFiles().Length > 0;
+    }
+    
+    
+    private bool CheckRecordingStartDate()
+    {
+        return RecordingStartDate != DateTime.MinValue;
+    }
+    
+    private bool CheckRecordingEndDate()
+    {
+        return RecordingEndDate != DateTime.MinValue;
+    }
+    
+    private bool CheckSwedishPremiereDate()
+    {
+        return SwedishPremiereDate != DateTime.MinValue;
+    }
+    
+    private bool CheckInternationalPremiereDate()
+    {
+        return InternationalPremiereDate != DateTime.MinValue;
+    }
+    
+    private bool CheckFestivalDate()
+    {
+        return FestivalDate != DateTime.MinValue;
+    }
+    
+    private bool CheckDcpDate()
+    {
+        return DcpDate != DateTime.MinValue;
+    }
+    
+    
+    private void OnRecordingStartDateValueChanged(object value)
+    {
+        SaveRecordingStartDateVisible = CheckRecordingStartDate();
+        StateHasChanged();
+    }
+    
+    private void OnRecordingEndDateValueChanged(object value)
+    {
+        SaveRecordingEndDateVisible = CheckRecordingEndDate();
+        StateHasChanged();
+    }
+    
+    private void OnSwedishPremiereDateValueChanged(object value)
+    {
+        SavePremiereDatesVisible = CheckSwedishPremiereDate() && CheckInternationalPremiereDate() && CheckFestivalDate();
+        StateHasChanged();
+    }
+    
+    private void OnInternationalPremiereDateValueChanged(object value)
+    {
+        SavePremiereDatesVisible = CheckSwedishPremiereDate() && CheckInternationalPremiereDate() && CheckFestivalDate();
+        StateHasChanged();
+    }
+    
+    private void OnFestivalDateValueChanged(object value)
+    {
+        SavePremiereDatesVisible = CheckSwedishPremiereDate() && CheckInternationalPremiereDate() && CheckFestivalDate();
+        StateHasChanged();
+    }
+    
+    private void OnDcpDateValueChanged(object value)
+    {
+        SaveDcpDateVisible = CheckDcpDate();
+        StateHasChanged();
+    }
+    
+    /*
+    +--+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |Id|Names                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+    +--+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |1 |["Default","Standard","Default","Standard","Predeterminado","Par d\u00E9faut","Predefinito","Standard"]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+    |2 |["Ej valt","Not Selected","Ikke valgt","Nicht gew\u00E4hlt","No seleccionado","Non s\u00E9lectionn\u00E9","Non selezionato","Ikke valgt"]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+    |3 |["Producenten ska skicka in datum f\u00F6r inspelningsstart","Producer Must Submit Start Date for Filming","Producenten skal indsende startdato for optagelserne","Produzent muss Startdatum f\u00FCr Dreharbeiten einreichen","El productor debe enviar la fecha de inicio de filmaci\u00F3n","Le producteur doit soumettre la date de d\u00E9but de tournage","Il produttore deve inviare la data di inizio delle riprese","Produsenten m\u00E5 sende inn startdato for innspilling"]                                                                                                                                                                                                                                                                                                                                                     |
+    |4 |["Producenten ska skicka in datum f\u00F6r inspelningsslut","Producer Must Submit End Date for Filming","Producenten skal indsende slutdato for optagelserne","Produzent muss Enddatum f\u00FCr Dreharbeiten einreichen","El productor debe enviar la fecha de finalizaci\u00F3n de filmaci\u00F3n","Le producteur doit soumettre la date de fin de tournage","Il produttore deve inviare la data di fine delle riprese","Produsenten m\u00E5 sende inn sluttdato for innspilling"]                                                                                                                                                                                                                                                                                                                                                         |
+    |5 |["Producenten ska skicka in datum f\u00F6r Svensk, international och festival premi\u00E4r","Producer Must Submit Dates for Swedish, International and Festival Premieres","Producenten skal indsende datoer for svensk, international og festivalpremiere","Produzent muss Daten f\u00FCr schwedische, internationale und Festivalpremieren einreichen","El productor debe enviar las fechas para las premieres sueca, internacional y de festivales","Le producteur doit soumettre les dates pour les premi\u00E8res su\u00E9doises, internationales et de festival","Il produttore deve inviare le date per le prime svedesi, internazionali e festival","Produsenten m\u00E5 sende inn datoer for svensk, internasjonal og festivalpremierer"]                                                                                          |
+    Används ej |6 |["Producenten ska skicka in manus, ekonomi plan, projektbeskrivning och andra dokument","Producer Must Submit Manuscript, Financial Plan, Project Description and Other Documents","Producenten skal indsende manuskript, \u00F8konomiplan, projektbeskrivelse og andre dokumenter","Produzent muss Manuskript, Finanzplan, Projektbeschreibung und andere Dokumente einreichen","El productor debe enviar el manuscrito, el plan financiero, la descripci\u00F3n del proyecto y otros documentos","Le producteur doit soumettre le manuscrit, le plan financier, la description du projet et d\u0027autres documents","Il produttore deve inviare il manoscritto, il piano finanziario, la descrizione del progetto e altri documenti","Produsenten m\u00E5 sende inn manus, \u00F8konomisk plan, prosjektbeskrivelse og andre dokumenter"]|
+    |7 |["Producenten ska skicka in teamlista","Producer Must Submit Team List","Producenten skal indsende holdliste","Produzent muss Teamliste einreichen","El productor debe enviar la lista del equipo","Le producteur doit soumettre la liste de l\u0027\u00E9quipe","Il produttore deve inviare la lista del team","Produsenten m\u00E5 sende inn teamliste"]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+    Används ej |8 |["Producenten ska skicka in faktura f\u00F6r rat 1","Producer Must Submit Invoice for Draft 1","Producenten skal indsende faktura for udkast 1","Produzent muss Rechnung f\u00FCr Entwurf 1 einreichen","El productor debe enviar la factura del borrador 1","Le producteur doit soumettre la facture du brouillon 1","Il produttore deve inviare la fattura per la bozza 1","Produsenten m\u00E5 sende inn faktura for utkast 1"]                                                                                                                                                                                                                                                                                                                                                                                                          |
+    |9 |["Producenten ska skicka in datum f\u00F6r Dcp","Producer Must Submit Date for DCP","Producenten skal indsende dato for DCP","Produzent muss Datum f\u00FCr DCP einreichen","El productor debe enviar la fecha para el DCP","Le producteur doit soumettre la date pour le DCP","Il produttore deve inviare la data per il DCP","Produsenten m\u00E5 sende inn dato for DCP"]                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+    |10|["Producenten ska skicka in artistisk och ekonomisk redovisning","Producer Must Submit Artistic and Financial Accounting","Producenten skal indsende kunstnerisk og \u00F8konomisk opg\u00F8relse","Produzent muss k\u00FCnstlerische und finanzielle Abrechnung einreichen","El productor debe enviar el informe art\u00EDstico y financiero","Le producteur doit soumettre le compte-rendu artistique et financier","Il produttore deve inviare la rendicontazione artistica e finanziaria","Produsenten m\u00E5 sende inn kunstnerisk og \u00F8konomisk rapport"]                                                                                                                                                                                                                                                                        |
+    +--+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    */
+    
+    private async Task SaveRecordingStartDate()
+    {
+        try
+        {
+            if (SelectedApplication is null || NextEventId != 20) return;
+            
+            ChangeLoaderVisibilityAction(true);
+            Enabled = false;
+            await InvokeAsync(StateHasChanged);
+            
+            await SaveApplication("10000015", RecordingStartDate.ToString("yyyy-MM-dd"));
+            await SaveApplication("09000002", RecordingStartDate.ToString("yyyy-MM-dd"), isStartDate:true);
+            
+            // Event 20: Producenten väljer datum för inspelningsstart på projektet
+            var ev20 = await EventService.TriggerNextEventById(SelectedApplication.Id, 20, new CancellationToken());
+            if (!ev20.IsOk)
+            {
+                NotificationService.Error(ev20.Error.Message, 30000);
+                Console.WriteLine(ev20.Error.Message);
+            }
+            
+            await DeleteSourceMessage();
+            await SaveFinished();
+            
+            Enabled = true;
+            ChangeLoaderVisibilityAction(false);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task SaveRecordingEndDate()
+    {
+        try
+        {
+            if (SelectedApplication is null || NextEventId != 23) return;
+            
+            ChangeLoaderVisibilityAction(true);
+            Enabled = false;
+            await InvokeAsync(StateHasChanged);
+            
+            await SaveApplication("10000016", RecordingEndDate.ToString("yyyy-MM-dd"));
+            await SaveApplication("09000002", RecordingEndDate.ToString("yyyy-MM-dd"), isEndDate: true);
+            
+            // Event 23: Producenten väljer datum för inspelningsslut på projektet
+            var ev23 = await EventService.TriggerNextEventById(SelectedApplication.Id, 23, new CancellationToken());
+            if (!ev23.IsOk)
+            {
+                NotificationService.Error(ev23.Error.Message, 30000);
+                Console.WriteLine(ev23.Error.Message);
+            }
+            
+            await DeleteSourceMessage();
+            await SaveFinished();
+            
+            Enabled = true;
+            ChangeLoaderVisibilityAction(false);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task SavePremiereDates()
+    {
+        try
+        {
+            if (SelectedApplication is null || (NextEventId != 18 && NextEventId != 28)) return;
+            
+            Enabled = false;
+            ChangeLoaderVisibilityAction(true);
+            await InvokeAsync(StateHasChanged);
+            
+            await SaveApplication("05000001", SwedishPremiereDate.ToString("yyyy-MM-dd"));
+            await SaveApplication("05000002", InternationalPremiereDate.ToString("yyyy-MM-dd"));
+            await SaveApplication("05000003", FestivalDate.ToString("yyyy-MM-dd"));
+
+            if (NextEventId > 0)
+            {
+                // Event 18/28: När producenten meddelar premiärdatum i Klient-verktyget och klickar på spara
+                var ev18 = await EventService.TriggerNextEventById(SelectedApplication.Id, NextEventId, new CancellationToken());
+                if (!ev18.IsOk)
+                {
+                    NotificationService.Error(ev18.Error.Message, 30000);
+                    Console.WriteLine(ev18.Error.Message);
+                }
+            }
+            
+            await DeleteSourceMessage();
+            await SaveFinished();
+            
+            Enabled = true;
+            ChangeLoaderVisibilityAction(false);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task SaveScriptProjectDescriptionAndOther()
+    {
+        try
+        {
+            Enabled = false;
+            ChangeLoaderVisibilityAction(true);
+            await InvokeAsync(StateHasChanged);
+            
+            await SaveDocuments(14, ScriptPath);
+            await SaveDocuments(22, EconomyPlanPath);
+            await SaveDocuments(12, ProjectDescriptionPath);
+            await SaveDocuments(10, OtherPath);
+            await DeleteSourceMessage();
+            await SaveFinished();
+            
+            Enabled = true;
+            ChangeLoaderVisibilityAction(false);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task SaveTeamList()
+    {
+        try
+        {
+            if (SelectedApplication is null || (NextEventId != 15 && NextEventId != 21)) return;
+            
+            Enabled = false;
+            ChangeLoaderVisibilityAction(true);
+            await InvokeAsync(StateHasChanged);
+            
+            await SaveDocuments(75, TeamListPath);
+
+            if (NextEventId > 0)
+            {
+                // Event 21: När producent skickar in teamlista.
+                var ev = await EventService.TriggerNextEventById(SelectedApplication.Id, NextEventId, new CancellationToken());
+                if (!ev.IsOk)
+                {
+                    NotificationService.Error(ev.Error.Message, 30000);
+                    Console.WriteLine(ev.Error.Message);
+                }
+            }
+            
+            await DeleteSourceMessage();
+            await SaveFinished();
+            
+            Enabled = true;
+            ChangeLoaderVisibilityAction(false);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task SaveInvoiceRateOne()
+    {
+        try
+        {
+            Enabled = false;
+            ChangeLoaderVisibilityAction(true);
+            await InvokeAsync(StateHasChanged);
+            
+            await SaveDocuments(9, RateOnePath);
+            await DeleteSourceMessage();
+            await SaveFinished();
+            
+            Enabled = true;
+            ChangeLoaderVisibilityAction(false);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task SaveDcpDate()
+    {
+        try
+        {
+            if (SelectedApplication is null || NextEventId != 26) return;
+            
+            Enabled = false;
+            ChangeLoaderVisibilityAction(true);
+            await InvokeAsync(StateHasChanged);
+            
+            await SaveApplication("04000005", DcpDate.ToString("yyyy-MM-dd"));
+            await DeleteSourceMessage();
+            await SaveFinished();
+            
+            Enabled = true;
+            ChangeLoaderVisibilityAction(false);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task SaveArtisticAndEconomyReports()
+    {
+        try
+        {
+            if (SelectedApplication is null || NextEventId != 11 || SelectedApplication.SchemaId is 1 or 2 or 3 or 4 or 5) return;
+            
+            Enabled = false;
+            ChangeLoaderVisibilityAction(true);
+            await InvokeAsync(StateHasChanged);
+            
+            await SaveDocuments(114, ArtisticReportPath);
+            await SaveDocuments(113, EconomyReportPath);
+            
+            // Event 11: Producenten skickar in ekonomisk och konstnärlig redovisning.
+            var ev = await EventService.TriggerNextEventById(SelectedApplication.Id, 11, new CancellationToken());
+            if (!ev.IsOk)
+            {
+                NotificationService.Error(ev.Error.Message, 30000);
+                Console.WriteLine(ev.Error.Message);
+            }
+            
+            await DeleteSourceMessage();
+            await SaveFinished();
+            
+            Enabled = true;
+            ChangeLoaderVisibilityAction(false);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+    
+
+    private async Task SaveApplication(string prefix, string value, bool isStartDate = false, bool isEndDate = false)
+    {
+        try
+        {
+            if (SelectedApplication is null) return;
+            
+            var control = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().ToLower().StartsWith(prefix.ToLower()));
+
+            if (control is null) return;
+            control.Value = Regex.Unescape(control.Value);
+
+            if (isStartDate)
+            {
+                var endValue = DateTime.MinValue;
+                if (!string.IsNullOrWhiteSpace(control.Value))
+                {
+                    var dates = control.Value.Split(";");
+                    endValue = DateTime.Parse(dates[1]);
+                }
+                control.Value = value + ";" + endValue.ToString("yyyy-MM-dd");
+            }
+            else if (isEndDate)
+            {
+                var startValue = DateTime.MinValue;
+                if (!string.IsNullOrWhiteSpace(control.Value))
+                {
+                    var dates = control.Value.Split(";");
+                    startValue = DateTime.Parse(dates[0]);
+                }
+                control.Value = startValue.ToString("yyyy-MM-dd") + ";" + value;
+            }
+            else
+            {
+                control.Value = value;
+            }
+            
+            var updateApplicationResult = await ApplicationService.UpdateApplicationControlAsync(SelectedApplication.Id, control.Id, control.Value, false, new CancellationToken());
+
+            if (!updateApplicationResult.IsOk) NotificationService.Error(updateApplicationResult.Error.Message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task SaveDocuments(int documentType, string tmpPath)
+    {
+        try
+        {
+            if (SelectedApplication is null) return;
+            
+            var destinationPath = Path.Combine(Configuration["DocumentPhysicalRoot"]!,
+                DateTime.UtcNow.Year.ToString(),
+                DateTime.UtcNow.Month.ToString(),
+                SelectedApplication.Id.ToString());
+            
+            var dir = new DirectoryInfo(destinationPath);
+            if (!dir.Exists) dir.Create();
+
+            if (documentType == 0) return;
+            
+            foreach (var file in new DirectoryInfo(tmpPath).GetFiles())
+            {
+                var filePath = file.FullName;
+                var sourceFile = new System.IO.FileInfo(filePath);
+                if (!sourceFile.Exists) continue;
+
+                var documentResult = await DocumentService.CreateDocumentAsync(
+                    new CreateDocumentDto()
+                    {
+                        ApplicationId = SelectedApplication.Id,
+                        StatusId = 2,
+                        RequirementTypeId = documentType,
+                        DeliveryTypeId = 2,
+                        FileName = sourceFile.Name,
+                        MimeType = MimeTypesMap.GetMimeType(sourceFile.Name),
+                        Extension = sourceFile.Extension,
+                        Path = "",
+                        Phrases = "",
+                        Summarize = "",
+                        Binary = [],
+                        Metadata = [],
+                        IsDelivered = true,
+                        IsSigned = false,
+                        IsCertified = false,
+                        IsLocked = false
+                    }, new CancellationToken());
+                
+                if (!documentResult.IsOk) throw new Exception(documentResult.Error.Message);
+                
+                var destinationFile = Path.Combine(destinationPath, documentResult.Value.Id.ToString(), sourceFile.Name);
+
+                sourceFile = sourceFile.CopyTo(destinationFile, true);
+                if (!sourceFile.Exists) throw new FileNotFoundException();
+
+                var updateDocumentResult = await DocumentService.UpdateDocumentAsync(documentResult.Value.Id,
+                    new UpdateDocumentDto()
+                    {
+                        StatusId = documentResult.Value.StatusId,
+                        RequirementTypeId = documentResult.Value.RequirementTypeId,
+                        DeliveryTypeId = documentResult.Value.DeliveryTypeId,
+                        FileName = documentResult.Value.FileName,
+                        MimeType = documentResult.Value.MimeType,
+                        Extension = documentResult.Value.Extension,
+                        Path = destinationFile,
+                        Phrases = documentResult.Value.Phrases,
+                        Summarize =documentResult.Value.Summarize,
+                        Binary = documentResult.Value.Binary,
+                        Metadata = documentResult.Value.Metadata,
+                        IsDelivered = documentResult.Value.IsDelivered,
+                        IsSigned = documentResult.Value.IsSigned,
+                        IsCertified = documentResult.Value.IsCertified,
+                        IsLocked = documentResult.Value.IsLocked,
+                        DeliverDate = DateTime.UtcNow
+                    }, new CancellationToken());
+                
+                if (!updateDocumentResult.IsOk) throw new Exception(updateDocumentResult.Error.Message);
+
+            }
+            
+            ClearTemporaryFilesFolder(tmpPath);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+    
+    private async Task DeleteSourceMessage()
+    {
+        try
+        {
+            if (SelectedApplication is null) return;
+
+            var deleteMessageResult = await MessageService.DeleteMessageAsync(MessageId, new CancellationToken());
+            if (!deleteMessageResult.IsOk) throw new Exception(deleteMessageResult.Error.Message);
+            
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+    
+    private async Task SaveFinished()
+    {
+        NotificationService.Info(@LocalizationService.StringFromResource("Communication-19"), 3000);
+        await Task.Delay(3000);
+        NavigationManager.NavigateTo("/", true);
+    }
+
+    /*
+    private async Task Save()
+    {
+        /*try
+        {
+            var file = new System.IO.FileInfo(FilePath);
+            if (file.Exists)
+            {
+                if (RequirementId == Guid.Empty) throw new Exception("RequirementId is empty");
+
+                // get requirement
+                var requirementResult = await MilestoneService.GetMilestoneByMilestoneIdAndRequirementIdAsync(MilestoneId, RequirementId, new CancellationToken());
+                if (!requirementResult.IsOk) throw new Exception(requirementResult.Error.ToString());
+                var milestone = requirementResult.Value;
+                var milestoneId = requirementResult.Value.Id;
+                var requirement = requirementResult.Value.Requirements.FirstOrDefault(x => x.Id == RequirementId);
+
+                if (requirement?.Id == Guid.Empty) throw new Exception("requirement.Id is empty");
+
+                // update total admission
+                var applicationResult = await ApplicationService.GetApplicationByIdAsync(ApplicationId, new CancellationToken());
+                if (!applicationResult.IsOk) throw new Exception(applicationResult.Error.ToString());
+                var application = new Application();
+
+                // add watermark
+                var canSendToPowerOffice = false;
+                if (Text == "Invoice")
+                {
+                    var oldFile = file.FullName;
+                    var watermarkedFile = file.FullName + ".marked.pdf";
+
+                    PdfFormatProvider provider = new PdfFormatProvider();
+                    using (Stream stream = global::System.IO.File.OpenRead(oldFile))
+                    {
+                        var radFixedDocument = provider.Import(stream);
+
+                        foreach (var page in radFixedDocument.Pages)
+                        {
+                            AddWatermarkText(page, "Pro #" + application.ProjectNumber + " " + FirstName, 100);
+                        }
+
+                        using (Stream output = global::System.IO.File.OpenWrite(watermarkedFile))
+                        {
+                            provider.Export(radFixedDocument, output);
+                        }
+                    }
+
+                    //Remove old file and rename new file to old name.
+                    file.Delete();
+                    file = new FileInfo(watermarkedFile);
+                    file.MoveTo(FilePath);
+
+                    //Mark requirement that this invoice is sendable to Poweroffice.
+                    canSendToPowerOffice = true;
+                }
+
+                // set parentid
+                $1$ var ParentId = 0;
+                if (requirement.Document.Id != 0)
+                {
+                    if (requirement.Document.ParentId > 0)
+                    {
+                        ParentId = requirement.Document.ParentId;
+                    }
+                    else
+                    {
+                        ParentId = requirement.Document.Id;
+                    }
+                } #3#
+
+                // create document
+                var documentRequest = new CreateDocumentDto(
+                    ApplicationId,
+                    requirement!.DocumentType,
+                    file.Name,
+                    MimeTypesMap.GetMimeType(file.FullName),
+                    file.Extension,
+                    file.FullName,
+                    new List<DocumentMetaDataDto>(),
+                    DocumentDeliveryType.UploadedByClient
+                );
+                var createDocumentResult = await DocumentService.CreateDocumentAsync(documentRequest, new CancellationToken());
+                if (!createDocumentResult.IsOk) throw new Exception(createDocumentResult.Error.ToString());
+                var document = createDocumentResult.Value;
+
+                if (document.Id < 1) throw new Exception("document.Id < 1");
+
+                // copy to correct folder
+                var PhysicalRoot = new StringBuilder();
+
+                PhysicalRoot.Append(Configuration["DocumentPhysicalRoot"]!);
+
+                var dir = new DirectoryInfo(PhysicalRoot.ToString());
+                if (!dir.Exists) dir.Create();
+                
+                PhysicalRoot.Append("\\app\\");
+                PhysicalRoot.Append(ApplicationId.ToString());
+                PhysicalRoot.Append("\\mil\\");
+                PhysicalRoot.Append(milestoneId.ToString());
+                PhysicalRoot.Append("\\req\\");
+                PhysicalRoot.Append(RequirementId.ToString());
+                PhysicalRoot.Append("\\");
+                PhysicalRoot.Append(document.Id.ToString());
+
+                dir = new DirectoryInfo(PhysicalRoot.ToString());
+                if (!dir.Exists) dir.Create();
+
+                PhysicalRoot.Append("\\");
+                PhysicalRoot.Append(document.FileName);
+
+                file = file.CopyTo(PhysicalRoot.ToString(), true);
+                if (!file.Exists) throw new FileNotFoundException();
+
+                // update document
+                var updateDocumentRequest = new UpdateDocumentDto(
+                    1,
+                    ApplicationId,
+                    Status.Ok,
+                    requirement!.DocumentType,
+                    file.Name,
+                    MimeTypesMap.GetMimeType(file.FullName),
+                    file.Extension,
+                    file.FullName,
+                    string.Empty,
+                    string.Empty,
+                    new byte[0],
+                    new List<DocumentMetaDataDto>(),
+                    true, 
+                    false, 
+                    false, 
+                    false, 
+                    DateTime.UtcNow, 
+                    DateTime.MinValue, 
+                    DateTime.MinValue,
+                    DateTime.MinValue,
+                    DeliveryType: DocumentDeliveryType.UploadedByClient
+                );
+                var updateDocumentResult = await DocumentService.UpdateDocumentAsync(document.Id, updateDocumentRequest, new CancellationToken());
+                if (!updateDocumentResult.IsOk) throw new Exception(updateDocumentResult.Error.ToString());
+
+                // update requirement
+                var reqs = milestone.Requirements.ToList();
+                reqs.Add(new RequirementDto(
+                    requirement!.Id,
+                    requirement.DocumentType,
+                    document.Id,
+                    false,
+                    false,
+                    false,
+                    canSendToPowerOffice,
+                    DateTime.UtcNow,
+                    DateTime.MinValue,
+                    DateTime.MinValue,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow.AddDays(10)
+                ));
+
+                var updateMilestone = new UpdateMilestoneDto(
+                    milestoneId,
+                    milestone.Status,
+                    milestone.Amount,
+                    milestone.ExpireDate,
+                    milestone.IsLocked,
+                    reqs.ToList(),
+                    milestone.Payments.ToList()
+                );
+                var updateRequirementResult = await MilestoneService.UpdateMilestoneAsync(milestoneId, updateMilestone, new CancellationToken());
+                if (!updateRequirementResult.IsOk) throw new Exception(updateRequirementResult.Error.ToString());
+
+                // delete current message
+                var deleteMessagesResult = await MessageService.DeleteMessageAsync(Id, new CancellationToken());
+                if (!deleteMessagesResult.IsOk) throw new Exception(deleteMessagesResult.Error.ToString());
+
+                // send new message to employee
+                var name = "Johan Olofsson";// ((AuthStateProvider)AuthStateProvider).State?.FullName;
+                var messageText = $" - {ProjectTitle} was updated by: {name ?? string.Empty}, according to this message: {Text}";
+                var createMessageDto = new CreateMessageDto(
+                    ProjectId,
+                    ApplicationId,
+                    MessageType.Incoming,
+                    0,
+                    application.CoordinatorId,
+                    requirement.Id,
+                    requirement!.DocumentType,
+                    1,
+                    0,
+                    "Message from client" + Environment.NewLine + messageText,
+                    "",
+                    "~/projects?pro_id=" + ProjectId + "&app_id=" + ApplicationId + "&view=manage-milestone",
+                    DateTime.UtcNow.AddDays(1),
+                    DateTime.UtcNow
+                );
+                var createMessageResult = await MessageService.CreateMessageAsync(createMessageDto, new CancellationToken());
+                if (!createMessageResult.IsOk) throw new Exception(createMessageResult.Error.ToString());
+
+                // clean tmp folder
+                var dirs = new DirectoryInfo(TempPath);
+                foreach (var item in dirs.GetFiles())
+                {
+                    global::System.IO.File.Delete(item.FullName);
+                }
+                dirs.Delete();
+
+                NotificationService.Info(Configuration["Projects:UploadNotification"]!, 3000);
+                await Task.Delay(3000);
+                NavigationManager.NavigateTo("/messages", true);
+            }
+        }
+        catch 
+        {
+            // NotificationService.Error(ex.ToString());
+
+
+            // delete current message
+            var deleteMessagesResult = await MessageService.DeleteMessageAsync(Id, new CancellationToken());
+            if (!deleteMessagesResult.IsOk) throw new Exception(deleteMessagesResult.Error.ToString());
+
+            // clean tmp folder
+            var dirs = new DirectoryInfo(TempPath);
+            foreach (var item in dirs.GetFiles())
+            {
+                global::System.IO.File.Delete(item.FullName);
+            }
+            dirs.Delete();
+
+            NotificationService.Info(Configuration["Projects:UploadNotification"]!, 3000);
+            await Task.Delay(3000);
+            NavigationManager.NavigateTo("/messages", true);
+        }#1#
+    }
+    */
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/", true);
+    }
+
+    private string ParseUrl(string url)
+    {
+        var safe = url.Trim();
+
+        safe = safe.ToLower();
+
+        safe = safe.Replace("å", "a");
+        safe = safe.Replace("ä", "a");
+        safe = safe.Replace("ö", "o");
+        safe = safe.Replace("æ", "a");
+        safe = safe.Replace("ø", "o");
+
+        safe = safe.Replace(" ", "_").ToLower();
+
+        if (safe.IndexOf("__") > -1)
+            while (safe.IndexOf("__") > -1)
+                safe = safe.Replace("__", "_");
+
+        safe = global::System.Text.RegularExpressions.Regex.Replace(safe, "[^a-z0-9_\\-\\.]", "");
+
+        if (safe.IndexOf("__") > -1)
+            while (safe.IndexOf("__") > -1)
+                safe = safe.Replace("__", "_");
+
+        return safe;
+    }
+    
+    private static void ClearTemporaryFilesFolder(string tempPath)
+    {
+        var dir = new DirectoryInfo(tempPath);
+
+        if (!dir.Exists) return;
+
+        foreach(var fi in dir.GetFiles())
+        {
+            fi.Delete();
+        }
+
+        foreach (var di in dir.GetDirectories())
+        {
+            ClearTemporaryFilesFolder(di.FullName);
+            di.Delete();
+        }
+
+        dir.Delete();
+    }
+
+    private static void AddWatermarkText(RadFixedPage page, string text, byte transparency)
+    {
+        FixedContentEditor editor = new FixedContentEditor(page);
+
+        Block block = new Block();
+        block.TextProperties.FontSize = 20;
+        //block.TextProperties.TrySetFont(Telerik.Documents.Core.Fonts.FontFamily("Helvetica"), Telerik.Documents.Core.Fonts.FontStyles.Normal, Telerik.Documents.Core.Fonts.FontWeights.Bold);
+        block.HorizontalAlignment = Telerik.Windows.Documents.Fixed.Model.Editing.Flow.HorizontalAlignment.Left;
+        block.VerticalAlignment = Telerik.Windows.Documents.Fixed.Model.Editing.Flow.VerticalAlignment.Top;
+        block.GraphicProperties.FillColor = new RgbColor(transparency, 0, 0, 0);
+        block.InsertText(text);
+
+        double angle = 0;
+        editor.Position.Rotate(angle);
+        editor.Position.Translate(10, 10);
+        editor.DrawBlock(block, new Telerik.Documents.Primitives.Size(page.Size.Width / Math.Abs(Math.Sin(angle)), double.MaxValue));
+    }
+    
+    private string InitializeTempFileDirectory()
+    {
+        var tmpBaseFolder = Configuration["DocumentTempFolder"]!;
+        var tmpBaseFolderDirectory = new DirectoryInfo(tmpBaseFolder);
+        var tmp = "tmp" +
+                  DateTime.UtcNow.Year +
+                  DateTime.UtcNow.Month +
+                  DateTime.UtcNow.Day +
+                  DateTime.UtcNow.Hour +
+                  DateTime.UtcNow.Minute +
+                  DateTime.UtcNow.Second;
+
+        if (tmpBaseFolderDirectory.Exists)
+        {
+            tmpBaseFolderDirectory.CreateSubdirectory(tmp);
+        }
+        
+        return Path.Combine(tmpBaseFolder, tmp);
+    }
+    
+}
+

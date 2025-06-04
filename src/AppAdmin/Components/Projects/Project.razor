@@ -1,0 +1,54 @@
+@page "/project/{ProjectId:int}"
+@page "/project/{ProjectId:int}/searchphrase/{SearchPhrase}"
+@page "/project/{ProjectId:int}/application/{ApplicationId:int}"
+@page "/project/{ProjectId:int}/application/{ApplicationId:int}/document/{DocumentId:int}"
+@page "/project/{ProjectId:int}/application/{ApplicationId:int}/tabindex/{TabIndex:int}"
+@page "/project/{ProjectId:int}/application/{ApplicationId:int}/tabindex/{TabIndex:int}/tabitem/{TabItem:int}"
+@using AppAdmin.State
+
+
+@inject IConfiguration Configuration
+@inject NotificationService NotificationService
+
+@if (SelectedProjectId > 0)
+{
+    <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(1.0)" >
+        <ProjectHeader ProjectId="ProjectId" SearchPhrase="@SearchPhrase" OnBack="OnBack" />
+        <Spacer Height="40px" />
+        <ProjectApplications ProjectId="SelectedProjectId" ApplicationId="ApplicationId" DocumentId="DocumentId" TabIndex="TabIndex" TabItem="@TabItem" OnUpdated="Refresh" />
+    </Animate>
+}
+
+@code 
+{
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public int ProjectId { get; set; } = 0;
+    [Parameter] public int ApplicationId { get; set; } = 0;
+    [Parameter] public int DocumentId { get; set; } = 0;
+    [Parameter] public int TabIndex { get; set; } = 0;
+    [Parameter] public int TabItem { get; set; } = 0;
+    [Parameter] public string? SearchPhrase { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> OnBack { get; set; }
+    [Parameter] public EventCallback<int> OnUpdated { get; set; }
+    
+    private int SelectedProjectId { get; set; } = 0;
+
+    private async Task Refresh(int projectId)
+    {
+        await OnUpdated.InvokeAsync(projectId);
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        SelectedProjectId = 0;
+        await Load();
+    }
+    
+    private async Task Load()
+    {
+        SelectedProjectId = ProjectId;
+        
+        await InvokeAsync(StateHasChanged);
+    }
+    
+}

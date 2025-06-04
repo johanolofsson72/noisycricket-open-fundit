@@ -1,0 +1,50 @@
+@inject SharedService SharedService
+
+<div class="application-segment">
+    <label for="@Control.Id.ToString()" class="application-label">@(HideLabel ? "" : @Control.Labels[Index])<br/>
+        <div class="application-sub-label" style="display: @ShowSubLabel">@Control.SubLabels[Index]</div>
+        <TelerikButton OnClick="@ShowConfirmWithTitleAndButtons" Enabled="@Enabled" ButtonType="ButtonType.Button" ThemeColor="@(Control.Color == "primary" ? ThemeConstants.Button.ThemeColor.Primary : (Control.Color == "success" ? ThemeConstants.Button.ThemeColor.Success : ThemeConstants.Button.ThemeColor.Error))" >@Control.Labels[Index]</TelerikButton>
+    </label>
+</div>
+
+@code {
+    [CascadingParameter] private DialogFactory Dialogs { get; set; } = null!;
+    [Parameter] public ApplicationControlDto Control { get; set; } = new();
+    [Parameter] public EventCallback<ApplicationControlDto> OnControlChanged { get; set; }
+    [Parameter] public bool HideLabel { get; set; } = false;
+    private string ShowSubLabel => Control.SubLabels.Any(x => x.Length > 0) ? "block" : "none";
+    private int Index { get; set; } = 0;
+    private bool Enabled { get; set; } = true;
+    
+    protected override void OnInitialized()
+    {
+        Index = SharedService.IndexByCulture();
+        if (Control.Labels.Count == 1) Index = 0;
+        Enabled = true;
+    }
+    
+    private async Task ShowConfirmWithTitleAndButtons()
+    {
+        if (Control.Confirm)
+        {
+            var isConfirmed = await Dialogs.ConfirmAsync(@LocalizationService.StringFromResource("Projects-108"), @LocalizationService.StringFromResource("Projects-107"), @LocalizationService.StringFromResource("Projects-106"), @LocalizationService.StringFromResource("Projects-105"));
+
+            if (isConfirmed)
+            {
+                Enabled = false;
+                await InvokeAsync(StateHasChanged);
+                Control.Value = "clicked";
+                await OnControlChanged.InvokeAsync(Control);
+                Enabled = true;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        else
+        {
+            Control.Value = "clicked";
+            await OnControlChanged.InvokeAsync(Control);
+        }
+        
+    }
+
+}

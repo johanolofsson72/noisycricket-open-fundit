@@ -1,0 +1,14 @@
+@page "/Account/Manage/ApiKeys"
+
+<PageTitle>@LocalizationService.StringFromResource("Account-122")</PageTitle>
+
+<div data-module="mjs/components.mjs">
+    <Heading3>@LocalizationService.StringFromResource("Account-122")</Heading3>
+    <div data-component="pages/Account/Manage/ManageUserApiKeys.mjs" data-props="@ToProps()"></div>
+</div>
+
+@code {
+    public MarkupString ToProps() => BlazorHtml.RawJson(new {
+        info = HostContext.AppHost.GetPlugin<ApiKeysFeature>()?.GetApiKeyInfo(),
+    });
+}

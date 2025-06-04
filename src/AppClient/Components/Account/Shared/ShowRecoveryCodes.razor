@@ -1,0 +1,34 @@
+<Heading3>@LocalizationService.StringFromResource("Account-124")</Heading3>
+<div class="max-w-xl">
+    <StatusMessage Message="@StatusMessage" />
+
+    <Alert class="mt-4" Type="AlertType.Warning">
+        <p class="mb-3">
+            <strong>@LocalizationService.StringFromResource("Account-125")</strong>
+        </p>
+        <p class="mb-3">
+            @LocalizationService.StringFromResource("Account-126")
+        </p>
+    </Alert>
+
+    <div class="mt-4">
+        @for (var row = 0; row < RecoveryCodes.Length; row += 2)
+        {
+            <code class="recovery-code">@RecoveryCodes[row]</code>
+
+            <text>&nbsp;</text>
+
+            <code class="recovery-code">@RecoveryCodes[row + 1]</code>
+
+            <br />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string[] RecoveryCodes { get; set; } = default!;
+
+    [Parameter]
+    public string StatusMessage { get; set; } = default!;
+}

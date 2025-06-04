@@ -1,0 +1,22 @@
+﻿@page "/communication/{MessageId:int}/{ApplicationId:int}/{ReactionTypeId:int}/{ReactionTypeName}"
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@attribute [Authorize(Policy = "User")]
+
+<PageTitle>@LocalizationService.StringFromResource("Communication-1")</PageTitle>
+
+<TelerikRootComponent>
+    <div class="component-page">
+        <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+            <Communication MessageId="@MessageId" ApplicationId="@ApplicationId" ReactionTypeId="@ReactionTypeId" ReactionTypeName="@ReactionTypeName" />
+        </Animate>
+    </div>
+</TelerikRootComponent>
+
+@code {
+    [Parameter] public int MessageId { get; set; }
+    [Parameter] public int ApplicationId { get; set; }
+    [Parameter] public int ReactionTypeId { get; set; }
+    [Parameter] public string ReactionTypeName { get; set; } = string.Empty;
+
+}

@@ -1,0 +1,96 @@
+
+<Spacer Height="10px" />
+@LocalizationService.StringFromResource("Documents-41")
+<Spacer Height="30px" />
+<div style="display: flex; flex-direction: row">
+    <div style="flex-grow: 1; width: 15%">
+        <Spacer Height="8px" />
+        <TelerikRadioGroup @ref="RadioGroupRef"
+                           Data="@DocumentOptions"
+                           @bind-Value="@ChosenDocument"
+                           ValueField="@nameof(DocumentModel.DocumentId)"
+                           TextField="@nameof(DocumentModel.DocumentName)">
+        </TelerikRadioGroup>
+    </div>
+    <div style="flex-grow: 2; width: 85%">
+        @switch (ChosenDocument)
+        {
+            case 1:
+                <ProjectApplicationDocument ApplicationId="ApplicationId" 
+                                            DocumentId="DocumentId" 
+                                            DocumentTypeId="59" 
+                                            TemplateName="fundit-loc.docx" 
+                                            FileName=@LocalizationService.StringFromResource("Documents-31") 
+                                            Ingress="" 
+                                            OnUpdated="Refresh" 
+                                            ShowSending="true" />
+                break;
+            case 2:
+                <ProjectApplicationDocument ApplicationId="ApplicationId" 
+                                            DocumentId="DocumentId" 
+                                            DocumentTypeId="60" 
+                                            TemplateName="fundit-avslag.docx" 
+                                            FileName=@LocalizationService.StringFromResource("Documents-33")
+                                            Ingress="" 
+                                            OnUpdated="Refresh"
+                                            ShowSending="true" />
+                break;
+            case 3:
+                <ProjectApplicationDocument ApplicationId="ApplicationId" 
+                                            DocumentId="DocumentId" 
+                                            DocumentTypeId="74" 
+                                            TemplateName="fundit-economyoverview.docx" 
+                                            FileName=@LocalizationService.StringFromResource("Documents-35")
+                                            Ingress="" 
+                                            OnUpdated="Refresh"
+                                            ShowSending="false" />
+                break;
+            case 4:
+                <ProjectApplicationDocument ApplicationId="ApplicationId" 
+                                            DocumentId="DocumentId" 
+                                            DocumentTypeId="66" 
+                                            TemplateName="fundit-blank.docx" 
+                                            FileName="CHOOSE"
+                                            Ingress="" 
+                                            OnUpdated="Refresh"
+                                            ShowSending="true" />
+                break;
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public int ApplicationId { get; set; } = 0;
+    [Parameter] public int DocumentId { get; set; } = 0;
+    [Parameter] public int TabIndex { get; set; } = 0;
+    [Parameter] public int TabItem { get; set; } = 0;
+    [Parameter] public EventCallback<int> OnUpdated { get; set; }
+    
+    private TelerikRadioGroup<DocumentModel, int> RadioGroupRef { get; set; } = null!;
+    private int ChosenDocument { get; set; } = 1;
+    private List<string> Templates { get; set; } = ["loc1.docx", "loc2.docx"];
+
+    List<DocumentModel> DocumentOptions { get; set; } =
+    [
+        new DocumentModel { DocumentId = 1, DocumentName = @LocalizationService.StringFromResource("Projects-34") },
+        new DocumentModel { DocumentId = 2, DocumentName = @LocalizationService.StringFromResource("Documents-61") },
+        new DocumentModel { DocumentId = 3, DocumentName = @LocalizationService.StringFromResource("Projects-36") },
+        new DocumentModel { DocumentId = 4, DocumentName = @LocalizationService.StringFromResource("Documents-37") }
+    ];
+
+    public class DocumentModel
+    {
+        public int DocumentId { get; set; }
+        public string DocumentName { get; set; } = "";
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (TabItem > 0) ChosenDocument = TabItem;
+    }
+
+    private async Task Refresh(int applicationId)
+    {
+        await OnUpdated.InvokeAsync(ApplicationId);
+    }
+}

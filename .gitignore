@@ -1,0 +1,43 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Binary files and libraries
+*.dll
+*.exe
+*.so
+*.dylib
+*.a
+*.lib
+
+# Visual Studio Code
+.vscode/
+
+# IntelliJ IDEA
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Sensitive config
+appsettings.Development.json
+
+# Documentation images and screenshots should be included
+# docs/ folder and its contents are tracked
+
+# Others
+publish/
+fundit.db
+
+# Large library files that can trigger false positives in GitHub secret scanning
+**/lib/mjs/servicestack-client.mjs
+**/wwwroot/lib/**/*.min.js
+**/wwwroot/lib/**/*.min.css

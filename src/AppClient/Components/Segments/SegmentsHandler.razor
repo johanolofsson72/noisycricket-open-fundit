@@ -1,0 +1,90 @@
+@using System.Collections
+
+@if (Controls is not null)
+{
+    @foreach (var control in Controls.OrderBy(x => x.Order))
+    {
+        @if (Readonly)
+        {
+            <ReadonlySegment Control="control" />
+        }
+        else
+        {
+            @switch (control.ControlTypeId)
+            {
+                case 2:
+                    <TextboxSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 3:
+                    <MultilineTextboxSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 4:
+                    <NumericTextboxSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 5:
+                    <DropdownSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 6:
+                    <CheckboxSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 7:
+                    <RadioSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 8:
+                    <MultiselectSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 9:
+                    <ListboxNameEmailAgeSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 10:
+                    <ListboxDaysLocationSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 11:
+                    <ListboxNamePricesReceivedAttendedSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 12:
+                    <ListboxNameEmailPhonenumberGenderSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 13:
+                    <UploadSegment Control="control" TempPath="@TempPath" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 14:
+                    <ListboxNameGenderSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 15:
+                    <HeaderSegment Control="control"/>
+                    break;
+                case 16:
+                    <DateSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 17:
+                    <HourMinuteNumericTextboxSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 18:
+                    <DateFromToSegment Control="control" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 19:
+                    <ButtonSegment Control="control" HideLabel="HideLabel" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                case 20:
+                    <DateApprovedSegment Control="control" HideLabel="HideLabel" OnControlChanged="(c) => OnControlChangedCallback(c)"/>
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+    }
+}
+
+@code
+{
+    [Parameter] public List<ApplicationControlDto> Controls { get; set; } = [];
+    [Parameter] public bool Readonly { get; set; }
+    [Parameter] public EventCallback<ApplicationControlDto> OnSegmentControlChanged { get; set; }
+    [Parameter] public string TempPath { get; set; } = string.Empty;
+    [Parameter] public bool HideLabel { get; set; } = false;
+
+    private async Task OnControlChangedCallback(ApplicationControlDto control) => 
+        await OnSegmentControlChanged.InvokeAsync(control);
+
+}

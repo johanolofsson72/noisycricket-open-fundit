@@ -1,0 +1,194 @@
+@using AppClient.State
+@using global::Shared.Messages.DTOs
+
+@rendermode @(new InteractiveServerRenderMode(false))
+
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@inject SharedService SharedService
+@inject UserService UserService
+@inject OrganizationService OrganizationService
+
+<h5>@LocalizationService.StringFromResource("Staff-32")</h5>
+<p>@LocalizationService.StringFromResource("Staff-33")</p>
+
+<Spacer Height="40px" />
+
+@if (Items is not null)
+{
+    <TelerikGrid Data="@Items"
+                 Pageable="true"
+                 PageSize="12">
+        <GridColumns>
+            <GridColumn Field="@nameof(UserDto.FullName)" Title="@LocalizationService.StringFromResource("Staff-23")" />
+            <GridColumn Field="@nameof(UserDto.Email)" Title="@LocalizationService.StringFromResource("Staff-27")" Width="20%" />
+            <GridColumn Field="@nameof(UserDto.MessageCount)" Title="@LocalizationService.StringFromResource("Staff-28")" Width="10%" Editable="false" />
+            <GridColumn Field="@nameof(UserDto.LastLoginDate)" Title="@LocalizationService.StringFromResource("Staff-29")" Width="10%" Editable="false">
+                <Template>
+                    @((context as UserDto)?.LastLoginDate.LastOrDefault().ToString("yyyy-MM-dd"))
+                </Template>
+            </GridColumn>
+        </GridColumns>
+    </TelerikGrid>
+}
+
+<Spacer Height="50px" />
+<h5>@LocalizationService.StringFromResource("Projects-9")</h5>
+
+@if (EditOrganizationContext is not null)
+{
+    <TelerikForm EditContext="@EditOrganizationContext"
+                 OnValidSubmit="@HandleValidOrganizationSubmit" Columns="4" ColumnSpacing="25px">
+        <FormValidation>
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+        </FormValidation>
+        <FormButtons>
+            <TelerikButton Enabled="@Enabled" ButtonType="@ButtonType.Submit" ThemeColor="primary">@LocalizationService.StringFromResource("Settings-10")</TelerikButton>
+        </FormButtons>
+
+    </TelerikForm>
+}
+
+@code {
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    [CascadingParameter] public required AppState AppState { get; set; }
+    private List<UserDto> Items { get; set; } = null!;
+    private UserDto? EditItem { get; set; } = new();
+    private OrganizationView SelectedOrganization { get; set; } = new();
+    EditContext EditOrganizationContext { get; set; } = null!;
+    private bool Enabled { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var result = await UserService.UsersByOrganizationIdAsync(AppState.Organization.Id, new CancellationToken());
+        
+        if (!result.IsOk) return;
+        
+        Items = result.Value.ToList() ?? [];
+
+        await LoadOrganization();
+    }
+    
+    private async Task LoadOrganization()
+    {
+        var resultOrganization = await OrganizationService.OrganizationByIdAsync(AppState.Organization.Id);
+        
+        if (!resultOrganization.IsOk) return;
+
+        var org = resultOrganization.Value;
+
+        SelectedOrganization = new OrganizationView()
+        {
+            Name = org.Name,
+            Vat = org.Vat,
+            Mail = org.Mail,
+            Url = org.Url,
+            Country = org.Country,
+            Address = org.Addresses.FirstOrDefault()?.Line1,
+            City = org.Addresses.FirstOrDefault()?.City,
+            PostalCode = org.Addresses.FirstOrDefault()?.PostalCode,
+            PhoneNumber = org.PhoneNumbers.FirstOrDefault()?.Number,
+            BankName = org.BankInformation.FirstOrDefault()?.Name,
+            AccountNumber = org.BankInformation.FirstOrDefault()?.Account,
+            Iban = org.BankInformation.FirstOrDefault()?.Iban,
+            Bic = org.BankInformation.FirstOrDefault()?.Bic
+        };
+        
+        EditOrganizationContext = new EditContext(SelectedOrganization);
+    }
+
+    private async Task HandleValidOrganizationSubmit(EditContext arg)
+    {
+        if (arg.Model is not OrganizationView edit)
+        {
+            return;
+        }
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var resultOrganization = await OrganizationService.OrganizationByIdAsync(AppState.Organization.Id);
+        if (!resultOrganization.IsOk) return;
+        var org = resultOrganization.Value;
+        
+        var result = await OrganizationService.UpdateOrganizationAsync(org.Id, 
+            new UpdateOrganizationDto()
+            {
+                StatusId = org.StatusId,
+                Name = edit.Name,
+                Vat = edit.Vat,
+                Mail = edit.Mail,
+                Url = edit.Url,
+                Logo = "",
+                Country = edit.Country,
+                Addresses = new List<OrganizationAddressDto>()
+                {
+                    new OrganizationAddressDto()
+                    {
+                        AddressIdentifier = 1,
+                        Line1 = edit.Address ?? "",
+                        PostalCode = edit.PostalCode ?? "",
+                        City = edit.City ?? "",
+                        Country = edit.Country
+                    }
+                },
+                PhoneNumbers = new List<OrganizationPhoneNumberDto>()
+                {
+                    new OrganizationPhoneNumberDto()
+                    {
+                        PhoneNumberIdentifier = 1,
+                        Number = edit.PhoneNumber ?? "",
+                        Type = 1
+                    }
+                },
+                BankInformation = new List<OrganizationBankInformationDto>()
+                {
+                    new OrganizationBankInformationDto()
+                    {
+                        BankInformationIdentifier = 1,
+                        Name = edit.BankName ?? "",
+                        Account = edit.AccountNumber ?? "",
+                        Iban = edit.Iban ?? "",
+                        Bic = edit.Bic ?? ""
+                    }
+                }
+            }, new CancellationToken());
+
+        if (result.IsOk)
+        {
+            NotificationService.Success(@LocalizationService.StringFromResource("Staff-34"));
+        }
+        else
+        {
+            NotificationService.Error(@LocalizationService.StringFromResource("Staff-35"));
+        }
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    public class OrganizationView
+    {
+        [Required] public string Name { get; set; } = string.Empty;
+        [Required] public string Vat { get; set; } = string.Empty;
+        [Required] public string Mail { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
+        [Required] public string Country { get; set; } = string.Empty;
+        [Required] public string? Address { get; set; } = string.Empty;
+        [Required] public string? City { get; set; } = string.Empty;
+        [Required] public string? PostalCode { get; set; } = string.Empty;
+        [Required] public string? PhoneNumber { get; set; } = string.Empty;
+        [Required] public string? BankName { get; set; } = string.Empty;
+        [Required] public string? AccountNumber { get; set; } = string.Empty;
+        [Required] public string? Iban { get; set; } = string.Empty;
+        [Required] public string? Bic { get; set; } = string.Empty;
+    }
+
+}

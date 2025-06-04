@@ -1,0 +1,73 @@
+@using System.Text.RegularExpressions
+@inject SharedService SharedService
+
+<div class="application-segment">
+    <label class="application-label">@Control.Labels[Index]<br/>
+        <div class="application-sub-label" style="display: @ShowSubLabel">@Control.SubLabels[Index]</div>
+        <TelerikDateRangePicker Format="yyyy-MM-dd" Enabled="@Enabled"
+                                StartValue="StartValue"
+                                EndValue="EndValue"
+                                StartValueExpression="() => StartValue"
+                                EndValueExpression="() => EndValue"
+                                StartValueChanged="@((DateTime v) => StartValueChangedHandler(v))"
+                                EndValueChanged="@((DateTime v) => EndValueChangedHandler(v))"/>
+    </label>
+</div>
+
+@code 
+{
+    [Parameter] public ApplicationControlDto Control { get; set; } = new();
+    [Parameter] public EventCallback<ApplicationControlDto> OnControlChanged { get; set; }
+    private DateTime StartValue { get; set; } = DateTime.UtcNow;
+    private DateTime EndValue { get; set; } = DateTime.UtcNow;
+    private string ShowSubLabel => Control.SubLabels.Any(x => x.Length > 0) ? "block" : "none";
+    private int Index { get; set; } = 0;
+    private bool Enabled { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        Index = SharedService.IndexByCulture();
+        if (Control.Labels.Count == 1) Index = 0;
+        Control.Value = Regex.Unescape(Control.Value);
+        if (!string.IsNullOrWhiteSpace(Control.Value))
+        {
+            var dates = Control.Value.Split(";");
+            StartValue = DateTime.Parse(dates[0]);
+            EndValue = DateTime.Parse(dates[1]);
+        }
+        Enabled = true;
+    }
+
+    private async Task OnValueChanged(object value)
+    {
+        var dateValue = (DateTime)value;
+        Control.Value = dateValue.ToString("yyyy-MM-dd");
+        await OnControlChanged.InvokeAsync(Control);
+    }
+
+    private async Task StartValueChangedHandler(DateTime dateTime)
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        EndValue = dateTime;
+        var dateEndValue = dateTime;
+        var value = StartValue.ToString("yyyy-MM-dd") + ";" + dateEndValue.ToString("yyyy-MM-dd");
+        Control.Value = value;
+        await OnControlChanged.InvokeAsync(Control);
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task EndValueChangedHandler(DateTime dateTime)
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        EndValue = dateTime;
+        var dateEndValue = dateTime;
+        var value = StartValue.ToString("yyyy-MM-dd") + ";" + dateEndValue.ToString("yyyy-MM-dd");
+        Control.Value = value;
+        await OnControlChanged.InvokeAsync(Control);
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+}

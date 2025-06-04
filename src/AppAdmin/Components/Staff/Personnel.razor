@@ -1,0 +1,807 @@
+@using AppAdmin.State
+
+@inject ApplicationDbContext Context
+@inject UserService UserService
+@inject OrganizationService OrganizationService
+@inject SharedService SharedService
+@inject StatisticService StatisticService
+
+<style>
+    div.k-grid tbody tr{
+        height: 40px !important;
+        white-space: nowrap!important;
+    }
+    div.k-grid th a, .k-virtual-scrollable-wrap td {
+        white-space: nowrap!important;
+    }
+    #grid th a, .k-virtual-scrollable-wrap td {
+        white-space: nowrap!important;
+    }
+</style>
+
+<h5>@LocalizationService.StringFromResource("Staff-1")</h5>
+
+<Spacer Height="30px" />
+<TelerikGrid @ref="GridRef" 
+             Data="@Items"
+             Pageable="true"
+             PageSize="12"
+             ConfirmDelete="true"
+             EditMode="@GridEditMode.Popup"
+             OnEdit="@EditHandler"
+             OnUpdate="@UpdateHandler"
+             OnDelete="@DeleteHandler"
+             OnModelInit="@(() => new UserDto())">
+    <GridToolBarTemplate>
+        <GridCommandButton Enabled="@Enabled" Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Staff-2")</GridCommandButton>
+    </GridToolBarTemplate>
+    <GridSettings>
+        <GridPopupEditSettings Width="1050px" Height="775px" MaxHeight="95vh" MaxWidth="95vw"></GridPopupEditSettings>
+        <GridPopupEditFormSettings Context="formContext">
+            <FormTemplate>
+                @{
+                    EditItem = formContext.Item as UserDto;
+                    <TelerikForm Model="@EditItem"
+                                 ColumnSpacing="20px"
+                                 Columns="5"
+                                 ButtonsLayout="@FormButtonsLayout.Stretch"
+                                 OnValidSubmit="@UpdateHandler">
+                        <FormItems>
+                            <FormItem ColSpan="1" Field="@nameof(UserDto.FirstName)" LabelText="@LocalizationService.StringFromResource("Staff-3")"></FormItem>
+                            <FormItem ColSpan="1" Field="@nameof(UserDto.LastName)" LabelText="@LocalizationService.StringFromResource("Staff-4")"></FormItem>
+                            <FormItem ColSpan="1" Field="@nameof(UserDto.Email)" LabelText="@LocalizationService.StringFromResource("Staff-5")"></FormItem>
+                            <FormItem ColSpan="1" Field="@nameof(UserDto.Password)" LabelText="@LocalizationService.StringFromResource("Staff-6")">
+                                <Template>
+                                    <label>@LocalizationService.StringFromResource("Staff-6")</label>
+                                    <TelerikTextBox Password="true" @bind-Value="@Password"/>
+                                </Template>
+                            </FormItem>
+                            <FormItem ColSpan="1" Field="@nameof(UserDto.ConfirmPassword)" LabelText="@LocalizationService.StringFromResource("Staff-7")">
+                                <Template>
+                                    <label>@LocalizationService.StringFromResource("Staff-7")</label>
+                                    <TelerikTextBox Password="true" @bind-Value="@ConfirmPassword" />
+                                </Template>
+                            </FormItem>
+                            <FormItem ColSpan="5" Field="@nameof(UserDto.Addresses)">
+                                <Template>
+                                    <label>@LocalizationService.StringFromResource("Staff-8")</label>
+                                    <TelerikGrid Data="@EditItem?.Addresses" 
+                                                 EditMode="@GridEditMode.Inline"
+                                                 OnDelete="OnAddressDeleted" 
+                                                 OnCreate="OnAddressCreated"
+                                                 OnUpdate="OnAddressUpdated">
+                                        <GridToolBarTemplate>
+                                            <GridCommandButton Enabled="@Enabled" Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Staff-2")</GridCommandButton>
+                                        </GridToolBarTemplate>
+                                        <GridColumns>
+                                            <GridColumn Field="@nameof(UserAddressDto.Line1)" Title="@LocalizationService.StringFromResource("Staff-9")"/>
+                                            <GridColumn Field="@nameof(UserAddressDto.Line2)" Title="@LocalizationService.StringFromResource("Staff-10")"/>
+                                            <GridColumn Field="@nameof(UserAddressDto.PostalCode)" Title="@LocalizationService.StringFromResource("Staff-11")"/>
+                                            <GridColumn Field="@nameof(UserAddressDto.City)" Title="@LocalizationService.StringFromResource("Staff-12")"/>
+                                            <GridColumn Field="@nameof(UserAddressDto.Country)" Title="@LocalizationService.StringFromResource("Staff-13")"/>
+                                            <GridCommandColumn Width="200px">
+                                                <GridCommandButton Enabled="@Enabled" Command="Edit" Icon="@SvgIcon.Pencil" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Staff-14")</GridCommandButton>
+                                                <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Staff-15")</GridCommandButton>
+                                                <GridCommandButton Enabled="@Enabled" Command="Save" Icon="SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" ShowInEdit="true">@LocalizationService.StringFromResource("Staff-16")</GridCommandButton>
+                                                <GridCommandButton Enabled="@Enabled" Command="Cancel" Icon="SvgIcon.Cancel" ShowInEdit="true">@LocalizationService.StringFromResource("Staff-17")</GridCommandButton>
+                                            </GridCommandColumn>
+                                        </GridColumns>
+                                    </TelerikGrid>
+                                </Template>
+                            </FormItem>
+                            <FormItem ColSpan="5" Field="@nameof(UserDto.PhoneNumbers)">
+                                <Template>
+                                    <label>@LocalizationService.StringFromResource("Staff-18")</label>
+                                    <TelerikGrid Data="@EditItem?.PhoneNumbers" 
+                                                 EditMode="@GridEditMode.Inline"
+                                                 OnEdit="OnPhoneNumberEdit"
+                                                 OnDelete="OnPhoneNumberDeleted"
+                                                 OnCreate="OnPhoneNumberCreated"
+                                                 OnUpdate="OnPhoneNumberUpdated">
+                                        <GridToolBarTemplate>
+                                            <GridCommandButton Enabled="@Enabled" Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Staff-19")</GridCommandButton>
+                                        </GridToolBarTemplate>
+                                        <GridColumns>
+                                            <GridColumn Field="@nameof(UserPhoneNumberDto.Number)" Title="@LocalizationService.StringFromResource("Staff-20")"/>
+                                            <GridColumn Field="@nameof(UserPhoneNumberDto.Type)" Title="@LocalizationService.StringFromResource("Staff-21")">
+                                                <EditorTemplate>
+                                                    <TelerikDropDownList Data="@PhoneNumberTypes.Where(x => x.OrganizationPhoneNumberTypeIdentifier > 1).ToList()"
+                                                                         TextField="@nameof(OrganizationPhoneNumberTypeDto.First)"
+                                                                         ValueField="@nameof(OrganizationPhoneNumberTypeDto.OrganizationPhoneNumberTypeIdentifier)"
+                                                                         @bind-Value="@SelectedPhoneNumberType">
+                                                    </TelerikDropDownList>
+                                                </EditorTemplate>
+                                                <Template>
+                                                    @{
+                                                        var index = SharedService.IndexByCulture();
+                                                        <span>@PhoneNumberTypes.FirstOrDefault(x => x.OrganizationPhoneNumberTypeIdentifier == ((context as UserPhoneNumberDto)!).Type)?.Names[index]</span>
+                                                    }
+                                                </Template>
+                                            </GridColumn>
+                                            <GridCommandColumn Width="200px">
+                                                <GridCommandButton Enabled="@Enabled" Command="Edit" Icon="@SvgIcon.Pencil" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Staff-14")</GridCommandButton>
+                                                <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Staff-15")</GridCommandButton>
+                                                <GridCommandButton Enabled="@Enabled" Command="Save" Icon="SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" ShowInEdit="true">@LocalizationService.StringFromResource("Staff-16")</GridCommandButton>
+                                                <GridCommandButton Enabled="@Enabled" Command="Cancel" Icon="SvgIcon.Cancel" ShowInEdit="true">@LocalizationService.StringFromResource("Staff-17")</GridCommandButton>
+                                            </GridCommandColumn>
+                                        </GridColumns>
+                                    </TelerikGrid>
+                                </Template>
+                            </FormItem>
+                            <FormItem ColSpan="4" Field="@nameof(UserDto.Organizations)">
+                                <Template>
+                                    <label>@LocalizationService.StringFromResource("Staff-22")</label>
+                                    <TelerikGrid Data="@EditItem?.Statistics"
+                                                 EditMode="@GridEditMode.Inline"
+                                                 OnDelete="OnStatisticsDeleted"
+                                                 OnCreate="OnStatisticsCreated">
+                                        <GridToolBarTemplate>
+                                            <GridCommandButton Enabled="@Enabled" Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Staff-2")</GridCommandButton>
+                                        </GridToolBarTemplate>
+                                        <GridColumns>
+                                            <GridColumn Field="@nameof(UserStatisticDto.Name)" Title="@LocalizationService.StringFromResource("Staff-23")">
+                                                <EditorTemplate>
+                                                    @{
+                                                        UserStatistics = EditItem != null && EditItem.Organizations.Any(x => x.OrganizationIdentifier == 1)
+                                                            ? Statistics.Where(x => x is { Id: > 0, IsPublic: false }).ToList()
+                                                            : Statistics.Where(x => x is { Id: > 0, IsPublic: true }).ToList();
+
+                                                    }
+                                                    <TelerikDropDownList Data="@UserStatistics"
+                                                                         TextField="@nameof(StatisticDto.Description)"
+                                                                         ValueField="@nameof(StatisticDto.Id)"
+                                                                         @bind-Value="@SelectedStatisticId">
+                                                    </TelerikDropDownList>
+                                                </EditorTemplate>
+                                            </GridColumn>
+                                            <GridCommandColumn Width="110px">
+                                                <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Staff-15")</GridCommandButton>
+                                                <GridCommandButton Enabled="@Enabled" Command="Save" Icon="SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" ShowInEdit="true">@LocalizationService.StringFromResource("Staff-16")</GridCommandButton>
+                                                <GridCommandButton Enabled="@Enabled" Command="Cancel" Icon="SvgIcon.Cancel" ShowInEdit="true">@LocalizationService.StringFromResource("Staff-17")</GridCommandButton>
+                                            </GridCommandColumn>
+                                        </GridColumns>
+                                    </TelerikGrid>
+                                </Template>
+                            </FormItem>
+                            <FormItem ColSpan="2" Field="@nameof(UserDto.Organizations)">
+                                <Template>
+                                    <label>@LocalizationService.StringFromResource("Staff-24")</label>
+                                    <TelerikGrid Data="@EditItem?.Organizations" 
+                                                 EditMode="@GridEditMode.Inline"
+                                                 OnDelete="OnOrganizationDeleted"
+                                                 OnCreate="OnOrganizationCreated"
+                                                 OnUpdate="OnOrganizationUpdated">
+                                        <GridToolBarTemplate>
+                                            <GridCommandButton Enabled="@Enabled" Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Staff-25")</GridCommandButton>
+                                        </GridToolBarTemplate>
+                                        <GridColumns>
+                                            <GridColumn Field="@nameof(UserOrganizationDto.OrganizationName)" Title="@LocalizationService.StringFromResource("Staff-23")">
+                                                <EditorTemplate>
+                                                    <TelerikDropDownList Data="@Organizations"
+                                                                         TextField="@nameof(OrganizationDto.Name)"
+                                                                         ValueField="@nameof(OrganizationDto.Id)"
+                                                                         @bind-Value="@SelectedOrganizationId">
+                                                        <ItemTemplate Context="child">
+                                                            @{
+                                                                var item = (OrganizationSummaryDto)child;
+                                                                <span>@item.Name (@item.Vat)</span>
+                                                            }
+                                                        </ItemTemplate>
+                                                    </TelerikDropDownList>
+                                                </EditorTemplate>
+                                                <Template>
+                                                    @Organizations.FirstOrDefault(x => x.Id == ((context as UserOrganizationDto)!).OrganizationIdentifier)?.Vat
+                                                </Template>
+                                            </GridColumn>
+                                            <GridCommandColumn Width="110px">
+                                                <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Staff-15")</GridCommandButton>
+                                                <GridCommandButton Enabled="@Enabled" Command="Save" Icon="SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" ShowInEdit="true">@LocalizationService.StringFromResource("Staff-16")</GridCommandButton>
+                                                <GridCommandButton Enabled="@Enabled" Command="Cancel" Icon="SvgIcon.Cancel" ShowInEdit="true">@LocalizationService.StringFromResource("Staff-17")</GridCommandButton>
+                                            </GridCommandColumn>
+                                        </GridColumns>
+                                    </TelerikGrid>
+                                </Template>
+                            </FormItem>
+                            <FormItem ColSpan="3">
+                                <Template>
+                                    <label>@LocalizationService.StringFromResource("Staff-26")</label>
+                                    <TelerikGrid Data="@Claims"
+                                                 EditMode="@GridEditMode.Inline"
+                                                 OnDelete="OnClaimTypeDeleted"
+                                                 OnCreate="OnClaimTypeCreated">
+                                        <GridToolBarTemplate>
+                                            <GridCommandButton Enabled="@Enabled" Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Staff-19")</GridCommandButton>
+                                        </GridToolBarTemplate>
+                                        <GridColumns>
+                                            <GridColumn Field="@nameof(IdentityUserClaim<int>.ClaimValue)" Title="@LocalizationService.StringFromResource("Staff-23")">
+                                                <EditorTemplate>
+                                                    <TelerikDropDownList Data="@ClaimTypes.Where(x => x.OrganizationClaimTypeIdentifier > 1).ToList()"
+                                                                         @bind-Value="@SelectedClaimTypeId"
+                                                                         ValueField="@nameof(ClaimTypeDto.Id)"
+                                                                         TextField="@nameof(ClaimTypeDto.Names)">
+                                                    </TelerikDropDownList>
+                                                </EditorTemplate>
+                                                <Template>
+                                                    @{
+                                                    var index = SharedService.IndexByCulture();
+                                                    <span>@ClaimTypes.FirstOrDefault(x => x.Tag == ((context as IdentityUserClaim<int>)!).ClaimValue)?.Names[index]</span>
+                                                    }
+                                                </Template>
+                                            </GridColumn>
+                                            <GridColumn>
+                                                <Template>
+                                                    @(((context as IdentityUserClaim<int>)!).ClaimValue)
+                                                </Template>
+                                            </GridColumn>
+                                            <GridCommandColumn Width="110px">
+                                                <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Staff-15")</GridCommandButton>
+                                                <GridCommandButton Enabled="@Enabled" Command="Save" Icon="SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" ShowInEdit="true">@LocalizationService.StringFromResource("Staff-16")</GridCommandButton>
+                                                <GridCommandButton Enabled="@Enabled" Command="Cancel" Icon="SvgIcon.Cancel" ShowInEdit="true">@LocalizationService.StringFromResource("Staff-17")</GridCommandButton>
+                                            </GridCommandColumn>
+                                        </GridColumns>
+                                    </TelerikGrid>
+                                </Template>
+                            </FormItem>
+                        </FormItems>
+                        <FormButtons>
+                            <TelerikButton Enabled="@Enabled" Icon="@nameof(SvgIcon.Save)">@LocalizationService.StringFromResource("Staff-16")</TelerikButton>
+                            <TelerikButton Enabled="@Enabled" Icon="@nameof(SvgIcon.Cancel)" ButtonType="@ButtonType.Button" @onclick="CancelHandler">@LocalizationService.StringFromResource("Staff-17")</TelerikButton>
+                        </FormButtons>
+                    </TelerikForm>
+                }
+            </FormTemplate>
+        </GridPopupEditFormSettings>
+    </GridSettings>
+    <GridColumns>
+        <GridColumn Field="@nameof(UserDto.FullName)" Title="@LocalizationService.StringFromResource("Staff-23")" />
+        <GridColumn Field="@nameof(UserDto.Email)" Title="@LocalizationService.StringFromResource("Staff-27")" Width="20%" />
+        <GridColumn Field="@nameof(UserDto.MessageCount)" Title="@LocalizationService.StringFromResource("Staff-28")" Width="10%" />
+        <GridColumn Field="@nameof(UserDto.LastLoginDate)" Title="@LocalizationService.StringFromResource("Staff-29")" Width="10%">
+            <Template>
+                @((context as UserDto)?.LastLoginDate.LastOrDefault().ToString("yyyy-MM-dd"))
+            </Template>
+        </GridColumn>
+        <GridColumn Field="@nameof(UserDto.LastProject)" Title="@LocalizationService.StringFromResource("Staff-30")" Width="10%">
+            <Template>
+                @((context as UserDto)?.LastProject.LastOrDefault())
+            </Template>
+        </GridColumn>
+        <GridColumn Field="@nameof(UserDto.VisibleApplicationTypes)" Title="@LocalizationService.StringFromResource("Staff-31")" Width="10%">
+            <Template>
+                @{
+                    var visibleApplicationTypes = (context as UserDto)?.VisibleApplicationTypes;
+                    if (visibleApplicationTypes != null)
+                    {
+                        string.Join(",", visibleApplicationTypes);
+                    }
+                }
+            </Template>
+        </GridColumn>
+        <GridCommandColumn Context="item" Width="200px">
+            <GridCommandButton Enabled="@Enabled" Command="Edit" Icon="@SvgIcon.Pencil" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Settings-8")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Settings-9")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" Command="Save" Icon="SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" ShowInEdit="true">@LocalizationService.StringFromResource("Settings-10")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" Command="Cancel" Icon="SvgIcon.Cancel" ShowInEdit="true">@LocalizationService.StringFromResource("Settings-11")</GridCommandButton>
+        </GridCommandColumn>
+    </GridColumns>
+</TelerikGrid>
+
+@code 
+{
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    [CascadingParameter] public required AppState AppState { get; set; }
+    private TelerikGrid<UserDto> GridRef { get; set; } = new();
+    private List<UserDto> Items { get; set; } = [];
+    private UserDto? EditItem { get; set; } = new();
+    private int SelectedPhoneNumberType { get; set; } = 0;
+    private int SelectedOrganizationId { get; set; } = 0;
+    private int SelectedClaimTypeId { get; set; } = 0;
+    private string Password { get; set; } = string.Empty;
+    private string ConfirmPassword { get; set; } = string.Empty;
+    private int SelectedStatisticId { get; set; } = 0;
+    private bool Enabled { get; set; } = true;
+    
+    private List<StatisticDto> UserStatistics { get; set; } = [];
+    private List<StatisticDto> Statistics { get; set; } = [];
+    
+    private List<OrganizationSummaryDto> Organizations { get; set; } = [];
+    private List<OrganizationActionTypeDto> ActionTypes { get; set; } = [];
+    private List<OrganizationSectionDto> Sections { get; set; } = [];
+    private List<OrganizationStatusDto> Statuses { get; set; } = [];
+    private List<OrganizationReactionTypeDto> ReactionTypes { get; set; } = [];
+    private List<OrganizationClaimTypeDto> ClaimTypes { get; set; } = [];
+    private List<IdentityUserClaim<int>> Claims { get; set; } = [];
+    private List<OrganizationEventTypeDto> EventTypes { get; set; } = [];
+    private List<OrganizationSystemMessageDestinationDto> SystemMessageDestinations { get; set; } = [];
+    private List<OrganizationPhoneNumberTypeDto> PhoneNumberTypes { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var result = await UserService.UsersByOrganizationIdAsync(1, new CancellationToken());
+        
+        if (!result.IsOk) return;
+        
+        Items = result.Value.ToList() ?? [];
+
+        await LoadOrganization();
+        await LoadStatistics();
+    }
+    
+    private async Task LoadOrganization()
+    {
+        ActionTypes = AppState.ActionTypes;
+        ReactionTypes = AppState.ReactionTypes;
+        Sections = AppState.Sections;
+        Statuses = AppState.Statuses;
+        ClaimTypes = AppState.ClaimTypes;
+        EventTypes = AppState.EventTypes;
+        SystemMessageDestinations = AppState.SystemMessageDestinations;
+        PhoneNumberTypes = AppState.PhoneNumberTypes; 
+
+        var resultOrganizations = await OrganizationService.AllOrganizationSummaryAsync();
+        
+        if (!resultOrganizations.IsOk) return;
+        
+        Organizations = resultOrganizations.Value.ToList() ?? [];
+    }
+
+    private async Task LoadStatistics()
+    {
+        var statistics = await StatisticService.AllStatisticsAsync();
+
+        if (!statistics.IsOk) return;
+
+        Statistics = statistics.Value.ToList() ?? [];
+        
+        foreach (var statistic in Statistics)
+        {
+            var localizedValue = LocalizationService.StringFromResource("Statistics-" + statistic.Description);
+            if (localizedValue != string.Empty)
+            {
+                statistic.Description = localizedValue;
+            }
+        }
+    }
+    
+    private async Task UpdateHandler()
+    {
+        var item = EditItem;
+        
+        if (item is null) return;
+        
+        if (item.Id == 0)
+        {
+            if (Password != ConfirmPassword) return;
+        
+            Enabled = false;
+            ChangeLoaderVisibilityAction(true);
+            await InvokeAsync(StateHasChanged);
+            
+            var appUser = new User { 
+                Email = item.Email.ToLower(),
+                EmailConfirmed = true, 
+                FirstName = item.FirstName,
+                LastName = item.LastName,
+                UserName = item.Email.ToLower(),
+                NormalizedUserName = item.Email.ToUpper(),
+                NormalizedEmail = item.Email.ToUpper(),
+                SecurityStamp = Guid.NewGuid().ToString(),
+                Organizations = [
+                    new UserOrganization
+                    {
+                        OrganizationIdentifier = 1,
+                        OrganizationName = "Film i väst",
+                        OrganizationVat = "5565735569",
+                        IsAdministrator = true
+                    }
+                ],
+                Addresses = item.Addresses.Select(x => x.ToEntity()).ToList(),
+                PhoneNumbers = item.PhoneNumbers.Select(x => x.ToEntity()).ToList(),
+                Statistics = item.Statistics.Select(x => x.ToEntity()).ToList()
+            };
+
+            var ph = new PasswordHasher<User>();
+            appUser.PasswordHash = ph.HashPassword(appUser, Password);
+
+            Context.Users.Add(appUser);
+        }
+        else
+        {
+            var user = await Context.Users.FindAsync(item.Id);
+            if (user is null)
+            {
+                ChangeLoaderVisibilityAction(false);
+                return;
+            }
+        
+            Enabled = false;
+            await InvokeAsync(StateHasChanged);
+            
+            user.StatusId = item.StatusId;
+            user.FirstName = item.FirstName;
+            user.LastName = item.LastName;
+            user.Email = item.Email.ToLower();
+            user.UserName = item.Email.ToLower();
+            user.NormalizedUserName = item.Email.ToUpper();
+            user.NormalizedEmail = item.Email.ToUpper();
+            user.Addresses = item.Addresses.Select(x => x.ToEntity()).ToList();
+            user.PhoneNumbers = item.PhoneNumbers.Select(x => x.ToEntity()).ToList();
+            user.Organizations = item.Organizations.Select(x => x.ToEntity()).ToList();
+            user.Statistics = item.Statistics.Select(x => x.ToEntity()).ToList();
+            
+            if (item.Password is not null && Password == ConfirmPassword)
+            {
+                var ph = new PasswordHasher<User>();
+                user.PasswordHash = ph.HashPassword(user, Password);
+                Console.WriteLine($@"Password {Password} updated");
+            }
+
+            Context.Users.Update(user);
+        }
+
+        await Context.SaveChangesAsync();
+
+        await LoadData();
+        await ExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task DeleteHandler(GridCommandEventArgs args)
+    {
+        var item = (ActionTypeDto)args.Item;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await UserService.DeleteUserAsync(item.Id, new CancellationToken());
+        
+        await LoadData();
+        await ExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CancelHandler()
+    {
+        await ExitEditAsync();
+    }
+
+    private async Task EditHandler(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserDto item) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+
+        Password = item.Password ?? string.Empty;
+        ConfirmPassword = item.ConfirmPassword ?? string.Empty;
+
+        await BindClaimTypes(item.Id);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task ExitEditAsync()
+    {
+        var state = GridRef.GetState();
+        state.OriginalEditItem = null!;
+        state.EditItem = null!;
+        state.InsertedItem = null!;
+        await GridRef.SetStateAsync(state);
+    }
+    
+    
+    private void OnAddressCreated(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserAddressDto item) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        StateHasChanged();
+        
+        EditItem?.Addresses.Add(new UserAddressDto()
+        {
+            AddressIdentifier = EditItem.Addresses.Count + 1,
+            Line1 = item.Line1,
+            Line2 = item.Line2,
+            PostalCode = item.PostalCode,
+            City = item.City,
+            Country = item.Country
+        });
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        StateHasChanged();
+    }
+    
+    private void OnAddressUpdated(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserAddressDto item) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        StateHasChanged();
+
+        var address = EditItem?.Addresses.FirstOrDefault(x => x.AddressIdentifier == item.AddressIdentifier) ?? new();
+        
+        address.Line1 = item.Line1;
+        address.Line2 = item.Line2;
+        address.PostalCode = item.PostalCode;
+        address.City = item.City;
+        address.Country = item.Country;
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        StateHasChanged();
+    }
+
+    private void OnAddressDeleted(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserAddressDto item) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        StateHasChanged();
+
+        EditItem?.Addresses.Remove(item);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        StateHasChanged();
+    }
+    
+
+    private void OnPhoneNumberCreated(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserPhoneNumberDto item) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        StateHasChanged();
+        
+        EditItem?.PhoneNumbers.Add(new UserPhoneNumberDto()
+        {
+            PhoneNumberIdentifier = EditItem.PhoneNumbers.Count + 1,
+            Number = item.Number,
+            Type = SelectedPhoneNumberType
+        });
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        StateHasChanged();
+    }
+
+    private void OnPhoneNumberUpdated(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserPhoneNumberDto item) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        StateHasChanged();
+
+        var number = EditItem?.PhoneNumbers.FirstOrDefault(x => x.PhoneNumberIdentifier == item.PhoneNumberIdentifier) ?? new();
+            
+        number.Number = item.Number;
+        number.Type = SelectedPhoneNumberType;
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        StateHasChanged();
+    }
+
+    private void OnPhoneNumberDeleted(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserPhoneNumberDto item) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        StateHasChanged();
+
+        EditItem?.PhoneNumbers.Remove(item);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        StateHasChanged();
+    }
+    
+    private void OnPhoneNumberEdit(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserPhoneNumberDto item) return;
+        
+        SelectedPhoneNumberType = item.Type;
+    }
+
+    
+    private void OnOrganizationCreated(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserOrganizationDto item) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        StateHasChanged();
+        
+        EditItem?.Organizations.Add(new UserOrganizationDto()
+        {
+            OrganizationIdentifier = EditItem.Organizations.Count + 1,
+            OrganizationName = item.OrganizationName,
+            OrganizationVat = item.OrganizationVat,
+            IsAdministrator = false
+        });
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        StateHasChanged();
+    }
+
+    private void OnOrganizationUpdated(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserOrganizationDto item) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        StateHasChanged();
+
+        var org = EditItem?.Organizations.FirstOrDefault(x => x.OrganizationIdentifier == item.OrganizationIdentifier) ?? new();
+            
+        org.OrganizationName = item.OrganizationName;
+        org.OrganizationVat = item.OrganizationVat;
+        org.IsAdministrator = false;
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        StateHasChanged();
+    }
+
+    private void OnOrganizationDeleted(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserOrganizationDto item) return;
+
+        if (item.OrganizationIdentifier == 1) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        StateHasChanged();
+        
+        EditItem?.Organizations.Remove(item);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        StateHasChanged();
+    }
+    
+    private void OnOrganizationEdit(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserOrganizationDto item) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        StateHasChanged();
+        
+        SelectedOrganizationId = item.OrganizationIdentifier;
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        StateHasChanged();
+    }
+
+
+    private async Task BindClaimTypes(int userId)
+    {
+        var result = await Context.UserClaims
+            .Where(x => x.UserId == userId && x.ClaimType == "role" && x.ClaimValue!.Length < 4)
+            .ToListAsync();
+
+        Claims = result.ToList();
+    }
+
+    private async Task OnClaimTypeCreated(GridCommandEventArgs obj)
+    {
+        if (EditItem is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        Console.WriteLine($@"EditItem: {EditItem.Id}");
+        Console.WriteLine($@"SelectedClaimTypeId: {SelectedClaimTypeId}");
+        
+        var value = ClaimTypes.FirstOrDefault(x => x.OrganizationClaimTypeIdentifier == SelectedClaimTypeId)?.Tag;
+
+        Context.UserClaims.Add(new IdentityUserClaim<int> { 
+            UserId = EditItem.Id,
+            ClaimType = "role",
+            ClaimValue = value
+        });
+        
+        await Context.SaveChangesAsync();
+        
+        await BindClaimTypes(EditItem.Id);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnClaimTypeDeleted(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not IdentityUserClaim<int> item) return;
+        if (EditItem is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        Console.WriteLine($@"item: {item.Id}");
+        Console.WriteLine($@"EditItem: {EditItem.Id}");
+        Console.WriteLine($@"SelectedClaimTypeId: {SelectedClaimTypeId}");
+
+        await Context.UserClaims
+            .Where(x => x.Id == item.Id)
+            .ExecuteDeleteAsync();
+        
+        await BindClaimTypes(EditItem.Id);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    private void OnStatisticsDeleted(GridCommandEventArgs obj)
+    { 
+        if (obj.Item is not UserStatisticDto item) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        StateHasChanged();
+
+        EditItem?.Statistics.Remove(item);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        StateHasChanged();
+    }
+
+    private void OnStatisticsCreated(GridCommandEventArgs obj)
+    {
+        if (obj.Item is not UserStatisticDto item && SelectedStatisticId < 1) return;
+
+        var statistic = Statistics.FirstOrDefault(x => x.Id == SelectedStatisticId);
+        
+        if (statistic is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        StateHasChanged();
+        
+        EditItem?.Statistics.Add(new UserStatisticDto()
+        {
+            StatisticIdentifier = EditItem.Statistics.Count + 1,
+            Name = statistic.Name,
+            Description = statistic.Description,
+            Query = statistic.Query,
+            Value = "",
+            Columns = statistic.Columns,
+            Rows = statistic.Rows,
+            Unit = statistic.Unit
+        });
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        StateHasChanged();
+    }
+}

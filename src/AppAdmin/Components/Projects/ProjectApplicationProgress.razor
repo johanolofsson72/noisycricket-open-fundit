@@ -1,0 +1,173 @@
+@using global::Shared.Milestones.DTOs
+@using global::Shared.Milestones.Services
+@using AppAdmin.Components.Segments
+@inject NavigationManager NavigationManager
+@inject ApplicationService ApplicationService
+@inject IConfiguration Configuration
+@inject MilestoneService MilestoneService
+@inject NotificationService NotificationService
+
+<style>
+    .k-form .k-form-legend, .k-form-inline .k-form-legend {
+        display: none;
+    }
+</style>
+
+@if (Application is not null && Milestones is not null)
+{
+    <TelerikForm Model="@Application">
+        <FormValidation>
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+        </FormValidation>
+        <FormItems>
+            <FormGroup>
+                <FormItem>
+                    <Template>
+                        <p style="white-space: pre-wrap; margin-bottom: 34px">
+                            @LocalizationService.StringFromResource("Projects-57")
+                        </p>
+                    </Template>
+                </FormItem>
+                <FormItem>
+                    <Template>
+                        <SegmentHandler Control="OurContributionControl" Readonly="true"/>
+                    </Template>
+                </FormItem>
+                <FormItem>
+                    <Template>
+                        <div style="display: flex; justify-content: flex-start; align-items: flex-start; gap: 10px">
+                            <TelerikButton OnClick="CreateDefaults" Visible="@(!Milestones.Any())" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" >@LocalizationService.StringFromResource("Projects-168")</TelerikButton>
+                            <TelerikButton OnClick="CreateNew" ThemeColor="@ThemeConstants.Button.ThemeColor.Success">@LocalizationService.StringFromResource("Projects-169")</TelerikButton>
+                            @*<TelerikButton OnClick="@(() => { DialogVisible = true; })" ThemeColor="@ThemeConstants.Button.ThemeColor.Success">@LocalizationService.StringFromResource("Projects-169")</TelerikButton>*@
+                            @*<TelerikButton OnClick="DeleteAll" Visible="@(Milestones.Any())" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">Delete All</TelerikButton>*@
+                        </div>
+                    </Template>
+                </FormItem>
+                @foreach (var milestone in Milestones)
+                {
+                    <FormItem>
+                        <Template>
+                            <div style="margin-top: 10px">&nbsp;</div>
+                            <ProjectApplicationProgressMilestone ApplicationId="@ApplicationId"
+                                                                 Index="@(Milestones.FindIndex(x => x.Id == milestone.Id) + 1)"
+                                                                 MilestoneId="@milestone.Id" OnUpdated="OnMilestoneUpdated" />
+                        </Template>
+                    </FormItem>
+                }
+            </FormGroup>
+        </FormItems>
+        <FormButtons />
+    </TelerikForm>
+    
+    @*<TelerikDialog @bind-Visible="@DialogVisible" Width="320px" Title="Skapa ny">
+        <DialogContent>
+            skapa ny
+            
+        </DialogContent>
+        <DialogButtons>
+            <TelerikButton OnClick="@(() => { DialogVisible = false; })">Spara</TelerikButton>
+        </DialogButtons>
+    </TelerikDialog>*@
+}
+
+@code
+{
+    [Parameter] public int ApplicationId { get; set; }
+    [Parameter] public EventCallback<int> OnUpdated { get; set; }
+    
+    private EconomyApplicationDto? Application { get; set; }
+    private List<MilestonesSummaryDto>? Milestones { get; set; }
+    private ApplicationControlDto OurContributionControl { get; set; } = new ();
+    private bool DialogVisible { get; set; } = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        // Get Application
+        var applicationResult = await ApplicationService.EconomyApplicationByIdAsync(ApplicationId, new CancellationToken());
+        if (!applicationResult.IsOk) return;
+        Application = applicationResult.Value;
+        
+        OurContributionControl = Application.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("01000001"))!;
+
+        Milestones = [];
+        var result = await MilestoneService.MilestonesSummaryByApplicationIdAsync(Application.Id, new CancellationToken());
+        if (!result.IsOk) return;
+        Milestones = result.Value.ToList();
+
+        if (Milestones.Count < 1 && Application.OurContribution > 0)
+        {
+            //await CreateDefaults();
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CreateDefaults()
+    {
+        var createMilestonesResult = await MilestoneService.CreateMilestonesAsync(
+            new CreateMilestonesDto(
+                Application.Id,
+                Application.OurContribution
+            ), new CancellationToken());
+            
+        if (!createMilestonesResult.IsOk)
+        {
+            NotificationService.Error(createMilestonesResult.Error.ToString());
+            return;
+        }
+
+        Milestones = [];
+        var result = await MilestoneService.MilestonesSummaryByApplicationIdAsync(Application.Id, new CancellationToken());
+        if (!result.IsOk) return;
+        Milestones = result.Value.ToList();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task DeleteAll()
+    {
+        foreach (var Milestone in Milestones)
+        {
+            _ = await MilestoneService.DeleteMilestoneAsync(Milestone.Id, new CancellationToken());
+        }
+        
+        Milestones = [];
+        var result = await MilestoneService.MilestonesSummaryByApplicationIdAsync(Application.Id, new CancellationToken());
+        if (!result.IsOk) return;
+        Milestones = result.Value.ToList();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnMilestoneUpdated(int id)
+    {
+        await Load();
+    }
+
+    private async Task CreateNew()
+    {
+        var createMilestoneResult = await MilestoneService.CreateMilestoneAsync(Application.Id,
+            new CreateMilestoneDto() {
+                StatusId = 2,
+                Amount = Application.OurContribution,
+                ExpireDate = DateTime.UtcNow.AddMonths(1),
+                IsLocked = false,
+                Requirements = [],
+                Payments = []
+            }, new CancellationToken());
+            
+        if (!createMilestoneResult.IsOk)
+        {
+            NotificationService.Error(createMilestoneResult.Error.ToString());
+            return;
+        }
+
+        Milestones = [];
+        var result = await MilestoneService.MilestonesSummaryByApplicationIdAsync(Application.Id, new CancellationToken());
+        if (!result.IsOk) return;
+        Milestones = result.Value.ToList();
+        await InvokeAsync(StateHasChanged);
+    }
+}

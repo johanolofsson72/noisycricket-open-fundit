@@ -1,0 +1,13 @@
+@page "/schemas"
+
+@attribute [Authorize(Policy = "Admin")]
+
+@rendermode @(new InteractiveServerRenderMode(false))
+
+<TelerikRootComponent>
+    <div class="component-page">
+        <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+            <Schemas />
+        </Animate>
+    </div>
+</TelerikRootComponent>

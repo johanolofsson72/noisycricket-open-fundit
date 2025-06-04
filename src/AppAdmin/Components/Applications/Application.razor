@@ -1,0 +1,464 @@
+@using System.Text.Json
+@using AppAdmin.Components.Segments
+@using global::Shared.Events.Services
+@using global::Shared.Projects.DTOs
+@using global::Shared.Users.DTOs
+@using Org.BouncyCastle.Crypto.Engines
+
+@using System.Text.RegularExpressions;
+
+@inject IConfiguration Configuration
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+@inject ProjectService ProjectService
+@inject ApplicationService ApplicationService
+@inject NotificationService NotificationService
+@inject EventService EventService
+
+
+@if (SelectedApplication is not null)
+{
+    <TelerikForm Model="SelectedApplication">
+        <FormItems>
+            <FormGroup Columns="2">
+                @if (ApplicantLeftControls != null)
+                {
+                    foreach (var control in ApplicantLeftControls)
+                    {
+                        <FormItem>
+                            <Template>
+                                <SegmentHandler Control="control" Readonly="true"/>
+                            </Template>
+                        </FormItem>
+                    }
+                }
+                @if (ApplicantRightControls != null)
+                {
+                    foreach (var control in ApplicantRightControls)
+                    {
+                        <FormItem>
+                            <Template>
+                                <SegmentHandler Control="control" Readonly="true"/>
+                            </Template>
+                        </FormItem>
+                    }
+                }
+            </FormGroup>
+            <FormGroup Columns="2">
+                @if (BudgetLeftControls != null)
+                {
+                    foreach (var control in BudgetLeftControls)
+                    {
+                        <FormItem>
+                            <Template>
+                                <SegmentHandler Control="control" Readonly="true"/>
+                            </Template>
+                        </FormItem>
+                    }
+                }
+                @if (BudgetRightControls != null)
+                {
+                    foreach (var control in BudgetRightControls)
+                    {
+                        <FormItem>
+                            <Template>
+                                <SegmentHandler Control="control" Readonly="true"/>
+                            </Template>
+                        </FormItem>
+                    }
+                }
+            </FormGroup>
+            <FormGroup Columns="2">
+                @if (AttachmentLeftControls != null)
+                {
+                    foreach (var control in AttachmentLeftControls)
+                    {
+                        <FormItem>
+                            <Template>
+                                <SegmentHandler Control="control" ApplicationId="SelectedApplication.Id" Readonly="true"/>
+                            </Template>
+                        </FormItem>
+                    }
+                }
+                @if (AttachmentRightControls != null)
+                {
+                    foreach (var control in AttachmentRightControls)
+                    {
+                        <FormItem>
+                            <Template>
+                                <SegmentHandler Control="control" ApplicationId="SelectedApplication.Id" Readonly="true"/>
+                            </Template>
+                        </FormItem>
+                    }
+                }
+            </FormGroup>
+            <FormGroup Columns="3">
+                <FormItem Enabled="@ShowCreateButton">
+                    <Template>
+                        @if (Public360Control is not null)
+                        {
+                            <SegmentHandler Control="Public360Control" OnSegmentControlChanged="(c) => OnPublic360ControlChanged(c)" Readonly="false"/>
+                        }
+                        @if (AppliedSumControl is not null)
+                        {
+                            <SegmentHandler Control="AppliedSumControl" OnSegmentControlChanged="(c) => OnAppliedSumControlChanged(c)" Readonly="false"/>
+                        }
+                    </Template>
+                </FormItem>
+                <FormItem Enabled="@ShowCreateButton">
+                    <Template>
+                        @if (ManagerControl is not null)
+                        {
+                            <SegmentHandler Control="ManagerControl" OnSegmentControlChanged="(c) => OnManagerControlChanged(c)" Readonly="false"/>
+                        }
+                        @if (CurrencyControl is not null)
+                        {
+                            <SegmentHandler Control="CurrencyControl" OnSegmentControlChanged="(c) => OnCurrencyControlChanged(c)" Readonly="false"/>
+                        }
+                    </Template>
+                </FormItem>
+                <FormItem>
+                    <Template>
+                        <div style="display: flex; vertical-align: center; align-items: center; justify-content: center; padding-top: 30px">    
+                            <TelerikButton Visible="@ShowRequestNumberButton" ThemeColor="@ThemeConstants.Avatar.ThemeColor.Primary" OnClick="OnRequestNumber">@LocalizationService.StringFromResource("Applications-29")</TelerikButton>
+                            <TelerikButton Visible="@ShowUpdateButton" ThemeColor="@ThemeConstants.Avatar.ThemeColor.Primary" OnClick="OnUpdate">@LocalizationService.StringFromResource("Schemas-27")</TelerikButton>
+                            <TelerikButton Visible="@ShowCreateButton" ThemeColor="@ThemeConstants.Avatar.ThemeColor.Primary" OnClick="OnTryAddToProject">@LocalizationService.StringFromResource("Applications-17")</TelerikButton>
+                        </div>
+                    </Template>
+                </FormItem>
+            </FormGroup>
+        </FormItems>
+        <FormButtons/>
+    </TelerikForm>
+}
+
+<TelerikDialog @bind-Visible="@DialogVisible" Width="320px" Title="@LocalizationService.StringFromResource("Applications-18")">
+    <DialogContent>
+        <p style="text-align: center;">@LocalizationService.StringFromResource("Applications-19")</p>
+    </DialogContent>
+    <DialogButtons>
+        <TelerikButton OnClick="@(() => { DialogVisible = false; })">@LocalizationService.StringFromResource("Applications-20")</TelerikButton>
+        <TelerikButton ThemeColor="@(ThemeConstants.Button.ThemeColor.Primary)" OnClick="@(async () => { DialogVisible = false; await OnDialogConfirmConnectToProject(); })">@LocalizationService.StringFromResource("Applications-21")</TelerikButton>
+    </DialogButtons>
+</TelerikDialog>
+
+@code
+{
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    [Parameter] public int ApplicationId { get; set; }
+    [Parameter] public EventCallback<string> OnApplicationClosed { get; set; }
+    private SlimApplicationDto? SelectedApplication { get; set; }
+    private List<ApplicationControlDto>? ApplicantLeftControls { get; set; } = null;
+    private List<ApplicationControlDto>? ApplicantRightControls { get; set; } = null;
+    private List<ApplicationControlDto>? BudgetLeftControls { get; set; } = null;
+    private List<ApplicationControlDto>? BudgetRightControls { get; set; } = null;
+    private List<ApplicationControlDto>? AttachmentLeftControls { get; set; } = null;
+    private List<ApplicationControlDto>? AttachmentRightControls { get; set; } = null;
+
+    private ApplicationControlDto? Public360Control { get; set; } = null;
+    private ApplicationControlDto? ManagerControl { get; set; } = null;
+    private ApplicationControlDto? AppliedSumControl { get; set; } = null;
+    private ApplicationControlDto? CurrencyControl { get; set; } = null;
+
+    private List<UserDto> Managers { get; set; } = [];
+    private int ProjectId { get; set; } = 0;
+    private bool DialogVisible { get; set; } = false;
+    private string GeneratedProjectNumber { get; set; } = string.Empty;
+    private string SelectedManager { get; set; } = string.Empty;
+    private decimal SelectedAppliedAmount { get; set; } = 0;
+    private string SelectedCurrency { get; set; } = string.Empty;
+    private bool ShowRequestNumberButton { get; set; } = false;
+    private bool ShowUpdateButton { get; set; } = false;
+    private bool ShowCreateButton { get; set; } = false;
+
+    const string CssLeft = "application-form-left-container";
+    const string CssRight = "application-form-right-container";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        try
+        {
+            var result = await ApplicationService.SlimApplicationByIdAsync(ApplicationId, new CancellationToken());
+
+            if (!result.IsOk) return;
+            
+            SelectedApplication = result.Value;
+            
+            ApplicantLeftControls = SelectedApplication.Controls
+                .Where(x => x.ApplicationFormSectionId == 2)
+                .Where(x => x.Css.Contains(CssLeft))
+                .OrderBy(x => x.Order)
+                .ToList();
+            
+            //Console.WriteLine($"ApplicantLeftControls: {ApplicantLeftControls.Count}");
+            
+            ApplicantRightControls = SelectedApplication.Controls
+                .Where(x => x.ApplicationFormSectionId == 2)
+                .Where(x => x.Css.Contains(CssRight))
+                .OrderBy(x => x.Order)
+                .ToList();
+            
+            //Console.WriteLine($"ApplicantRightControls: {ApplicantRightControls.Count}");
+            
+            BudgetLeftControls = SelectedApplication.Controls
+                .Where(x => x.ApplicationFormSectionId == 3)
+                .Where(x => x.Css.Contains(CssLeft))
+                .OrderBy(x => x.Order)
+                .ToList();
+            
+            //Console.WriteLine($"BudgetLeftControls: {BudgetLeftControls.Count}");
+            
+            BudgetRightControls = SelectedApplication.Controls
+                .Where(x => x.ApplicationFormSectionId == 3)
+                .Where(x => x.Css.Contains(CssRight))
+                .OrderBy(x => x.Order)
+                .ToList();
+            
+            //Console.WriteLine($"BudgetRightControls: {BudgetRightControls.Count}");
+            
+            AttachmentLeftControls = SelectedApplication.Controls
+                .Where(x => x.ApplicationFormSectionId == 4)
+                .Where(x => x.Css.Contains(CssLeft))
+                .OrderBy(x => x.Order)
+                .ToList();
+            
+            //Console.WriteLine($"AttachmentLeftControls: {AttachmentLeftControls.Count}");
+            
+            AttachmentRightControls = SelectedApplication.Controls
+                .Where(x => x.ApplicationFormSectionId == 4)
+                .Where(x => x.Css.Contains(CssRight))
+                .OrderBy(x => x.Order)
+                .ToList();
+            
+            //Console.WriteLine($"AttachmentRightControls: {AttachmentRightControls.Count}");
+
+            AppliedSumControl = SelectedApplication.Controls
+                .FirstOrDefault(x => x.UniqueId.ToString().StartsWith("00000002"));
+            if (AppliedSumControl is null) throw new Exception("Cant find AppliedSumControl");
+            
+            GeneratedProjectNumber = await ProjectService.GeneratedProjectNumberAsync(new CancellationToken());
+            Public360Control = new ApplicationControlDto
+            {
+                Labels = ["Public 360 Id", "", "", "", "", "", "", ""],
+                Placeholders = ["", "", "", "", "", "", "", ""],
+                SubLabels = ["", "", "", "", "", "", "", ""],
+                ControlTypeId = 2,
+                Value = GeneratedProjectNumber
+            };
+
+            CurrencyControl = SelectedApplication.Controls
+                .FirstOrDefault(x => x.UniqueId.ToString().StartsWith("00000001"));
+            if (CurrencyControl is null) throw new Exception("Cant find CurrencyControl");
+
+            SelectedCurrency = Regex.Unescape(CurrencyControl.Value);
+
+            var projectManagerResult = await UserService.ProjectManagersAsync(SelectedApplication.SchemaId, new CancellationToken());
+            if (!projectManagerResult.IsOk) throw new Exception("Cant find Managers");
+            
+            Managers = projectManagerResult.Value.ToList();
+
+            var fullName = Managers.FirstOrDefault()?.FullName;
+            if (fullName != null)
+            {
+                ManagerControl = new ApplicationControlDto
+                {
+                    Labels = [@LocalizationService.StringFromResource("Applications-28"), "", "", "", "", "", "", ""],
+                    ControlTypeId = 5,
+                    DataSource = JsonSerializer.Serialize(projectManagerResult.Value.Select(x => x.FullName)),
+                    Value = fullName
+                };
+                SelectedManager = Managers.FirstOrDefault()?.FullName!;
+            }
+
+            // Event: 4 - Public360-id begärts
+            var event4Completed = await EventService.IsEventComplete(SelectedApplication.Id, 4, new CancellationToken());
+            if (!event4Completed.IsOk)
+            {
+                NotificationService.Error(event4Completed.Error.ToString());
+            }
+
+            // Event 5 - Public360-id uppdaterat
+            var event5Completed = await EventService.IsEventComplete(SelectedApplication.Id, 5, new CancellationToken());
+            if (!event5Completed.IsOk)
+            {
+                NotificationService.Error(event5Completed.Error.ToString());
+            }
+            
+            ShowCreateButton = event5Completed.Value;
+            ShowRequestNumberButton = !event4Completed.Value;
+            ShowUpdateButton = !ShowCreateButton;
+            if (ShowRequestNumberButton) ShowUpdateButton = false;
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Application: " + ex);
+        }
+    }
+    
+    private void OnPublic360ControlChanged(ApplicationControlDto control)
+    {
+        GeneratedProjectNumber = control.Value;
+    }
+
+    private void OnManagerControlChanged(ApplicationControlDto control)
+    {
+        SelectedManager = control.Value;
+    }
+
+    private void OnAppliedSumControlChanged(ApplicationControlDto control)
+    {
+        SelectedAppliedAmount = decimal.Parse(control.Value);
+    }
+
+    private void OnCurrencyControlChanged(ApplicationControlDto control)
+    {
+        SelectedCurrency = control.Value;
+    }
+
+    private async Task OnTryAddToProject(MouseEventArgs obj)
+    {
+        if (SelectedApplication is null) return;
+        
+        if (GeneratedProjectNumber.Length < 1)
+        {
+            NotificationService.Error(@LocalizationService.StringFromResource("Applications-22"));
+            return;
+        }
+
+        if (SelectedManager.Length < 1)
+        {
+            NotificationService.Error(LocalizationService.StringFromResource("Applications-23"));
+            return;
+        }
+        
+        ChangeLoaderVisibilityAction(true);
+
+        Console.WriteLine(@"Check if this project number already exist, if so we show a confirm window. nr: " + GeneratedProjectNumber);
+        var projectResult = await ProjectService.ProjectByProjectNumberAsync(GeneratedProjectNumber, CancellationToken.None);
+
+        if (projectResult is { IsOk: false })
+        {
+            Console.WriteLine(@"The project number does not exist, we can create a new project and connect the application to it.");
+            await ConnectToProject();
+        }
+        else
+        {
+            DialogVisible = true;
+        }
+        
+        ChangeLoaderVisibilityAction(false);
+    }
+    
+    private async Task OnDialogConfirmConnectToProject()
+    {
+        if (SelectedApplication is null) return;
+        
+        Console.WriteLine(@"The project number does exist, confirm so we can create a new project and connect the application to it.");
+        await ConnectToProject();
+    }
+
+    private async Task ConnectToProject()
+    {
+        if (SelectedApplication is null) return;
+        
+        var organizationId = SelectedApplication.OrganizationId;
+        var titles = new List<string>
+        {
+            SelectedApplication.Title,
+            SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000000"))?.Value!
+        };
+        var projectNumber = GeneratedProjectNumber;
+        var manager = Managers.FirstOrDefault(x => x.FullName == SelectedManager) ?? new();
+
+        var dto = new ConnectApplicationToProjectDto()
+        {
+            OrganizationId = organizationId,
+            ProjectNumber = projectNumber,
+            Titles = titles,
+            ProjectManager = new ApplicationContactDto()
+            {
+                Id = manager.Id,
+                Name = manager.FullName,
+                Email = manager.Email
+            },
+            SelectedCurrency = SelectedCurrency
+        };
+        
+        Console.WriteLine(@"Connecting the application to the project");
+        Console.WriteLine(@"OrganizationId: " + organizationId);
+        Console.WriteLine(@"ProjectNumber: " + projectNumber);
+        Console.WriteLine(@"Titles: " + titles);
+        Console.WriteLine(@"ProjectManager: " + manager.FullName);
+        Console.WriteLine(@"SelectedCurrency: " + SelectedCurrency);
+        
+        var result = await ApplicationService.ConnectApplicationToProjectAsync(SelectedApplication.Id, dto, CancellationToken.None);
+        if (!result.IsOk)
+        {
+            NotificationService.Error(result.Error.ToString());
+            return;
+        }
+        
+        // Event 4: PK fördelar projektet på SFA/DFA/TVA genom att ange detta under översikt.
+        Console.WriteLine(@"Clicked on ConnectToProject and run: Event 4: PK fördelar projektet på SFA/DFA/TVA genom att ange detta under översikt.");
+        var ev = await EventService.TriggerNextEventById(SelectedApplication.Id, 4, CancellationToken.None);
+        if (!ev.IsOk)
+        {
+            NotificationService.Error(ev.Error.Message, 30000);
+            Console.WriteLine(ev.Error.Message);
+        }
+        
+        NotificationService.Success(@LocalizationService.StringFromResource("Applications-26") + titles.First() + " " + @LocalizationService.StringFromResource("Applications-27"));
+
+        await OnApplicationClosed.InvokeAsync("control");
+
+    }
+
+    private async Task OnRequestNumber(MouseEventArgs obj)
+    {
+        if (SelectedApplication is null) return;
+        
+        ChangeLoaderVisibilityAction(true);
+        
+        // Event: 2 PK klickar på knappen "begär public 360 id"
+        Console.WriteLine(@"Clicked on OnRequestNumber and run: Event: 2 PK klickar på knappen begär public 360 id");
+        var ev = await EventService.TriggerNextEventById(SelectedApplication.Id, 2, new CancellationToken());
+        if (!ev.IsOk)
+        {
+            NotificationService.Error(ev.Error.Message, 30000);
+            Console.WriteLine(ev.Error.Message);
+        }
+        
+        NotificationService.Success(LocalizationService.StringFromResource("Applications-30"), 3000);
+        
+        await Load();
+        
+        ChangeLoaderVisibilityAction(false);
+    }
+
+    private async Task OnUpdate()
+    {
+        if (SelectedApplication is null) return;
+        
+        ChangeLoaderVisibilityAction(true);
+        
+        // Event 3: När uppdatera knappen klickas (till public 360 id) på obehandlade ansökningar
+        Console.WriteLine(@"Clicked on OnUpdate and run: Event 3: När uppdatera knappen klickas (till public 360 id) på obehandlade ansökningar");
+        var ev = await EventService.TriggerNextEventById(SelectedApplication.Id, 3, new CancellationToken());
+        if (!ev.IsOk)
+        {
+            NotificationService.Error(ev.Error.Message, 30000);
+            Console.WriteLine(ev.Error.Message);
+        }
+        
+        await Load();
+        
+        ChangeLoaderVisibilityAction(false);
+    }
+}

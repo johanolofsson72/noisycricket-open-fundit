@@ -1,0 +1,370 @@
+/* Telerik Dark Mode Override Styles */
+/* This file provides dark mode styling for Telerik components when the 'dark' class is applied to the html element */
+
+/* Dark mode styles for Telerik components */
+.dark .k-grid {
+    background-color: #111827 !important;
+    color: #f3f4f6 !important;
+    border: 1px solid #374151 !important;
+}
+
+.dark .k-grid-header {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid #4b5563 !important;
+}
+
+.dark .k-grid-header .k-header {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+    border-right: 1px solid #4b5563 !important;
+    font-weight: 600 !important;
+}
+
+.dark .k-grid-content {
+    background-color: #111827 !important;
+}
+
+.dark .k-grid-table {
+    background-color: #111827 !important;
+    color: #f3f4f6 !important;
+}
+
+.dark .k-grid tbody tr {
+    background-color: #111827 !important;
+    color: #f3f4f6 !important;
+    border-bottom: 1px solid #374151 !important;
+}
+
+.dark .k-grid tbody tr:hover {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+}
+
+.dark .k-grid tbody tr.k-alt {
+    background-color: #0f172a !important;
+    color: #f3f4f6 !important;
+}
+
+.dark .k-grid tbody tr.k-alt:hover {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+}
+
+.dark .k-grid tbody tr.k-selected {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+.dark .k-grid tbody td {
+    color: #f3f4f6 !important;
+    border-right: 1px solid #374151 !important;
+}
+
+/* Buttons */
+.dark .k-button {
+    background-color: #374151 !important;
+    color: #f3f4f6 !important;
+    border: 1px solid #4b5563 !important;
+}
+
+.dark .k-button:hover {
+    background-color: #4b5563 !important;
+    color: #ffffff !important;
+    border-color: #6b7280 !important;
+}
+
+.dark .k-button.k-primary {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+.dark .k-button.k-primary:hover {
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+}
+
+/* Grid Pagination */
+.dark .k-grid-pager {
+    background-color: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-top: 1px solid #4b5563 !important;
+}
+
+.dark .k-grid-pager .k-pager-numbers .k-link {
+    background-color: #374151 !important;
+    color: #f3f4f6 !important;
+    border: 1px solid #4b5563 !important;
+}
+
+.dark .k-grid-pager .k-pager-numbers .k-link:hover {
+    background-color: #4b5563 !important;
+    color: #ffffff !important;
+}
+
+.dark .k-grid-pager .k-pager-numbers .k-state-selected {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+}
+
+.dark .k-grid-pager .k-pager-info {
+    color: #d1d5db !important;
+}
+
+/* Statistics Cards and Widgets */
+.dark .card,
+.dark .bg-white {
+    background-color: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border: 1px solid #374151 !important;
+}
+
+.dark .text-gray-900 {
+    color: #f3f4f6 !important;
+}
+
+.dark .text-gray-600 {
+    color: #d1d5db !important;
+}
+
+.dark .text-gray-500 {
+    color: #9ca3af !important;
+}
+
+.dark .text-gray-700 {
+    color: #e5e7eb !important;
+}
+
+.dark .text-gray-800 {
+    color: #f3f4f6 !important;
+}
+
+/* Statistics numbers and values */
+.dark .text-3xl,
+.dark .text-2xl,
+.dark .text-xl {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* Additional Dark Mode Improvements for Better Contrast */
+
+/* ServiceStack and general card styling */
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+    background-color: #1f2937 !important;
+}
+
+.dark .bg-gray-200 {
+    background-color: #374151 !important;
+}
+
+.dark .border-gray-200,
+.dark .border-gray-300 {
+    border-color: #4b5563 !important;
+}
+
+/* Text contrast improvements */
+.dark h1,
+.dark h2, 
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+    color: #ffffff !important;
+}
+
+.dark .font-bold,
+.dark .font-semibold {
+    color: #ffffff !important;
+}
+
+/* Statistics and metric values */
+.dark .text-4xl,
+.dark .text-5xl {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* Links and interactive elements */
+.dark a {
+    color: #60a5fa !important;
+}
+
+.dark a:hover {
+    color: #93c5fd !important;
+}
+
+/* Table styling improvements */
+.dark table,
+.dark .table {
+    background-color: #111827 !important;
+    color: #f3f4f6 !important;
+}
+
+.dark th {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+    border-color: #4b5563 !important;
+}
+
+.dark td {
+    background-color: #111827 !important;
+    color: #f3f4f6 !important;
+    border-color: #374151 !important;
+}
+
+.dark tbody tr:hover {
+    background-color: #1f2937 !important;
+}
+
+/* ServiceStack specific components */
+.dark .form-control {
+    background-color: #374151 !important;
+    color: #f3f4f6 !important;
+    border-color: #4b5563 !important;
+}
+
+.dark .form-control:focus {
+    background-color: #374151 !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* Button improvements */
+.dark .btn-primary {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+.dark .btn-secondary {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #f3f4f6 !important;
+}
+
+.dark .btn-secondary:hover {
+    background-color: #4b5563 !important;
+    color: #ffffff !important;
+}
+
+/* Alert and notification styling */
+.dark .alert {
+    background-color: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-color: #4b5563 !important;
+}
+
+.dark .alert-info {
+    background-color: #1e3a8a !important;
+    color: #dbeafe !important;
+    border-color: #3730a3 !important;
+}
+
+.dark .alert-success {
+    background-color: #14532d !important;
+    color: #dcfce7 !important;
+    border-color: #166534 !important;
+}
+
+.dark .alert-warning {
+    background-color: #92400e !important;
+    color: #fef3c7 !important;
+    border-color: #d97706 !important;
+}
+
+.dark .alert-danger {
+    background-color: #991b1b !important;
+    color: #fecaca !important;
+    border-color: #dc2626 !important;
+}
+
+/* Dropdown and select improvements */
+.dark select,
+.dark .select {
+    background-color: #374151 !important;
+    color: #f3f4f6 !important;
+    border-color: #4b5563 !important;
+}
+
+/* Modal improvements */
+.dark .modal-content {
+    background-color: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-color: #4b5563 !important;
+}
+
+.dark .modal-header {
+    background-color: #111827 !important;
+    color: #ffffff !important;
+    border-bottom-color: #4b5563 !important;
+}
+
+.dark .modal-footer {
+    background-color: #111827 !important;
+    border-top-color: #4b5563 !important;
+}
+
+/* Card hover effects */
+.dark .card:hover,
+.dark .bg-white:hover {
+    background-color: #374151 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Ensure strong contrast for important numbers and values */
+.dark .metric-value,
+.dark .statistic-value,
+.dark [class*="text-"]:matches([class*="xl"], [class*="2xl"], [class*="3xl"], [class*="4xl"], [class*="5xl"]) {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* Generic dark mode overrides for better visibility */
+.dark .k-widget {
+    color: #f9fafb !important;
+}
+
+.dark .k-icon,
+.dark .k-svg-icon {
+    color: #f9fafb !important;
+}
+
+/* Ensure text is visible in dark mode */
+.dark .k-grid td,
+.dark .k-grid th {
+    color: #f9fafb !important;
+}
+
+/* Modal/Dialog dark mode */
+.dark .k-dialog,
+.dark .k-window {
+    background-color: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #f9fafb !important;
+}
+
+.dark .k-dialog .k-dialog-titlebar,
+.dark .k-window .k-window-titlebar {
+    background-color: #111827 !important;
+    color: #f9fafb !important;
+    border-color: #374151 !important;
+}
+
+/* Scrollbars in dark mode */
+.dark .k-scrollbar {
+    background-color: #374151 !important;
+}
+
+.dark .k-scrollbar-thumb {
+    background-color: #4b5563 !important;
+}
+
+.dark .k-scrollbar-thumb:hover {
+    background-color: #6b7280 !important;
+}

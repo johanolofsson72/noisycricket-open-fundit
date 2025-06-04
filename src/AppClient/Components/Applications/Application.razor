@@ -1,0 +1,334 @@
+@using System.Text.Json
+@using System.Text.RegularExpressions
+@using AppClient.State
+@using global::Shared.Documents.DTOs
+@using global::Shared.Documents.Entities
+@using global::Shared.Events.Services
+@using HeyRed.Mime
+
+@inject IConfiguration Configuration
+@inject NavigationManager NavigationManager
+@inject ApplicationService ApplicationService
+@inject NotificationService NotificationService
+@inject SharedService SharedService
+@inject EventService EventService
+@inject DocumentService DocumentService
+
+@rendermode @(new InteractiveServerRenderMode(false))
+
+<style>
+    .k-window-content, .k-prompt-container {
+        white-space: pre-line;
+    }
+</style>
+
+@if (NewApplication is not null)
+{
+    <TelerikWizard OnFinish="@OnFinishHandler">
+        <WizardSteps>
+            <WizardStep Label="@LocalizationService.StringFromResource("Applications-43")" Icon="@SvgIcon.InfoCircle">
+                <Content>
+                    <div class="application-row">
+                        <div class="application-column">
+                            @foreach (var control in ApplicantLeftControls)
+                            {
+                                <SegmentHandler Control="@control" TempPath="@TempPath" OnSegmentControlChanged="(c) => OnSegmentControlChangedCallback(c)" Readonly="false" />
+                            }
+                        </div>
+                        <div class="application-column">
+                            @foreach (var control in ApplicantRightControls)
+                            {
+                                <SegmentHandler Control="@control" TempPath="@TempPath" OnSegmentControlChanged="(c) => OnSegmentControlChangedCallback(c)" Readonly="false" />
+                            }
+                        </div>
+                    </div>
+                </Content>
+            </WizardStep>
+            <WizardStep Label="@LocalizationService.StringFromResource("Applications-44")" Icon="@SvgIcon.Dollar">
+                <Content>
+                    <div class="application-row">
+                        <div class="application-column">
+                            @foreach (var control in BudgetLeftControls)
+                            {
+                                <SegmentHandler Control="@control" TempPath="@TempPath" OnSegmentControlChanged="(c) => OnSegmentControlChangedCallback(c)" Readonly="false" />
+                            }
+                        </div>
+                        <div class="application-column">
+                            @foreach (var control in BudgetRightControls)
+                            {
+                                <SegmentHandler Control="@control" TempPath="@TempPath" OnSegmentControlChanged="(c) => OnSegmentControlChangedCallback(c)" Readonly="false" />
+                            }
+                        </div>
+                    </div>
+                </Content>
+            </WizardStep>
+            <WizardStep Label="@LocalizationService.StringFromResource("Applications-45")" Icon="SvgIcon.File">
+                <Content>
+                    <div class="application-row">
+                        <div class="application-column">
+                            @foreach (var control in AttachmentLeftControls)
+                            {
+                                <SegmentHandler Control="@control" TempPath="@TempPath" OnSegmentControlChanged="(c) => OnSegmentControlChangedCallback(c)" Readonly="false" />
+                            }
+                        </div>
+                        <div class="application-column">
+                            @foreach (var control in AttachmentRightControls)
+                            {
+                                <SegmentHandler Control="@control" TempPath="@TempPath" OnSegmentControlChanged="(c) => OnSegmentControlChangedCallback(c)" Readonly="false" />
+                            }
+                        </div>
+                    </div>
+                </Content>
+            </WizardStep>
+            <WizardStep Label="@LocalizationService.StringFromResource("Applications-46")" Icon="SvgIcon.Book">
+                <Content>
+                    <div class="application-summary-header">@LocalizationService.StringFromResource("Applications-43")</div>
+                    <div class="application-row">
+                        <div class="application-column">
+                            @foreach (var control in SummaryApplicantLeftControls)
+                            {
+                                <SegmentHandler Control="@control" TempPath="@TempPath" Readonly="true" />
+                            }
+                        </div>
+                        <div class="application-column">
+                            @foreach (var control in SummaryApplicantRightControls)
+                            {
+                                <SegmentHandler Control="@control" TempPath="@TempPath" Readonly="true" />
+                            }
+                        </div>
+                    </div>
+                    <div class="application-summary-header">@LocalizationService.StringFromResource("Applications-44")</div>
+                    <div class="application-row">
+                        <div class="application-column">
+                            @foreach (var control in SummaryBudgetLeftControls)
+                            {
+                                <SegmentHandler Control="@control" TempPath="@TempPath" Readonly="true" />
+                            }
+                        </div>
+                        <div class="application-column">
+                            @foreach (var control in SummaryBudgetRightControls)
+                            {
+                                <SegmentHandler Control="@control" TempPath="@TempPath" Readonly="true" />
+                            }
+                        </div>
+                    </div>
+                    <div class="application-summary-header">@LocalizationService.StringFromResource("Applications-45")</div>
+                    <div class="application-row">
+                        <div class="application-column">
+                            @foreach (var control in SummaryAttachmentsLeftControls)
+                            {
+                            <SegmentHandler Control="@control" TempPath="@TempPath" Readonly="true" />
+                            }
+                        </div>
+                        <div class="application-column">
+                            @foreach (var control in SummaryAttachmentsRightControls)
+                            {
+                            <SegmentHandler Control="@control" TempPath="@TempPath" Readonly="true" />
+                            }
+                        </div>
+                    </div>
+                </Content>
+            </WizardStep>
+        </WizardSteps>
+    </TelerikWizard>
+}
+
+@code 
+{
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    [CascadingParameter] public required DialogFactory Dialog { get; set; }
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public int ApplicationId { get; set; } 
+    [Parameter] public string TempPath { get; set; } = string.Empty;
+    private SlimApplicationDto? NewApplication { get; set; } = default!;
+    private List<ApplicationControlDto> ApplicantLeftControls { get; set; } = [];
+    private List<ApplicationControlDto> ApplicantRightControls { get; set; } = [];
+    private List<ApplicationControlDto> BudgetLeftControls { get; set; } = [];
+    private List<ApplicationControlDto> BudgetRightControls { get; set; } = [];
+    private List<ApplicationControlDto> AttachmentLeftControls { get; set; } = [];
+    private List<ApplicationControlDto> AttachmentRightControls { get; set; } = [];
+    private List<ApplicationControlDto> SummaryApplicantLeftControls { get; set; } = [];
+    private List<ApplicationControlDto> SummaryApplicantRightControls { get; set; } = [];
+    private List<ApplicationControlDto> SummaryBudgetLeftControls { get; set; } = [];
+    private List<ApplicationControlDto> SummaryBudgetRightControls { get; set; } = [];
+    private List<ApplicationControlDto> SummaryAttachmentsLeftControls { get; set; } = [];
+    private List<ApplicationControlDto> SummaryAttachmentsRightControls { get; set; } = [];
+    const string CssLeft = "application-form-left-container";
+    const string CssRight = "application-form-right-container";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ApplicationId == 0) return;
+
+        var applicationResult = await ApplicationService.SlimApplicationByIdAsync(ApplicationId, new CancellationToken());
+        if (!applicationResult.IsOk) return;
+
+        NewApplication = applicationResult.Value;
+
+        ApplicantLeftControls = NewApplication.Controls
+           .Where(x => x.ApplicationFormSectionId == 2)
+           .Where(x => x.Css.Contains(CssLeft))
+           .OrderBy(x => x.Order)
+           .ToList();
+
+        ApplicantRightControls = NewApplication.Controls
+           .Where(x => x.ApplicationFormSectionId == 2)
+           .Where(x => x.Css.Contains(CssRight))
+           .OrderBy(x => x.Order)
+           .ToList();
+
+        BudgetLeftControls = NewApplication.Controls
+           .Where(x => x.ApplicationFormSectionId == 3)
+           .Where(x => x.Css.Contains(CssLeft))
+           .OrderBy(x => x.Order)
+           .ToList();
+
+        BudgetRightControls = NewApplication.Controls
+           .Where(x => x.ApplicationFormSectionId == 3)
+           .Where(x => x.Css.Contains(CssRight))
+           .OrderBy(x => x.Order)
+           .ToList();
+
+        AttachmentLeftControls = NewApplication.Controls
+           .Where(x => x.ApplicationFormSectionId == 4)
+           .Where(x => x.Css.Contains(CssLeft))
+           .OrderBy(x => x.Order)
+           .ToList();
+
+        AttachmentRightControls = NewApplication.Controls
+           .Where(x => x.ApplicationFormSectionId == 4)
+           .Where(x => x.Css.Contains(CssRight))
+           .OrderBy(x => x.Order)
+           .ToList();
+
+        SummaryApplicantLeftControls = NewApplication.Controls
+           .Where(x => x.ApplicationFormSectionId == 2)
+           .Where(x => x.Css.Contains(CssLeft))
+           .OrderBy(x => x.Order)
+           .ToList();
+
+        SummaryApplicantRightControls = NewApplication.Controls
+           .Where(x => x.ApplicationFormSectionId == 2)
+           .Where(x => x.Css.Contains(CssRight))
+           .OrderBy(x => x.Order)
+           .ToList();
+
+        SummaryBudgetLeftControls = NewApplication.Controls
+           .Where(x => x.ApplicationFormSectionId == 3)
+           .Where(x => x.Css.Contains(CssLeft))
+           .OrderBy(x => x.Order)
+           .ToList();
+
+        SummaryBudgetRightControls = NewApplication.Controls
+           .Where(x => x.ApplicationFormSectionId == 3)
+           .Where(x => x.Css.Contains(CssRight))
+           .OrderBy(x => x.Order)
+           .ToList();
+
+        SummaryAttachmentsLeftControls = NewApplication.Controls
+           .Where(x => x.ApplicationFormSectionId == 4)
+           .Where(x => x.Css.Contains(CssLeft))
+           .OrderBy(x => x.Order)
+           .ToList();
+
+        SummaryAttachmentsRightControls = NewApplication.Controls
+           .Where(x => x.ApplicationFormSectionId == 4)
+           .Where(x => x.Css.Contains(CssRight))
+           .OrderBy(x => x.Order)
+           .ToList();
+
+    }
+
+    private async Task OnSegmentControlChangedCallback(ApplicationControlDto control)
+    {
+        try
+        {
+            if (NewApplication is null) return;
+            
+            var destination = NewApplication.Controls.FirstOrDefault(x => x.Id == control.Id);
+
+            if (destination != null)
+            {
+
+                control.Value = Regex.Unescape(control.Value);
+                destination.Value = control.Value;
+                
+                // save application control value
+                var result = await ApplicationService.UpdateApplicationControlAsync(ApplicationId, control.Id, control.Value, false, new CancellationToken());
+                if (!result.IsOk)
+                {
+                    NotificationService.Error(result.Error.Message);
+                }
+                
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task OnFinishHandler()
+    {
+        try
+        {
+            if (NewApplication is null) return;
+            
+            ChangeLoaderVisibilityAction(true);
+            
+            // Validate
+            var errors = ValidateControls();
+
+            if (errors.Length > 0)
+            {
+                await Dialog.AlertAsync(errors, @LocalizationService.StringFromResource("Applications-48"));
+                ChangeLoaderVisibilityAction(false);
+                return;
+            }
+            
+            // deliver application
+            var result = await ApplicationService.DeliverClientApplicationAsync(ApplicationId, 
+                new DeliverNewApplicationDto()
+                {
+                    UserId = AppState.User.Id,
+                    OrganizationId = AppState.Organization.Id,
+                    TempPath = TempPath,
+                }, new CancellationToken());
+
+            if (!result.IsOk)
+            {
+                NotificationService.Error(result.Error.Message);
+            }
+            
+            ChangeLoaderVisibilityAction(false);
+            
+            NotificationService.Success(@LocalizationService.StringFromResource("Applications-47"), 3000);
+                
+            NavigationManager.NavigateTo("/applications", true);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+    
+    private string ValidateControls()
+    {
+        var result = string.Empty;
+        
+        if (NewApplication is null) return result;
+
+        foreach (var control in NewApplication.Controls.Where(x => x.ApplicationFormRequired))
+        {
+            if (control.Value.Length < 1 || control.Value == "Select")
+            {
+                result += control.Labels[SharedService.IndexByCulture()] + "\n";
+            }
+        }
+        
+        return result;
+    }
+    
+}
+

@@ -1,0 +1,233 @@
+:root {
+    --main-color: #0e6ec9;
+    --secondary-color: #009ffd;
+    --tertiary-color: #03a9f4;
+    --info-color: #0e6ec9;
+    --success-color: #9bc53d;
+    --warning-color: #fde74c;
+    --error-color: #c3423f;
+    --dark-color: #424242;
+    --light-color: #ebebeb;
+    --main-p-color: #000000;
+    --delete-color: darkred;
+    --light-green: #b6f5aa;
+    --dark-green: darkgreen;
+}
+
+
+.pink { background-color: #FAD2D8; }  /* En mildare justering av tidigare färg */
+.red { background-color: #D97B7B; }   /* En mildare justering av tidigare färg */
+.orange { background-color: #FFB896; }/* En mildare justering av tidigare färg */
+.yellow { background-color: #FFFBC2; }/* En mildare justering av tidigare färg */
+.lime { background-color: #B8D76E; }  /* En mildare justering av tidigare färg */
+.green { background-color: #B8D79A; } /* En mildare justering av tidigare färg */
+.teal { background-color: #72C7CD; }  /* En mildare justering av tidigare färg */
+.cyan { background-color: #A9ECF2; }  /* En mildare justering av tidigare färg */
+.azure { background-color: #DBF4F4; } /* En mildare justering av tidigare färg */
+.blue { background-color: #A8D8F6; }  /* En mildare justering av tidigare färg */
+.violet { background-color: #EFB4DC; }/* En mildare justering av tidigare färg */
+.purple { background-color: #E6D1DC; }/* En mildare justering av tidigare färg */
+.magenta { background-color: #FFD4DA; }/* En mildare justering av tidigare färg */
+.rose { background-color: #DD7684; }  /* En mildare justering av tidigare färg */
+.white { background-color: #F5F5F5; } /* Ingen ändring */
+.silver { background-color: #C0C0C0; }/* Ingen ändring */
+.gray { background-color: #BEBEBE; }  /* Ingen ändring */
+.beige { background-color: #F5F5DC; } /* Ingen ändring */
+.maroon { background-color: #B06D6D; }/* En mildare justering av tidigare färg */
+.olive { background-color: #B0B15E; } /* En mildare justering av tidigare färg */
+.navy { background-color: #4182B2; }  /* En mildare justering av tidigare färg */
+.gold { background-color: #FFE57B; }  /* En mildare justering av tidigare färg */
+.primary { background-color: #87BCEE; }/* En mildare justering av tidigare färg */
+
+.k-svg-icon {
+    width: 16px !important;
+}
+
+.k-grid
+{
+    border-radius: 5px !important;
+    overflow: hidden !important;
+}
+
+.k-panelbar
+{
+    border-radius: 5px !important;
+    overflow: hidden !important;
+}
+
+h5 {
+    font-size: x-large;
+    color: var(--main-color) !important;
+}
+
+p {
+    font-size: small;
+    color: var(--main-p-color) !important;
+}
+
+.component-page{
+    margin: 7px 16px 7px 16px;
+}
+
+.k-tilelayout{
+    background-color: transparent !important;
+    font-size: 0.5vw !important;
+}
+.k-card-title{
+    color: var(--main-color) !important;
+}
+.k-card-header {
+    padding-block: var(--kendo-spacing-1, 0.25rem);
+}
+.delete-icon{
+    color: var(--delete-color);
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+}
+.upload-icon{
+    color: var(--main-p-color) !important;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+}
+.tiles{
+    min-height: 100px !important;
+}
+
+.application{
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 12px;
+    font-weight: normal;
+    color: var(--main-p-color);
+}
+
+.application-segment{
+    margin: 10px;
+}
+
+.application-segment-header{
+    display: flex;
+    flex-direction: row;
+    margin-top: 10px;
+}
+
+.application-segment-listview{
+    border-width: 1px !important;
+    border-radius: 3px;
+    border-style: solid;
+}
+
+.application-segment-listview-items{
+    display: flex;
+    flex-direction: row;
+    margin: 3px;
+}
+
+.application-segment-listview-item{
+    width: 30%;
+    margin-top: 3px;
+}
+
+.application-segment-listview-item-small{
+    width: 10%;
+    margin-top: 3px;
+}
+
+.application-segment-listview-item-last{
+    flex-grow: 1; text-align: right;
+}
+
+.application-segment-main{
+    width: 70%;
+}
+
+.application-segment-radio{
+    margin-bottom: 20px;
+    margin-right: 10px;
+    display: flex;
+    align-items: flex-end;
+    flex-flow: row-reverse;
+    width: 30%;
+}
+
+.application-segment fieldset{
+    border-width: 1px;
+    border-radius: 3px;
+    border-style: solid;
+}
+
+.application-segment-fieldset-legend{
+    font-size: 12px !important;
+}
+
+.application-label{
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 12px;
+    font-weight: normal;
+    color: var(--main-p-color);
+}
+
+.application-sub-label{
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 10px;
+    font-weight: normal;
+    font-style: italic;
+    color: var(--dark-green);
+}
+
+.application-summary-label{
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 14px;
+    font-weight: normal;
+    font-style: italic;
+    color: var(--main-p-color);
+    white-space: pre-wrap;
+}
+
+.application-missing-label{
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 14px;
+    font-weight: normal;
+    font-style: italic;
+    color: var(--delete-color);
+    white-space: pre-wrap;
+}
+
+.application-category-header{
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--main-p-color);
+    margin-top: 10px;
+}
+
+.application-summary-header{
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--main-p-color);
+    margin-top: 10px;
+}
+
+.application-column {
+    float: left;
+    width: 50%;
+    padding: 25px;
+}
+
+.application-row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.application-form-control-background-default{
+
+}
+
+.application-form-control-background-light-green{
+    background-color: var(--light-green);
+}

@@ -1,0 +1,132 @@
+@using AppClient.State
+@using global::Shared.Events.Services
+@using global::Shared.OpenAi.Services
+@using Markdig
+@using Syncfusion.Blazor.InteractiveChat
+
+@inject ApplicationService ApplicationService
+@inject SharedService SharedService
+@inject OpenAiService OpenAiService
+@inject EventService EventService
+@inject IJSRuntime Js
+@inject IWebHostEnvironment Environment
+
+<style>
+
+    .e-content-container {
+        max-height: 57vh;
+    }
+    .aia-assist-container {
+        margin: 0px;
+        max-height: 57vh;
+        height: 57vh;
+        overflow-y: auto;
+    }
+
+    .prompt-item-content,
+    .response-content {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .prompt-header {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .promptcontent {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .response-content {
+        background-color: rgba(173, 216, 230, 0.1);
+    }
+
+    .response-content p {
+        margin-bottom: 1em;
+    }
+
+    .response-content ul {
+        margin-left: 20px;
+        margin-bottom: 1em;
+    }
+    .e-aiassistview .e-view-container, .e-aiassistview .e-footer {
+        width: max(20vw, 300px) !important;
+    }
+    .e-aiassistview .e-output {
+        gap: 2px;
+        width: inherit;
+        margin-bottom: 5px;
+    }
+</style>
+
+<Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+    @if (Environment.IsEnvironment("Demo"))
+    {
+        <div>This a public demo and all AI stuff & advanced stuff is disabled</div>
+    }
+    <div class="aia-assist-container" id="aiaAssistContainer">
+        <SfAIAssistView ShowHeader="false" @ref="AIAssist" PromptPlaceholder="" PromptRequested="@PromptRequest">
+            <AssistViews>
+                <AssistView Header="@LocalizationService.StringFromResource("Projects-155")">
+                    <PromptItemTemplate>
+                        <div class="prompt-item-content">
+                            <div class="prompt-header">
+                                @AppState.User.FullName
+                                <span class="e-icons e-user"></span>
+                            </div>
+                            <div class="prompt-content">@context.Prompt</div>
+                        </div>
+                    </PromptItemTemplate>
+                    <ResponseItemTemplate>
+                        <div class="response-content">
+                            <div class="prompt-header">
+                                @LocalizationService.StringFromResource("Projects-157")
+                                <span class="e-icons e-user"></span>
+                            </div>
+                            <div class="prompt-content">
+                                <span>@(new MarkupString(Markdown.ToHtml(context.Response)))</span>
+                            </div>
+                        </div>
+                    </ResponseItemTemplate>
+                </AssistView>
+            </AssistViews>
+        </SfAIAssistView>
+    </div>
+</Animate>
+
+@code 
+{
+    [CascadingParameter] public required AppState AppState { get; set; }
+    private SfAIAssistView AIAssist = null!;
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        await AIAssist.ExecutePromptAsync(@LocalizationService.StringFromResource("Projects-158"));
+    }
+
+    private async Task PromptRequest(AssistViewPromptRequestedEventArgs args)
+    {
+        if (args.Prompt == @LocalizationService.StringFromResource("Projects-158"))
+        {
+            args.Response = @LocalizationService.StringFromResource("Projects-159");
+        }
+        else
+        {
+            args.Response = await Chat(args.Prompt);
+        }
+        
+        await Js.InvokeVoidAsync("scrollToBottom", "aiaAssistContainer");
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task<string> Chat(string question)
+    {
+        return await OpenAiService.ChatPublic(question);
+    }
+}

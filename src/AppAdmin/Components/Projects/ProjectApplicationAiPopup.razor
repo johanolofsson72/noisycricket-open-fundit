@@ -1,0 +1,150 @@
+@using AppAdmin.State
+@using global::Shared.Events.Services
+@using global::Shared.OpenAi.Services
+@using Markdig
+@using Syncfusion.Blazor.InteractiveChat
+
+@inject ApplicationService ApplicationService
+@inject SharedService SharedService
+@inject OpenAiService OpenAiService
+@inject EventService EventService
+@inject IJSRuntime Js
+@inject IWebHostEnvironment Environment
+
+<style>
+
+    .aia-assist-container {
+        margin: 20px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .prompt-item-content,
+    .response-content {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .prompt-header {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .promptcontent {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .response-content p {
+        margin-bottom: 1em;
+    }
+
+    .response-content ul {
+        margin-left: 20px;
+        margin-bottom: 1em;
+    }
+    .close-btn3 {
+        width: 80px;
+        padding: 8px 0;
+        position: sticky; /* Använd sticky position */
+        bottom: 20px; /* Avstånd från botten av behållaren */
+        left: 50%;
+        transform: translateX(-50%); /* Centrerar knappen horisontellt */
+    }
+
+    .close-btn3:hover {
+        background-color: #30429f; /* Darker color on hover */
+    }
+
+</style>
+
+@if (SelectedApplication is not null)
+{
+    <div class="checklist3">
+        <div class="aia-assist-container" id="aiaAssistContainer">
+            <SfAIAssistView PromptPlaceholder="@LocalizationService.StringFromResource("Projects-154")" PromptRequested="@PromptRequest">
+                <AssistViews>
+                    <AssistView Header="@LocalizationService.StringFromResource("Projects-155")">
+                        <PromptItemTemplate>
+                            <div class="prompt-item-content">
+                                <div class="prompt-header">
+                                    @AppState.User.FullName
+                                    <span class="e-icons e-user"></span>
+                                </div>
+                                <div class="prompt-content">@context.Prompt</div>
+                            </div>
+                        </PromptItemTemplate>
+                        <ResponseItemTemplate>
+                            <div class="response-content">
+                                <span>@(new MarkupString(Markdown.ToHtml((string)context.Response)))</span>
+                            </div>
+                        </ResponseItemTemplate>
+                    </AssistView>
+                </AssistViews>
+            </SfAIAssistView>
+        </div>
+        <br/> <br/>
+        @if (Environment.IsEnvironment("Demo"))
+        {
+            <div>This a public demo and all AI stuff & advanced stuff is disabled</div>
+        }
+        else
+        {
+            <TelerikButton Class="close-btn3" ThemeColor="@ThemeConstants.SvgIcon.ThemeColor.Primary" @onclick="() => OnClose.InvokeAsync()">@LocalizationService.StringFromResource("Grid_DialogClose")</TelerikButton>
+        }
+        <br/>
+    </div>
+}
+
+@code 
+{
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public int ApplicationId { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private ApplicationDto? SelectedApplication { get; set; }
+    private TelerikListView<ApplicationAuditDto> ListViewRef { get; set; } = new();
+    private List<ApplicationAuditDto> ListViewValue { get; set; } = new();
+    private string PreInfo { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApplicationService.ApplicationByIdAsync(ApplicationId, new CancellationToken());
+        if (result.IsOk) SelectedApplication = result.Value;
+
+        if (SelectedApplication is null) return;
+
+        var titel = SelectedApplication.Title;
+        var type = SelectedApplication.SchemaNames[SharedService.IndexByCulture()];
+        var status = AppState.Statuses.FirstOrDefault(x => x.OrganizationStatusIdentifier == SelectedApplication.StatusId)?.Names[SharedService.IndexByCulture()];
+        var nextEvent = await EventService.CheckNextEvent(SelectedApplication.Id, new CancellationToken());
+        
+        if (nextEvent.IsOk)
+        {
+            PreInfo = $"Från och med nu gäller kommande frågor projektet: '{titel}', " +
+                      $"detta projekt är av typen: '{type}' " +
+                      $"och har status: '{status}', " +
+                      $"nästa händelse för projektet är: '{nextEvent.Value.Description}'.";
+        }
+        else
+        {
+            PreInfo = $"Från och med nu gäller kommande frågor projektet: '{titel}', " +
+                      $"detta projekt är av typen: '{type}' " +
+                      $"och har status: '{status}'.";
+        }
+    }
+
+    private async Task PromptRequest(AssistViewPromptRequestedEventArgs args)
+    {
+        args.Response = await Chat(args.Prompt);
+        await Js.InvokeVoidAsync("scrollToBottom", "aiaAssistContainer");
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task<string> Chat(string question)
+    {
+        return await OpenAiService.ChatPrivate(PreInfo, question);
+    }
+}

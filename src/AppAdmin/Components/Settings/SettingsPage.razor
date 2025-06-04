@@ -1,0 +1,57 @@
+@page "/Settings"
+
+@attribute [Authorize(Policy = "Admin")]
+@rendermode @(new InteractiveServerRenderMode(false))
+
+<TelerikRootComponent>
+   <div class="component-page">
+      <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+         <h5>@LocalizationService.StringFromResource("Settings-35")</h5>
+         <Spacer Height="30px" />
+         <TelerikTabStrip>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-33")">
+               <ClaimTypes/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-22")">
+               <Sections/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-24")">
+               <Statuses/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-1")">
+               <ActionTypes/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-13")">
+               <ApplicationBudgetTypes/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-12")">
+               <ControlTypes/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-15")">
+               <DocumentTypes/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-14")">
+               <DocumentDeliveryTypes/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-17")">
+               <Genders/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-18")">
+               <MessageTypes/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-19")">
+               <MilestoneRequirementTypes/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-20")">
+               <PhoneNumberTypes/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-21")">
+               <ReactionTypes/>
+            </TabStripTab>
+            <TabStripTab Title="@LocalizationService.StringFromResource("Settings-25")">
+               <SystemMessageDestinations/>
+            </TabStripTab>
+         </TelerikTabStrip>
+      </Animate>
+   </div>
+</TelerikRootComponent>

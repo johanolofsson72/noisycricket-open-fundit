@@ -1,0 +1,220 @@
+@using AppClient.State
+@using global::Shared.Email.Services
+@using SQLitePCL
+
+@rendermode @(new InteractiveServerRenderMode(false))
+
+@inject ApplicationService ApplicationService
+@inject IConfiguration Configuration
+@inject EmailService EmailService
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@inject SharedService SharedService
+@inject UserService UserService
+@inject SchemaService SchemaService
+
+<h5>@LocalizationService.StringFromResource("Applications-31")</h5>
+<p>@LocalizationService.StringFromResource("Applications-32")</p>
+<Spacer Height="50px" />
+<div style=" display: flex; flex-direction:row">
+    <div style="margin: 0px 10px 10px 0px">
+        <label for="p1">@LocalizationService.StringFromResource("Applications-33")</label><br />
+        <TelerikDropDownList Id="p1"
+                             @bind-Value="SelectedOrganizationsSchemaId"
+                             Data="@Schemas"
+                             TextField="@nameof(SchemaDto.Names)"
+                             ValueField="@nameof(SchemaDto.Id)"
+                             OnChange="@OnSchemaChange"
+                             Width="400px">
+            <DropDownListSettings>
+                <DropDownListPopupSettings Height="auto" MaxHeight="800px" MinHeight="75px" />
+            </DropDownListSettings>
+            <HeaderTemplate>
+                <div style="text-align: center; padding: .3em; clear: both;"><strong>@LocalizationService.StringFromResource("Applications-34")</strong></div>
+            </HeaderTemplate>
+            <ValueTemplate>
+                <span data-permanent>@context.Name</span>
+            </ValueTemplate>
+            <ItemTemplate>
+                <span data-permanent>@context.Name</span>
+            </ItemTemplate>
+            <FooterTemplate>
+                <div style="display: flex; flex-direction: row; width: 100%; border-top: 1px solid #258cfb">
+                    <strong>@LocalizationService.StringFromResource("Applications-35") @Schemas.Count()</strong>
+                </div>
+            </FooterTemplate>
+            <NoDataTemplate>
+                <div class="no-data-template">
+                    <p>@LocalizationService.StringFromResource("Applications-36")</p>
+                </div>
+            </NoDataTemplate>
+        </TelerikDropDownList>
+    </div>
+    <div style="margin: 0px 10px 10px 0px; visibility: @ShowStartedApplications">
+        <div style="display: flex; flex-direction: row">
+            <div style="margin: 26px 10px 10px 0px;">
+                @LocalizationService.StringFromResource("Applications-37")
+            </div>
+            <div>
+                <label for="p1">@LocalizationService.StringFromResource("Applications-38")</label><br />
+                <TelerikDropDownList Id="p2"
+                                     @bind-Value="SelectedStartedApplicationId"
+                                     Data="@StartedApplications"
+                                     ValueField="ApplicationId"
+                                     TextField="Title"
+                                     OnChange="@OnStartedApplicationChange"
+                                     Width="400px">
+                    <DropDownListSettings>
+                        <DropDownListPopupSettings Height="auto" MaxHeight="800px" MinHeight="75px" />
+                    </DropDownListSettings>
+                    <HeaderTemplate>
+                        <div style="text-align: center; padding: .3em; clear: both;"><strong>@LocalizationService.StringFromResource("Applications-39")</strong></div>
+                    </HeaderTemplate>
+                    <FooterTemplate>
+                        <div style="display: flex; flex-direction: row; width: 100%; border-top: 1px solid #258cfb">
+                            <strong>@LocalizationService.StringFromResource("Applications-41") @StartedApplications.Count()</strong>
+                        </div>
+                    </FooterTemplate>
+                    <ValueTemplate>
+                        <div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%;">
+                            <span data-permanent>@context.Name</span>
+                            <span style="margin-left: 10px; font-size: 12px">@context.CreatedDate.ToString("yyyy-MM-dd")</span>
+                        </div>
+                    </ValueTemplate>
+                    <ItemTemplate>
+                        <div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%;">
+                            <span data-permanent>@context.Name</span>
+                            <span style="margin-left: 10px; font-size: 12px">@context.CreatedDate.ToString("yyyy-MM-dd")</span>
+                        </div>
+                    </ItemTemplate>
+                    <NoDataTemplate>
+                        <div class="no-data-template">
+                            <p>@LocalizationService.StringFromResource("Applications-42")</p>
+                        </div>
+                    </NoDataTemplate>
+                </TelerikDropDownList>
+            </div>
+        </div>
+    </div>
+</div>
+<Spacer Height="30px" />
+@if (SelectedStartedApplicationId > 0)
+{
+    <Application ApplicationId="@SelectedStartedApplicationId" TempPath="@TempPath" />
+}
+
+@code {
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    [CascadingParameter] public required AppState AppState { get; set; }
+    TelerikComboBox<ClientSchemaDto, int> SchemaComboBox { get; set; } = new();
+    TelerikComboBox<ClientApplicationStateDto, int> StartedApplicationsComboBox { get; set; } = new();
+    private List<ClientSchemaDto> Schemas { get; set; } = [];
+    private int SelectedOrganizationsSchemaId { get; set; } = 0;
+    private int LastOnOrganizationsSchemaChangeValue { get; set; } = 0;
+    private int SelectedStartedApplicationId { get; set; }
+    private int LastSelectedStartedApplicationId { get; set; }
+    private List<ClientApplicationStateDto> StartedApplications { get; set; } = [];
+    private string ShowStartedApplications { get; set; } = "hidden";
+    private int OrganizationId { get; set; } 
+    private int ApplicantId { get; set; }
+    private int ProjectManagerId { get; set; }
+    private string TempPath { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AppState.IsInitialized)
+        {
+            OrganizationId = AppState.Organization.Id;
+            ApplicantId = AppState.User.Id;
+            
+            await Load(OrganizationId, ApplicantId);
+        }
+    }
+
+    private async Task Load(int organizationId, int userId)
+    {
+        ChangeLoaderVisibilityAction(true);
+        
+        var clientApplications = await ApplicationService.ClientApplicationsAsync(
+            organizationId, 
+            userId, 
+            SharedService.IndexByCulture());
+        
+        if (!clientApplications.IsOk)
+        {
+            NotificationService.Error(clientApplications.Error.ToString());
+            return;
+        }
+
+        Schemas = clientApplications.Value.ClientSchemas;
+        StartedApplications = clientApplications.Value.ClientApplicationStates;
+
+        ShowStartedApplications = StartedApplications.Any() ? "visible" : "hidden";
+
+        ChangeLoaderVisibilityAction(false);
+        
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnSchemaChange(object schemaId)
+    {
+        ChangeLoaderVisibilityAction(true);
+        
+        SelectedOrganizationsSchemaId = (int)schemaId;
+
+        if (SelectedOrganizationsSchemaId != LastOnOrganizationsSchemaChangeValue)
+        {
+            LastOnOrganizationsSchemaChangeValue = SelectedOrganizationsSchemaId;
+
+            var result = await ApplicationService.CreateClientApplicationAsync(
+                new CreateClientApplicationDto()
+                {
+                    SchemaId = SelectedOrganizationsSchemaId,
+                    OrganizationId = OrganizationId,
+                    ApplicantId = ApplicantId
+                }, new CancellationToken());
+            
+            if (!result.IsOk)
+            {
+                NotificationService.Error(result.Error.ToString());
+                return;
+            }
+
+            SelectedStartedApplicationId = result.Value.ApplicationId;
+            TempPath = result.Value.TempPath;
+            
+            await InvokeAsync(StateHasChanged);
+        }
+        
+        ChangeLoaderVisibilityAction(false);
+    }
+
+    private async Task OnStartedApplicationChange(object startedApplicationId)
+    {
+        ChangeLoaderVisibilityAction(true);
+        
+        var applicationId = (int)startedApplicationId;
+
+        if (applicationId < 1) return;
+
+        if (SelectedStartedApplicationId != LastSelectedStartedApplicationId)
+        {
+            LastSelectedStartedApplicationId = SelectedStartedApplicationId;
+            
+            await LoadApplication(applicationId);
+        }
+        
+        ChangeLoaderVisibilityAction(false);
+    }
+
+    private async Task LoadApplication(int applicationId)
+    {
+        if (applicationId < 1) return;
+        
+        var tempPath = StartedApplications.FirstOrDefault(x => x.ApplicationId == SelectedStartedApplicationId)?.TempPath;
+        if (tempPath != null) TempPath = tempPath;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

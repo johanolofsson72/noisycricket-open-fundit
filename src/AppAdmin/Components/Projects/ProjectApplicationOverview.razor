@@ -1,0 +1,1468 @@
+@using System.Text.Json
+@using AppAdmin.Components.Segments
+@using AppAdmin.Components.Settings
+@using AppAdmin.State
+@using EasyCaching.Core
+@using global::Shared.Controls.Entities
+@using global::Shared.Events.Services
+@using global::Shared.Messages.DTOs
+@using global::Shared.Messages.Services
+
+@inject IConfiguration Configuration
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+@inject ProjectService ProjectService
+@inject ApplicationService ApplicationService
+@inject NotificationService NotificationService
+@inject SharedService SharedService
+@inject EventService EventService
+@inject MessageService MessageService
+
+<div style="padding: 18px; border: 1px solid rgb(0 0 0 / .08) !important; border-radius: 5px; margin-bottom:  15px;position: relative;">
+    @if (NextEventId > 0)
+    {
+        <div style="display: flex; flex-direction: row; justify-content: space-between">
+            <div style="display: flex; flex-direction: column">
+                <div style="font-weight: 600; color: #0e6ec9;">
+                    <span style="color: #9bc53d;">&check;</span>&nbsp;@LocalizationService.StringFromResource("projects-120") <span style="font-weight: 600; color:  black; font-style: italic">@NextEventStatus</span> <span style="display: none">(@NextEventId)</span>
+                </div>
+                @if (UpdateList is not null)
+                {
+                    <TelerikListView Data="@UpdateList">
+                        <Template>
+                            @{
+                                if (context is not ApplicationControlDto item) return;
+
+                                <div style="max-width: 410px;">
+                                    <SegmentHandler Control="item" HideLabel="true" OnSegmentControlChanged="@((c) => OnUpdateControlChanged(c))"/>
+                                </div>
+                                }
+                        </Template>
+                    </TelerikListView>
+                }
+            </div>
+            <div style="width: 400px; float:  right">
+                @LocalizationService.StringFromResource("Schemas-73")
+            </div>
+        </div>
+        
+    }
+    else
+    {
+        <div style="font-weight: 600; color: #0e6ec9;">
+            <span style="color: #9bc53d;">&check;</span>&nbsp;
+            @LocalizationService.StringFromResource("projects-121")
+        </div>
+    }
+</div>
+
+@if (ControlLists is not null)
+{
+    <TelerikPanelBar @ref="PanelBarRef" Data="ControlLists"
+                     ExpandMode="PanelBarExpandMode.Multiple"
+                     @bind-ExpandedItems="@ExpandedItems">
+        <PanelBarBindings>
+            <PanelBarBinding>
+                <ContentTemplate>
+                    <div style="display: flex; flex-flow: row wrap; justify-content: space-between; margin-left: 16px; margin-right: 16px; margin-bottom: 20px">
+                        @{
+                            if (context is not ControlList item) return;
+
+                            if (item.Id == 777 && Configuration.GetValue<bool>("HelpMode"))
+                            {
+                                <div style="display: flex; flex-direction: column; justify-content: space-around">
+                                    <span>Simulera att VD radera meddelandet gällande beslutsunderlaget</span>
+                                    <TelerikButton @onclick="CeoDeleteMessage">Radera</TelerikButton>
+                                    <br/>
+                                    <br/>
+                                </div>
+                            }
+                            else
+                            {
+                                var maxSize = "100%";
+                                var baseSize = "25%";//item.Id == 0 ? "16.66%" : "25%";
+                                var bigSize = "50%";
+                                @foreach (var control in item.Controls.OrderBy(x => x.Order))
+                                {
+                                    var readOnly = ReadOnlyControlIds.Contains(control.UniqueId.ToString()[..8]);
+                                    var size = ControlRenderSize(control, baseSize, bigSize, maxSize);
+                                    if (control.UniqueId.ToString().StartsWith("00100001"))
+                                    {
+                                        control.ControlTypeId = 1_000_000;
+                                        readOnly = true;
+                                    }
+                                    <div style="width: @size">
+                                        <SegmentHandler Control="control" Readonly="@readOnly" OnSegmentControlChanged="@((c) => OnControlChanged(c))"/>
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
+                </ContentTemplate>
+                <HeaderTemplate>
+                    <strong>@(((ControlList)context).Text.ToUpper())</strong>
+                </HeaderTemplate>
+            </PanelBarBinding>
+        </PanelBarBindings>
+    </TelerikPanelBar>
+}
+
+@code {
+    
+    /* Temporär client yta som sedan ska placeras i client appen */
+    private async Task CeoDeleteMessage()
+    {
+        if (SelectedApplication is null || NextEventId != 19) return;
+        
+        // Event 19: När VD:n tar bort meddelandet om beslutsunderlag.
+        var ev19 = await EventService.TriggerNextEventById(SelectedApplication.Id, 19, new CancellationToken());
+        if (!ev19.IsOk)
+        {
+            NotificationService.Error(ev19.Error.Message, 30000);
+            Console.WriteLine(ev19.Error.Message);
+        }
+        NavigationManager.NavigateTo($"/project/{SelectedApplication.ProjectId}/application/{SelectedApplication.Id}", true);
+    }
+    /* Temporär client yta som sedan ska placeras i client appen */
+    
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public int ApplicationId { get; set; }
+    [Parameter] public EventCallback<int> OnUpdated { get; set; }
+
+    private MediumApplicationDto? SelectedApplication { get; set; }
+    private List<ControlList>? ControlLists { get; set; }
+    private List<ApplicationControlDto>? UpdateList { get; set; }
+    private IEnumerable<object> ExpandedItems { get; set; } = [];
+    private object SelectedItem { get; set; } = new();
+    private List<string> ReadOnlyControlIds { get; set; } = ["10000000", "10000001", "10000002"];
+    //private HubConnection? HubConnection { get; set; } = default;
+    private TelerikPanelBar PanelBarRef = null!;
+    private List<UserDto> ProjectManagers { get; set; } = [];
+    private List<UserDto> ProductionManagers { get; set; } = [];
+    private List<UserDto> ContractManagers { get; set; } = [];
+    private List<UserDto> DistributionManagers { get; set; } = [];
+    private List<UserDto> FinancialManagers { get; set; } = [];
+    private List<UserDto> ScriptManagers { get; set; } = [];
+    private int NextEventId { get; set; } = 0;
+    private string NextEventStatus { get; set; } = "";
+    private bool Enabled { get; set; } = true;
+    private string Title { get; set; } = "";
+    
+    private readonly Lock _lockObject = new Lock();
+    private DateTime _lastExecuted = DateTime.MinValue;
+    private static Timer _debounceTimer = default!;
+    private const double DebounceIntervalMs = 1000;
+
+    private void HandlePropertyChanged(StatePropertyChangedArgs args)
+    {
+        if (args.PropertyName != "Notify" || args.NewValue?.ToString() != NotificationType.ApplicationOverview.ToString()) return;
+        lock (_lockObject)
+        {
+            _debounceTimer?.Dispose();
+        
+            _debounceTimer = new Timer((state) =>
+            {
+                lock (_lockObject)
+                {
+                    if ((DateTime.UtcNow - _lastExecuted).TotalMilliseconds < DebounceIntervalMs)
+                        return;
+
+                    _lastExecuted = DateTime.UtcNow;
+                    ExecutePropertyJob(args).WaitAsync(new CancellationToken());
+                }
+            }, null, (int)DebounceIntervalMs, Timeout.Infinite);
+        }
+    }
+
+    private async Task ExecutePropertyJob(StatePropertyChangedArgs args)
+    {
+        if (SelectedApplication is null) return;
+        NotificationService.Success("Project Application overview updated");
+        await OnUpdated.InvokeAsync(SelectedApplication.ProjectId);
+
+        NotificationService.Info("ApplicationOverview Updated");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+        AppState?.RegisterCallback(EventCallback.Factory.Create<StatePropertyChangedArgs>(this, HandlePropertyChanged));
+    }
+    
+    private async Task Load()
+    {
+        try
+        {
+            SelectedApplication = null;
+            ControlLists = null;
+
+            // Get Application
+            var applicationResult = await ApplicationService.MediumApplicationByIdAsync(ApplicationId, new CancellationToken());
+            if (!applicationResult.IsOk) return;
+            SelectedApplication = applicationResult.Value;
+            
+            // Set Title
+            Title = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("00001001"))?.Value ?? "";
+
+            // Get Sections
+            var sections = AppState?.Sections
+                .Where(x => x.Enabled)
+                .OrderBy(x => x.Order).ToList();
+            
+            // Change Delivered Control to readonly
+            var deliveredControl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000001"));
+            if (deliveredControl is not null)
+            {
+                deliveredControl.ControlTypeId = 16;
+                deliveredControl.Value = SelectedApplication.DeliveryDate.ToString("yyyy-MM-dd");
+            }
+            
+            // Create Readonly Created Control
+            var createdControl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000002"));
+            if (createdControl is not null)
+            {
+                createdControl.ControlTypeId = 16;
+                createdControl.Value = SelectedApplication.CreatedDate.ToString("yyyy-MM-dd");
+            }
+            
+            // Create Status Control
+            var statuses = AppState?.Statuses.Select(x => x.Names[SharedService.IndexByCulture()]).ToList();
+            var statusControl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000003"));
+            if (statusControl is not null)
+            {
+                statusControl.DataSource = JsonSerializer.Serialize(statuses);
+                statusControl.Value = AppState?.Statuses.FirstOrDefault(x => x.OrganizationStatusIdentifier == SelectedApplication.StatusId)?.Names[SharedService.IndexByCulture()]!;
+            }
+            
+            // Create Change Project Manager Dropdown Control
+            var projectManagers = await UserService.UsersByClaimTagAsync(SelectedApplication.SchemaClaimTag, new CancellationToken());
+            if (!projectManagers.IsOk) return;
+            ProjectManagers = projectManagers.Value.ToList();
+            var projectManagersDataSource = ProjectManagers.Select(x => x.FullName).ToList();
+            var projectManagerControl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000005"));
+            if (projectManagerControl is not null)
+            {
+                projectManagerControl.DataSource = JsonSerializer.Serialize(projectManagersDataSource);
+                projectManagerControl.Value = SelectedApplication.ProjectManager.Name;
+            }
+            
+            // Create Change Production Manager Dropdown Control
+            var productionManagers = await UserService.UsersByClaimTagAsync("PG", new CancellationToken());
+            if (!productionManagers.IsOk) return;
+            ProductionManagers = productionManagers.Value.ToList();
+            var productionManagersDataSource = ProductionManagers.Select(x => x.FullName).ToList();
+            var productionManagerControl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000006"));
+            if (productionManagerControl is not null)
+            {
+                productionManagerControl.DataSource = JsonSerializer.Serialize(productionManagersDataSource);
+                productionManagerControl.Value = SelectedApplication.ProductionManager.Name;
+            }
+            
+            // Create Change Contract Manager Dropdown Control
+            var contractManagers = await UserService.UsersByClaimTagAsync("AA", new CancellationToken());
+            if (!contractManagers.IsOk) return;
+            ContractManagers = contractManagers.Value.ToList();
+            var contractManagersDataSource = ContractManagers.Select(x => x.FullName).ToList();
+            var contractManagerControl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000007"));
+            if (contractManagerControl is not null)
+            {
+                contractManagerControl.DataSource = JsonSerializer.Serialize(contractManagersDataSource);
+                contractManagerControl.Value = SelectedApplication.ContractManager.Name;
+            }
+            
+            // Create Distribution Manager Dropdown Control
+            var distributionManagers = await UserService.UsersByClaimTagAsync("DK", new CancellationToken());
+            if (!distributionManagers.IsOk) return;
+            DistributionManagers = distributionManagers.Value.ToList();
+            var distributionManagersDataSource = DistributionManagers.Select(x => x.FullName).ToList();
+            var distributionManagerControl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000008"));
+            if (distributionManagerControl is not null)
+            {
+                distributionManagerControl.DataSource = JsonSerializer.Serialize(distributionManagersDataSource);
+                distributionManagerControl.Value = SelectedApplication.DistributionManager.Name;
+            }
+            
+            // Create Financial Manager Dropdown Control
+            var financialManagers = await UserService.UsersByClaimTagAsync("CFO", new CancellationToken());
+            if (!financialManagers.IsOk) return;
+            FinancialManagers = financialManagers.Value.ToList();
+            var financialManagersDataSource = FinancialManagers.Select(x => x.FullName).ToList();
+            var financialManagerControl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000009"));
+            if (financialManagerControl is not null)
+            {
+                financialManagerControl.DataSource = JsonSerializer.Serialize(financialManagersDataSource);
+                financialManagerControl.Value = SelectedApplication.FinanceManager.Name;
+            }
+            
+            // Create Script Manager Dropdown Control
+            var scriptManagers = await UserService.UsersByClaimTagAsync("MK", new CancellationToken());
+            if (!scriptManagers.IsOk) return;
+            ScriptManagers = scriptManagers.Value.ToList();
+            var scriptManagersDataSource = ScriptManagers.Select(x => x.FullName).ToList();
+            var scriptManagerControl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000010"));
+            if (scriptManagerControl is not null)
+            {
+                scriptManagerControl.DataSource = JsonSerializer.Serialize(scriptManagersDataSource);
+                scriptManagerControl.Value = SelectedApplication.ScriptManager.Name;
+            }
+            
+            // Fix the reset button 10000004
+            var resetButton = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000004"));
+            if (resetButton is not null)
+            {
+                resetButton.Confirm = true;
+            }
+            
+            var index = 0;
+            var items = new List<ControlList>();
+            foreach (var section in sections!)
+            {
+                items.Add(new ControlList()
+                {
+                    Id = index,
+                    Text = section.Names[SharedService.IndexByCulture()],
+                    Disabled = false,
+                    Controls = SelectedApplication.Controls
+                        .Where(x => x.ApplicationSectionId == section.OrganizationSectionIdentifier)
+                        .OrderBy(x => x.Order)
+                        .ToList()
+                });
+                index++;
+            }
+
+            ControlLists = items;
+            ControlLists.Add(new ControlList() { Id = 777, Text = "Temporärt klientverktyg", Controls = [], Disabled = false });
+            ExpandedItems = new List<object> { items.First() };
+
+            await CheckForUpdateControls();
+            
+            Console.WriteLine($"[ProjectApplicationOverview] ProjectId: {SelectedApplication.ProjectId}");
+
+            ReorderControls();
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private void ReorderControls()
+    {
+        var controls = ControlLists?.FirstOrDefault(x => x.Text.ToUpper() == "KONTAKTUPPGIFTER")?.Controls;
+        if (controls == null) return;
+        
+        var control = controls.FirstOrDefault(c => c.Labels[0] == "Land/region");
+        if (control != null)
+        {
+            control.Order = 53;
+        }
+        
+        control = controls.FirstOrDefault(c => c.Labels[0] == "Produktionsbolag");
+        if (control != null)
+        {
+            control.Order = 54;
+        }
+        
+        control = controls.FirstOrDefault(c => c.Labels[0] == "Produktionsbolagets telefon");
+        if (control != null)
+        {
+            control.Order = 55;
+        }
+        
+        control = controls.FirstOrDefault(c => c.Labels[0] == "Distributör");
+        if (control != null)
+        {
+            control.Order = 56;
+        }
+        
+        control = controls.FirstOrDefault(c => c.Labels[0] == "Regissörer");
+        if (control != null)
+        {
+            control.Order = 57;
+        }
+
+        control = controls.FirstOrDefault(c => c.Labels[0] == "Manusförfattare");
+        if (control != null)
+        {
+            control.Order = 58;
+        }
+            
+        control = controls.FirstOrDefault(c => c.Labels[0] == "Producenter");
+        if (control != null)
+        {
+            control.Order = 59;
+        }
+            
+        controls = controls.OrderBy(x => x.Order).ToList();
+
+        /*foreach (var controlList in ControlLists.Where(x => x.Text.ToUpper() == "KONTAKTUPPGIFTER").ToList())
+        {
+            var i = 54;
+            foreach(var control in controlList.Controls)
+            {
+                control.Order = i;
+                i++;
+            }
+        }
+        foreach (var controlList in ControlLists.Where(x => x.Text.ToUpper() == "KORTSYNOPSIS & POV").ToList())
+        {
+            foreach(var control in controlList.Controls)
+            {
+                control.Order = 9999;
+            }
+        }*/
+    }
+
+    private async Task<ApplicationEventDto> CheckNextEvent()
+    {
+        var nextEvent = new ApplicationEventDto();
+        
+        if (SelectedApplication is null) return nextEvent;
+        
+        var eventResult = await EventService.CheckNextEvent(SelectedApplication.Id, new CancellationToken());
+        if (!eventResult.IsOk) return nextEvent;
+        
+        nextEvent = eventResult.Value;
+        NextEventId = nextEvent.ApplicationEventIdentifier;
+        NextEventStatus = nextEvent.Labels[SharedService.IndexByCulture()];
+
+        return nextEvent;
+    }
+
+    private async Task CheckForUpdateControls()
+    {
+        // Check if we have any update controls to show
+        try
+        {
+            if (SelectedApplication is null) return;
+
+            var nextEvent = await CheckNextEvent();
+
+            switch (SelectedApplication.SchemaId)
+            {
+                // Film, TV, Dokumentär och Internationellt
+                case 1 or 3 or 4 or 5:
+                    FilmTvDocumentaryUpdateControls(nextEvent);
+                    break;
+                // Kortfilm
+                case 2:
+                    ShortsUpdateControls(nextEvent);
+                    break;
+                // Utvecklingsstöd
+                case 6 or 7 or 8:
+                    DevelopmentUpdateControls(nextEvent);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task OnUpdateControlChanged(ApplicationControlDto updatedControl)
+    {
+        if (SelectedApplication is null) return;
+        
+        ChangeLoaderVisibilityAction(true);
+        
+        switch (updatedControl.UniqueId.ToString()[..8])
+        {
+            // Event 5: När komplett-knappen på översikt trycks
+            // 10000011 = Ansökan komplett
+            case "10000011":
+                if (updatedControl.Value == "clicked")
+                {
+                    await SetApplicationAsCompleted();
+                    UpdateList = [];
+                    await CheckForUpdateControls();
+                    ChangeLoaderVisibilityAction(false);
+                    return;
+                }
+                break;
+            // 1, 2, 3, 4, 5    Event 15: Om någon klickar på knappen Färdigfinansierat under översikt
+            // 6, 7, 8          Event 9: Om någon klickar på knappen Färdigfinansierat under översikt
+            // 10000012 = Färdigfinansierad
+            case "10000012":
+                if (updatedControl.Value == "clicked")
+                {
+                    await SetApplicationAsFullyFinanced();
+                    UpdateList = [];
+                    await CheckForUpdateControls();
+                    ChangeLoaderVisibilityAction(false);
+                    return;
+                }
+                break;
+            // Event 12: När 360-möte är satt som bokat på översikten
+            // 10000013 = Public 360 möte bokat?
+            case "10000013":
+                if (updatedControl.Value.Length > 0)
+                {
+                    await SetPublic360MeetingApproved(updatedControl.Value);
+                    UpdateList = [];
+                    await CheckForUpdateControls();
+                    ChangeLoaderVisibilityAction(false);
+                    return;
+                }
+                break;
+            case "10000014":
+                // 10000014 = Är avtalsprocessen klar?
+                if (updatedControl.Value == "clicked")
+                {
+                    await SetContractProcessAsCompleted();
+                    UpdateList = [];
+                    await CheckForUpdateControls();
+                    ChangeLoaderVisibilityAction(false);
+                    return;
+                }
+                break;
+            case "10000019":
+                // Event 22: När ansvarig kryssat i "Rat 1 klar".
+                // 10000019 = Sätt Rat 1 som klar (button => bool)
+                // 04000001 = Rat 1 klar
+                if (updatedControl.Value == "clicked")
+                {
+                    var ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("04000001"));
+                    if (ctl is not null) ctl.Value = true.ToString();
+                    
+                    // Event 22: När ansvarig kryssat i "Rat 1 klar".
+                    var ev22 = await EventService.TriggerNextEventById(SelectedApplication.Id, 22, new CancellationToken());
+                    if (!ev22.IsOk)
+                    {
+                        NotificationService.Error(ev22.Error.Message, 30000);
+                        Console.WriteLine(ev22.Error.Message);
+                    }
+                }
+                break;
+            case "10000020":
+                // Event 24: När ansvarig kryssat i "Rat 2 klar".
+                // 10000020 = Sätt Rat 2 som klar (button => bool)
+                // 04000002 = Rat 2 klar
+                if (updatedControl.Value == "clicked")
+                {
+                    var ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("04000002"));
+                    if (ctl is not null) ctl.Value = true.ToString();
+                    
+                    // Event 24: När ansvarig kryssat i "Rat 2 klar".
+                    var ev24 = await EventService.TriggerNextEventById(SelectedApplication.Id, 24, new CancellationToken());
+                    if (!ev24.IsOk)
+                    {
+                        NotificationService.Error(ev24.Error.Message, 30000);
+                        Console.WriteLine(ev24.Error.Message);
+                    }
+                }
+                break;
+            case "10000021":
+                // Event 25: När kryssrutan "Rough Cut Klar" är ikryssad
+                // 10000021 = Sätt Rough cut som klar (button => bool)
+                // 04000003 = Rough cut klar
+                if (updatedControl.Value == "clicked")
+                {
+                    var ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("04000003"));
+                    if (ctl is not null) ctl.Value = true.ToString();
+                    
+                    // Event 25: När kryssrutan "Rough Cut Klar" är ikryssad
+                    var ev25 = await EventService.TriggerNextEventById(SelectedApplication.Id, 25, new CancellationToken());
+                    if (!ev25.IsOk)
+                    {
+                        NotificationService.Error(ev25.Error.Message, 30000);
+                        Console.WriteLine(ev25.Error.Message);
+                    }
+                }
+                break;
+            case "10000023":
+                // Event 26: När kryssrutan "Final cut / DCP Kopia klar" är ikryssad eller handläggaren öppnar projektet och datumet för DCP är redan passerat.
+                // 04000004 = Final cut / DCP Kopia klar
+                // 04000005 = Final cut / DCP Kopia date
+                if (updatedControl.Value == "clicked")
+                {
+                    var ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("04000004"));
+                    if (ctl is not null) ctl.Value = true.ToString();
+                    
+                    ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("04000005"));
+                    if (ctl is not null) ctl.Value = CalculateUpdateDate(ctl.Value, DateTime.UtcNow.ToString("yyyy-MM-dd"));
+                    
+                    // Event 26: När kryssrutan "Final cut / DCP Kopia klar" är ikryssad eller handläggaren öppnar projektet och datumet för DCP är redan passerat.
+                    var ev26 = await EventService.TriggerNextEventById(SelectedApplication.Id, 26, new CancellationToken());
+                    if (!ev26.IsOk)
+                    {
+                        NotificationService.Error(ev26.Error.Message, 30000);
+                        Console.WriteLine(ev26.Error.Message);
+                    }
+                }
+                break;
+            case "10000024":
+                // Event: 18 När ansvarig kryssat i "Godkänd arbetskopia klar" under översikt.
+                // 04000004 = Final cut / DCP Kopia klar
+                // 04000005 = Final cut / DCP Kopia date
+                if (updatedControl.Value == "clicked")
+                {
+                    var ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("04000004"));
+                    if (ctl is not null) ctl.Value = true.ToString();
+                    
+                    ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("04000005"));
+                    if (ctl is not null) ctl.Value = CalculateUpdateDate(ctl.Value, DateTime.UtcNow.ToString("yyyy-MM-dd"));
+                    
+                    // Event: 18 När ansvarig kryssat i "Godkänd arbetskopia klar" under översikt.
+                    var ev18 = await EventService.TriggerNextEventById(SelectedApplication.Id, 18, new CancellationToken());
+                    if (!ev18.IsOk)
+                    {
+                        NotificationService.Error(ev18.Error.Message, 30000);
+                        Console.WriteLine(ev18.Error.Message);
+                    }
+                }
+                break;
+            case "10000026":
+                // Event 27: När ansvarig kryssat i "Spend-redovisning godkänd" under översikt.
+                // 10000026 = Sätt spendredovisning som klart (button => bool)
+                // 06000001 = Godkänd Spendredovisning
+                if (updatedControl.Value == "clicked")
+                {
+                    var ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("06000001"));
+                    if (ctl is not null) ctl.Value = true.ToString();
+                    
+                    // Event 27: När ansvarig kryssat i "Spend-redovisning godkänd" under översikt.
+                    var ev27 = await EventService.TriggerNextEventById(SelectedApplication.Id, 27, new CancellationToken());
+                    if (!ev27.IsOk)
+                    {
+                        NotificationService.Error(ev27.Error.Message, 30000);
+                        Console.WriteLine(ev27.Error.Message);
+                    }
+                }
+                break;
+            case "10000027":
+                // Event 30: När ansvarig kryssat i "Slutredovisning godkänd" under översikt.
+                // 10000027 = Sätt slutredovisning som klart (button => bool)
+                // 06000002 = Godkänd Slutredovisning
+                if (updatedControl.Value == "clicked")
+                {
+                    var ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("06000002"));
+                    if (ctl is not null) ctl.Value = true.ToString();
+                    
+                    // Event 30: När ansvarig kryssat i "Slutredovisning godkänd" under översikt.
+                    var ev30 = await EventService.TriggerNextEventById(SelectedApplication.Id, 30, new CancellationToken());
+                    if (!ev30.IsOk)
+                    {
+                        NotificationService.Error(ev30.Error.Message, 30000);
+                        Console.WriteLine(ev30.Error.Message);
+                    }
+                }
+                break;
+            case "10000028":
+                // Event 31: När PRK eller PR klickar i "PR material mottaget"
+                // 10000028 = Sätt PR material mottaget och klart (button => bool)
+                // 07000001 = PR material mottaget
+                if (updatedControl.Value == "clicked")
+                {
+                    var ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("07000001"));
+                    if (ctl is not null) ctl.Value = true.ToString();
+                    
+                    // Event 31: När PRK eller PR klickar i "PR material mottaget"
+                    var ev31 = await EventService.TriggerNextEventById(SelectedApplication.Id, 31, new CancellationToken());
+                    if (!ev31.IsOk)
+                    {
+                        NotificationService.Error(ev31.Error.Message, 30000);
+                        Console.WriteLine(ev31.Error.Message);
+                    }
+                }
+                break;
+            case "10000029":
+                // Event 32: När ansvarig kryssat i "Projekt avklarat" under översikt.
+                // 10000029 = Sätt Projekt som avklarat (button => bool)
+                // 08000001 = Projekt avklarat
+                if (updatedControl.Value == "clicked")
+                {
+                    var ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("08000001"));
+                    if (ctl is not null) ctl.Value = true.ToString();
+                    
+                    // Event 32: När ansvarig kryssat i "Projekt avklarat" under översikt.
+                    var ev32 = await EventService.TriggerNextEventById(SelectedApplication.Id, 32, new CancellationToken());
+                    if (!ev32.IsOk)
+                    {
+                        NotificationService.Error(ev32.Error.Message, 30000);
+                        Console.WriteLine(ev32.Error.Message);
+                    }
+                }
+                break;
+            case "10000017":
+                // Event 11: Producenten skickar in ekonomisk och konstnärlig redovisning.
+                // 10000017 = Sätt Ekonomisk redovisning som klar (button => bool + date)
+                // 02000001 = Ekonomisk redovisning klar
+                // 02000002 = Ekonomisk redovisning datum
+                var ctlEconomy = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("02000001"));
+                var ctlArt = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("03000001"));
+                var ctlEconomyDate = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("02000002"));
+                if (ctlEconomyDate is not null) ctlEconomyDate.Value = CalculateUpdateDate(ctlEconomyDate.Value, updatedControl.Value);
+                if (ctlEconomy is not null && ctlArt is not null)
+                {
+                    ctlEconomy.Value = true.ToString();
+                        
+                    if (ctlEconomy.Value.ToLower() == "true" && ctlArt.Value.ToLower() == "true")
+                    {
+                        // Event 12: Producenten skickar in ekonomisk och konstnärlig redovisning.
+                        var ev12 = await EventService.TriggerNextEventById(SelectedApplication.Id, 12, new CancellationToken());
+                        if (!ev12.IsOk)
+                        {
+                            NotificationService.Error(ev12.Error.Message, 30000);
+                            Console.WriteLine(ev12.Error.Message);
+                        }
+                    }
+                }
+                break;
+            case "10000018":
+                // Event 11: Producenten skickar in ekonomisk och konstnärlig redovisning.
+                // 10000018 = Sätt Konstnärlig redovisning som klar (button => bool + date)
+                // 03000001 = Konstnärlig redovisning klar
+                // 03000002 = Konstnärlig redovisning datum
+                var ctlEconomy2 = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("02000001"));
+                var ctlArt2 = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("03000001"));
+                var ctlArtDate2 = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("03000002"));
+                if (ctlArtDate2 is not null) ctlArtDate2.Value = CalculateUpdateDate(ctlArtDate2.Value, updatedControl.Value);
+                if (ctlEconomy2 is not null && ctlArt2 is not null)
+                {
+                    ctlArt2.Value = true.ToString();
+                        
+                    if (ctlEconomy2.Value.ToLower() == "true" && ctlArt2.Value.ToLower() == "true")
+                    {
+                        // Event 11: Producenten skickar in ekonomisk och konstnärlig redovisning.
+                        var ev12 = await EventService.TriggerNextEventById(SelectedApplication.Id, 12, new CancellationToken());
+                        if (!ev12.IsOk)
+                        {
+                            NotificationService.Error(ev12.Error.Message, 30000);
+                            Console.WriteLine(ev12.Error.Message);
+                        }
+                    }
+                }
+                break;
+                
+        }
+
+        var updateApplicationResult = await ApplicationService.UpdateApplicationControlAsync(SelectedApplication.Id, updatedControl.Id, updatedControl.Value, false, new CancellationToken());
+        if (!updateApplicationResult.IsOk) NotificationService.Error(updateApplicationResult.Error.Message);
+
+        NotificationService.Success(@LocalizationService.StringFromResource("Projects-45"));
+        
+        ChangeLoaderVisibilityAction(false);
+        
+        UpdateList = [];
+        await CheckForUpdateControls();
+        ChangeLoaderVisibilityAction(false);
+    }
+
+    private async Task OnControlChanged(ApplicationControlDto updatedControl)
+    {
+        if (SelectedApplication is null) return;
+        
+        ChangeLoaderVisibilityAction(true);
+
+        var updateHeader = false;
+        switch (updatedControl.UniqueId.ToString()[..8])
+        {
+            // 00001001 = Titel
+            case "00001001":
+                updateHeader = true;
+                var newTitle = updatedControl.Value;
+                var oldTitle = Title;
+                var titleBefore = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000000"));
+                if (titleBefore is not null && newTitle != oldTitle)
+                {
+                    titleBefore.Value = oldTitle + ", " + titleBefore.Value;
+                }
+
+                break;
+            // 02000001 = Ekonomisk redovisning klar
+            // 02000002 = Ekonomisk redovisning datum
+            case "02000001":
+                if (updatedControl.Value.ToLower() == "true")
+                {
+                    var ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("02000002"));
+                    if (ctl is not null) ctl.Value = DateTime.UtcNow.ToString("yyyy-MM-dd");
+                }
+                break;
+            // 03000001 = Konstnärlig redovisning klar
+            // 03000002 = Konstnärlig redovisning datum
+            case "03000001":
+                if (updatedControl.Value.ToLower() == "true")
+                {
+                    var ctl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("03000002"));
+                    if (ctl is not null) ctl.Value = DateTime.UtcNow.ToString("yyyy-MM-dd");
+                }
+                break;
+            // 10000003 = Ändra status på denna ansökan
+            case "10000003":
+                SelectedApplication.StatusId = AppState?.Statuses.FirstOrDefault(x => x.Names[SharedService.IndexByCulture()] == updatedControl.Value)?.OrganizationStatusIdentifier ?? 0;
+                break;
+            // 10000005 = Handläggare
+            case "10000005":
+                var projectManagers = ProjectManagers.FirstOrDefault(x => x.FullName == updatedControl.Value) ?? new UserDto();
+                SelectedApplication.ProjectManager = new ApplicationContactDto()
+                {
+                    Id = projectManagers.Id,
+                    Name = projectManagers.FullName,
+                    Email = projectManagers.Email,
+                    PhoneNumber = projectManagers.PhoneNumbers.Count > 0 ? projectManagers.PhoneNumbers.First().Number : ""
+                };
+                break;
+            // 10000006 = Produktionsansvarig
+            case "10000006":
+                var productionManagers = ProductionManagers.FirstOrDefault(x => x.FullName == updatedControl.Value) ?? new UserDto();
+                SelectedApplication.ProductionManager = new ApplicationContactDto()
+                {
+                    Id = productionManagers.Id,
+                    Name = productionManagers.FullName,
+                    Email = productionManagers.Email,
+                    PhoneNumber = productionManagers.PhoneNumbers.Count > 0 ? productionManagers.PhoneNumbers.First().Number : ""
+                };
+                break;
+            // 10000007 = Avtalsansvarig
+            case "10000007":
+                var contractManagers = ContractManagers.FirstOrDefault(x => x.FullName == updatedControl.Value) ?? new UserDto();
+                SelectedApplication.ContractManager = new ApplicationContactDto()
+                {
+                    Id = contractManagers.Id,
+                    Name = contractManagers.FullName,
+                    Email = contractManagers.Email,
+                    PhoneNumber = contractManagers.PhoneNumbers.Count > 0 ? contractManagers.PhoneNumbers.First().Number : ""
+                };
+                break;
+            // 10000008 = Distributionskonsult
+            case "10000008":
+                var distributionManagers = DistributionManagers.FirstOrDefault(x => x.FullName == updatedControl.Value) ?? new UserDto();
+                SelectedApplication.DistributionManager = new ApplicationContactDto()
+                {
+                    Id = distributionManagers.Id,
+                    Name = distributionManagers.FullName,
+                    Email = distributionManagers.Email,
+                    PhoneNumber = distributionManagers.PhoneNumbers.Count > 0 ? distributionManagers.PhoneNumbers.First().Number : ""
+                };
+                break;
+            // 10000009 = Finanschef
+            case "10000009":
+                var financialManagers = FinancialManagers.FirstOrDefault(x => x.FullName == updatedControl.Value) ?? new UserDto();
+                SelectedApplication.FinanceManager = new ApplicationContactDto()
+                {
+                    Id = financialManagers.Id,
+                    Name = financialManagers.FullName,
+                    Email = financialManagers.Email,
+                    PhoneNumber = financialManagers.PhoneNumbers.Count > 0 ? financialManagers.PhoneNumbers.First().Number : ""
+                };
+                break;
+            // 10000010 = Manuskonsult
+            case "10000010":
+                var scriptManagers = ScriptManagers.FirstOrDefault(x => x.FullName == updatedControl.Value) ?? new UserDto();
+                SelectedApplication.ScriptManager = new ApplicationContactDto()
+                {
+                    Id = scriptManagers.Id,
+                    Name = scriptManagers.FullName,
+                    Email = scriptManagers.Email,
+                    PhoneNumber = scriptManagers.PhoneNumbers.Count > 0 ? scriptManagers.PhoneNumbers.First().Number : ""
+                };
+                break;
+            // 10000004 = Återställ
+            case "10000004":
+                if (updatedControl.Value == "clicked")
+                {
+                    await ResetApplication();
+                    ChangeLoaderVisibilityAction(false);
+                    return;
+                }
+                break;
+        }
+        
+        var updateApplicationResult = await ApplicationService.UpdateMediumApplicationAndControlAsync(SelectedApplication, updatedControl.Id, updatedControl.Value, updateHeader, new CancellationToken());
+
+        if (!updateApplicationResult.IsOk) NotificationService.Error(updateApplicationResult.Error.Message);
+
+        NotificationService.Success(@LocalizationService.StringFromResource("Projects-45"));
+        
+        ChangeLoaderVisibilityAction(false);
+        //await OnUpdated.InvokeAsync(SelectedApplication.ProjectId);
+        NavigationManager.NavigateTo($"/project/{SelectedApplication.ProjectId}/application/{SelectedApplication.Id}", false);
+    }
+
+    private async Task SetContractProcessAsCompleted()
+    {
+        if (SelectedApplication is null) return;
+
+        var setContractProcessAsCompletedResult = await ApplicationService.SetContractProcessAsCompletedAsync(SelectedApplication.ProjectId, SelectedApplication.Id, new CancellationToken());
+        if (!setContractProcessAsCompletedResult.IsOk) NotificationService.Error(setContractProcessAsCompletedResult.Error.Message);
+
+        NotificationService.Success(@LocalizationService.StringFromResource("Projects-45"));
+        
+        switch (SelectedApplication.SchemaId)
+        {
+            // Film, Kortfilm, TV, Dokumentär och Internationellt
+            case 1 or 2 or 3 or 4 or 5:
+                // Event 17: Avtalsprocess mellan FiV och Producent som sker utanför systemet med hjälp av mail och telefon samt ett dynamiskt framtaget avtalsunderlag bearbetas i en förhandlingsprocess som sträcker sej mellan 2 veckor till drygt 6 månader.
+                var ev17 = await EventService.TriggerNextEventById(SelectedApplication.Id, 17, new CancellationToken());
+                if (!ev17.IsOk)
+                {
+                    NotificationService.Error(ev17.Error.Message, 30000);
+                    Console.WriteLine(ev17.Error.Message);
+                }
+                // Event 18: AA klickar på knappen Avtalsprocess klar under översikt
+                var ev18 = await EventService.TriggerNextEventById(SelectedApplication.Id, 18, new CancellationToken());
+                if (!ev18.IsOk)
+                {
+                    NotificationService.Error(ev18.Error.Message, 30000);
+                    Console.WriteLine(ev18.Error.Message);
+                }
+                break;
+            // Utvecklingsstöd
+            case 6 or 7 or 8:
+                // Event 10: AA klickar på knappen Avtalsprocess klar under översikt
+                var ev10 = await EventService.TriggerNextEventById(SelectedApplication.Id, 10, new CancellationToken());
+                if (!ev10.IsOk)
+                {
+                    NotificationService.Error(ev10.Error.Message, 30000);
+                    Console.WriteLine(ev10.Error.Message);
+                }
+                break;
+        }
+
+        NavigationManager.NavigateTo($"/project/{SelectedApplication.ProjectId}/application/{SelectedApplication.Id}", false);
+    }
+
+    private async Task SetPublic360MeetingApproved(string dateString)
+    {
+        if (SelectedApplication is null) return;
+
+        _ = DateTime.TryParse(dateString, out var date);
+        var setPublic360MeetingApprovedResult = await ApplicationService.SetPublic360MeetingApprovedAsync(SelectedApplication.ProjectId, SelectedApplication.Id, date, new CancellationToken());
+        if (!setPublic360MeetingApprovedResult.IsOk) NotificationService.Error(setPublic360MeetingApprovedResult.Error.Message);
+
+        NotificationService.Success(@LocalizationService.StringFromResource("Projects-45"));
+        
+        // Event 12: När 360-möte är satt som bokat på översikten
+        var ev12 = await EventService.TriggerNextEventById(SelectedApplication.Id, 12, new CancellationToken());
+        if (!ev12.IsOk)
+        {
+            NotificationService.Error(ev12.Error.Message, 30000);
+            Console.WriteLine(ev12.Error.Message);
+        }
+
+        NavigationManager.NavigateTo($"/project/{SelectedApplication.ProjectId}/application/{SelectedApplication.Id}", false);
+    }
+
+    private async Task SetApplicationAsFullyFinanced()
+    {
+        if (SelectedApplication is null) return;
+
+        var setApplicationAsFullyFinancedResult = await ApplicationService.SetApplicationAsFullyFinancedAsync(SelectedApplication.ProjectId, SelectedApplication.Id, new CancellationToken());
+        if (!setApplicationAsFullyFinancedResult.IsOk) NotificationService.Error(setApplicationAsFullyFinancedResult.Error.Message);
+
+        NotificationService.Success(@LocalizationService.StringFromResource("Projects-45"));
+        
+        switch (SelectedApplication.SchemaId)
+        {
+            // Film, Kortfilm, TV, Dokumentär och Internationellt
+            case 1 or 2 or 3 or 4 or 5:
+                // Event 14: Om någon klickar på knappen Färdigfinansierat under översikt
+                var ev14 = await EventService.TriggerNextEventById(SelectedApplication.Id, 14, new CancellationToken());
+                if (!ev14.IsOk)
+                {
+                    NotificationService.Error(ev14.Error.Message, 30000);
+                    Console.WriteLine(ev14.Error.Message);
+                }
+                break;
+            // Utvecklingsstöd
+            case 6 or 7 or 8:
+                // Event 9: Om någon klickar på knappen Färdigfinansierat under översikt
+                var ev9 = await EventService.TriggerNextEventById(SelectedApplication.Id, 9, new CancellationToken());
+                if (!ev9.IsOk)
+                {
+                    NotificationService.Error(ev9.Error.Message, 30000);
+                    Console.WriteLine(ev9.Error.Message);
+                }
+                break;
+        }
+
+        NavigationManager.NavigateTo($"/project/{SelectedApplication.ProjectId}/application/{SelectedApplication.Id}", false);
+    }
+
+    private async Task SetApplicationAsCompleted()
+    {
+        if (SelectedApplication is null) return;
+
+        var setApplicationAsCompletedResult = await ApplicationService.SetApplicationAsCompletedAsync(SelectedApplication.ProjectId, SelectedApplication.Id, new CancellationToken());
+        if (!setApplicationAsCompletedResult.IsOk) NotificationService.Error(setApplicationAsCompletedResult.Error.Message);
+
+        NotificationService.Success(@LocalizationService.StringFromResource("Projects-45"));
+        
+        // Event 5: När komplett-knappen på översikt trycks
+        var ev5 = await EventService.TriggerNextEventById(SelectedApplication.Id, 5, new CancellationToken());
+        if (!ev5.IsOk)
+        {
+            NotificationService.Error(ev5.Error.Message, 30000);
+            Console.WriteLine(ev5.Error.Message);
+        }
+
+        NavigationManager.NavigateTo($"/project/{SelectedApplication.ProjectId}/application/{SelectedApplication.Id}", false);
+    }
+
+    private async Task ResetApplication()
+    {
+        if (SelectedApplication is null) return;
+
+        var resetApplicationResult = await ApplicationService.ResetApplicationAsync(SelectedApplication.ProjectId, SelectedApplication.Id, new CancellationToken());
+        if (!resetApplicationResult.IsOk) NotificationService.Error(resetApplicationResult.Error.Message);
+
+        NotificationService.Success(@LocalizationService.StringFromResource("Projects-104"));
+        
+        NavigationManager.NavigateTo("/applications");
+    }
+
+    private void FilmTvDocumentaryUpdateControls(ApplicationEventDto nextEvent)
+    {
+        switch (nextEvent.ApplicationEventIdentifier)
+        {
+            case 5:
+            {
+                // Event 5: När komplett-knappen på översikt trycks
+                // 10000011 = Ansökan komplett
+                var setCompletedControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000011"));
+                if (setCompletedControl is not null)
+                {
+                    setCompletedControl.Color = "success";
+                    setCompletedControl.Confirm = true;
+                    UpdateList = [ setCompletedControl ];
+                }
+
+                break;
+            }
+            case 12:
+            {
+                // Event 12: När 360-möte är satt som bokat på översikten
+                // 10000013 = Public 360 möte bokat?
+                var setPublic360MeetingApprovedControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000013"));
+                if (setPublic360MeetingApprovedControl is not null)
+                {
+                    setPublic360MeetingApprovedControl.Color = "success";
+                    setPublic360MeetingApprovedControl.Confirm = true;
+                    UpdateList = [ setPublic360MeetingApprovedControl ];
+                }
+
+                break;
+            }
+            case 14:
+            {
+                // Event 15: Om någon klickar på knappen Färdigfinansierat under översikt
+                // 10000012 = Färdigfinansierad
+                var setFullyFinancedControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000012"));
+                if (setFullyFinancedControl is not null)
+                {
+                    setFullyFinancedControl.Color = "success";
+                    setFullyFinancedControl.Confirm = true;
+                    UpdateList = [ setFullyFinancedControl ];
+                }
+
+                break;
+            }
+            case 17:
+            {
+                // Event 18: AA klickar på knappen Avtalsprocess klar under översikt
+                // mail och telefon samt ett dynamiskt framtaget avtalsunderlag bearbetas i en förhandlingsprocess
+                // som sträcker sej mellan 2 veckor till drygt 6 månader.
+                // 10000014 = Är avtalsprocessen klar?
+                var setIsContractProcessCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000014"));
+                if (setIsContractProcessCompleteControl is not null)
+                {
+                    setIsContractProcessCompleteControl.Color = "success";
+                    setIsContractProcessCompleteControl.Confirm = true;
+                    UpdateList = [ setIsContractProcessCompleteControl ];
+                }
+
+                break;
+            }
+            case 22:
+            {
+                // Event 22: När ansvarig kryssat i "Rat 1 klar".
+                // 10000019 = Sätt Rat 1 som klar (button => bool)
+                // 04000001 = Rat 1 klar
+                var setRat1CompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000019"));
+                if (setRat1CompleteControl is not null)
+                {
+                    setRat1CompleteControl.Color = "success";
+                    setRat1CompleteControl.Confirm = true;
+                    UpdateList = [ setRat1CompleteControl ];
+                }
+
+                break;
+            }
+            case 24:
+            {
+                // Event 24: När ansvarig kryssat i "Rat 2 klar".
+                // 10000020 = Sätt Rat 2 som klar (button => bool)
+                // 04000002 = Rat 2 klar
+                var setRat2CompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000020"));
+                if (setRat2CompleteControl is not null)
+                {
+                    setRat2CompleteControl.Color = "success";
+                    setRat2CompleteControl.Confirm = true;
+                    UpdateList = [ setRat2CompleteControl ];
+                }
+
+                break;
+            }
+            case 25:
+            {
+                // Event 25: När kryssrutan "Rough Cut Klar" är ikryssad
+                // 10000021 = Sätt Rough cut som klar (button => bool)
+                // 04000003 = Rough cut klar
+                var setRoughCutCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000021"));
+                if (setRoughCutCompleteControl is not null)
+                {
+                    setRoughCutCompleteControl.Color = "success";
+                    setRoughCutCompleteControl.Confirm = true;
+                    UpdateList = [ setRoughCutCompleteControl ];
+                }
+
+                break;
+            }
+            case 26:
+            {
+                // Event 26: När kryssrutan "Final cut / DCP Kopia klar" är ikryssad eller handläggaren öppnar projektet och datumet för DCP är redan passerat.
+                // 10000023 = Sätt Final cut som klar (button => bool)
+                // 04000004 = Final cut / DCP Kopia klar
+                // 04000005 = Final cut / DCP Kopia date
+                var setFinalCutCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000023"));
+                if (setFinalCutCompleteControl is not null)
+                {
+                    setFinalCutCompleteControl.Color = "success";
+                    setFinalCutCompleteControl.Confirm = true;
+                    UpdateList = [ setFinalCutCompleteControl ];
+                }
+
+                break;
+            }
+            case 27:
+            {
+                // Event 27: När ansvarig kryssat i "Spend-redovisning godkänd" under översikt.
+                // 10000026 = Sätt spendredovisning som klart (button => bool)
+                // 06000001 = Godkänd Spendredovisning
+                var setFinalCutCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000026"));
+                if (setFinalCutCompleteControl is not null)
+                {
+                    setFinalCutCompleteControl.Color = "success";
+                    setFinalCutCompleteControl.Confirm = true;
+                    UpdateList = [ setFinalCutCompleteControl ];
+                }
+
+                break;
+            }
+            case 30:
+            {
+                // Event 30: När ansvarig kryssat i "Slutredovisning godkänd" under översikt.
+                // 10000027 = Sätt slutredovisning som klart (button => bool)
+                // 06000002 = Godkänd Slutredovisning
+                var setSlutRedovisningCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000027"));
+                if (setSlutRedovisningCompleteControl is not null)
+                {
+                    setSlutRedovisningCompleteControl.Color = "success";
+                    setSlutRedovisningCompleteControl.Confirm = true;
+                    UpdateList = [ setSlutRedovisningCompleteControl ];
+                }
+
+                break;
+            }
+            case 31:
+            {
+                // Event 31: När PRK eller PR klickar i "PR material mottaget"
+                // 10000028 = Sätt PR material mottaget och klart (button => bool)
+                // 07000001 = PR material mottaget
+                var setPrMaterialReceivedCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000028"));
+                if (setPrMaterialReceivedCompleteControl is not null)
+                {
+                    setPrMaterialReceivedCompleteControl.Color = "success";
+                    setPrMaterialReceivedCompleteControl.Confirm = true;
+                    UpdateList = [ setPrMaterialReceivedCompleteControl ];
+                }
+
+                break;
+            }
+            case 32:
+            {
+                // Event 32: När ansvarig kryssat i "Projekt avklarat" under översikt.
+                // 10000029 = Sätt Projekt som avklarat (button => bool)
+                // 08000001 = Projekt avklarat
+                var setProjectCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000029"));
+                if (setProjectCompleteControl is not null)
+                {
+                    setProjectCompleteControl.Color = "success";
+                    setProjectCompleteControl.Confirm = true;
+                    UpdateList = [ setProjectCompleteControl ];
+                }
+
+                break;
+            }
+        }
+    }
+
+    private void ShortsUpdateControls(ApplicationEventDto nextEvent)
+    {
+        switch (nextEvent.ApplicationEventIdentifier)
+        {
+            case 5:
+            {
+                // Event 5: När komplett-knappen på översikt trycks
+                // 10000011 = Ansökan komplett
+                var setCompletedControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000011"));
+                if (setCompletedControl is not null)
+                {
+                    setCompletedControl.Color = "success";
+                    setCompletedControl.Confirm = true;
+                    UpdateList = [setCompletedControl];
+                }
+
+                break;
+            }
+            case 13:
+            {
+                // Event 14: Om någon klickar på knappen Färdigfinansierat under översikt
+                // 10000012 = Färdigfinansierad
+                var setFullyFinancedControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000012"));
+                if (setFullyFinancedControl is not null)
+                {
+                    setFullyFinancedControl.Color = "success";
+                    setFullyFinancedControl.Confirm = true;
+                    UpdateList = [setFullyFinancedControl];
+                }
+
+                break;
+            }
+            case 14:
+            {
+                // Event 15: Avtalsprocess mellan FiV och Producent som sker utanför systemet med hjälp av
+                // mail och telefon samt ett dynamiskt framtaget avtalsunderlag bearbetas i en förhandlingsprocess
+                // som sträcker sej mellan 2 veckor till drygt 6 månader.
+                // 10000014 = Är avtalsprocessen klar?
+                var setIsContractProcessCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000014"));
+                if (setIsContractProcessCompleteControl is not null)
+                {
+                    setIsContractProcessCompleteControl.Color = "success";
+                    setIsContractProcessCompleteControl.Confirm = true;
+                    UpdateList = [ setIsContractProcessCompleteControl ];
+                }
+
+                break;
+            }
+            case 16:
+            {
+                // Event: 17 När ansvarig kryssat i "Rat 1 klar".
+                // 10000019 = Sätt Rat 1 som klar (button => bool)
+                // 04000001 = Rat 1 klar
+                var setRat1CompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000019"));
+                if (setRat1CompleteControl is not null)
+                {
+                    setRat1CompleteControl.Color = "success";
+                    setRat1CompleteControl.Confirm = true;
+                    UpdateList = [ setRat1CompleteControl ];
+                }
+
+                break;
+            }
+            case 17:
+            {
+                // Event: 18 När ansvarig kryssat i "Godkänd arbetskopia klar" under översikt.
+                // 10000024 = Sätt Final cut som klar (button => bool)
+                // 04000004 = Final cut / DCP Kopia klar
+                // 04000005 = Final cut / DCP Kopia date
+                var setFinalCutCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000024"));
+                if (setFinalCutCompleteControl is not null)
+                {
+                    setFinalCutCompleteControl.Color = "success";
+                    setFinalCutCompleteControl.Confirm = true;
+                    UpdateList = [ setFinalCutCompleteControl ];
+                }
+
+                break;
+            }
+            case 19:
+            {
+                // Event: 20 När ansvarig kryssat i "Rat 2 klar".
+                // 10000020 = Sätt Rat 2 som klar (button => bool)
+                // 04000002 = Rat 2 klar
+                var setRat2CompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000020"));
+                if (setRat2CompleteControl is not null)
+                {
+                    setRat2CompleteControl.Color = "success";
+                    setRat2CompleteControl.Confirm = true;
+                    UpdateList = [ setRat2CompleteControl ];
+                }
+
+                break;
+            }
+            case 22:
+            {
+                // Event: 22 Vid godkänd spendredovisning och slutredovisning
+                // 10000026 = Sätt spendredovisning som klart (button => bool)
+                // 06000001 = Godkänd Spendredovisning
+                var setFinalCutCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000026"));
+                if (setFinalCutCompleteControl is not null)
+                {
+                    setFinalCutCompleteControl.Color = "success";
+                    setFinalCutCompleteControl.Confirm = true;
+                    UpdateList = [ setFinalCutCompleteControl ];
+                }
+
+                break;
+            }
+            case 23:
+            {
+                // Event: 23 När PRK eller PR klickar i "PR material mottaget"
+                // 10000028 = Sätt PR material mottaget och klart (button => bool)
+                // 07000001 = PR material mottaget
+                var setPrMaterialReceivedCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000028"));
+                if (setPrMaterialReceivedCompleteControl is not null)
+                {
+                    setPrMaterialReceivedCompleteControl.Color = "success";
+                    setPrMaterialReceivedCompleteControl.Confirm = true;
+                    UpdateList = [ setPrMaterialReceivedCompleteControl ];
+                }
+
+                break;
+            }
+            case 24:
+            {
+                // Event: 24 När ansvarig kryssat i "Projekt avklarat" under översikt.
+                // 10000029 = Sätt Projekt som avklarat (button => bool)
+                // 08000001 = Projekt avklarat
+                var setProjectCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000029"));
+                if (setProjectCompleteControl is not null)
+                {
+                    setProjectCompleteControl.Color = "success";
+                    setProjectCompleteControl.Confirm = true;
+                    UpdateList = [ setProjectCompleteControl ];
+                }
+
+                break;
+            }
+        }
+    }
+
+    private void DevelopmentUpdateControls(ApplicationEventDto nextEvent)
+    {
+        switch (nextEvent.ApplicationEventIdentifier)
+        {
+            case 5:
+            {
+                // Event 5: När komplett-knappen på översikt trycks
+                // 10000011 = Ansökan komplett
+                var setCompletedControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000011"));
+                if (setCompletedControl is not null)
+                {
+                    setCompletedControl.Color = "success";
+                    setCompletedControl.Confirm = true;
+                    UpdateList = [setCompletedControl];
+                }
+
+                break;
+            }
+            case 9:
+            {
+                // Event 9: Om någon klickar på knappen Färdigfinansierat under översikt
+                // 10000012 = Färdigfinansierad
+                var setFullyFinancedControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000012"));
+                if (setFullyFinancedControl is not null)
+                {
+                    setFullyFinancedControl.Color = "success";
+                    setFullyFinancedControl.Confirm = true;
+                    UpdateList = [setFullyFinancedControl];
+                }
+
+                break;
+            }
+            case 10:
+            {
+                // Event 10: AA klickar på knappen Avtalsprocess klar under översikt
+                // 10000014 = Är avtalsprocessen klar?
+                var setIsContractProcessCompleteControl = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000014"));
+                if (setIsContractProcessCompleteControl is not null)
+                {
+                    setIsContractProcessCompleteControl.Color = "success";
+                    setIsContractProcessCompleteControl.Confirm = true;
+                    UpdateList = [ setIsContractProcessCompleteControl ];
+                }
+
+                break;
+            }
+            case 12:
+            {
+                // Event 11: Producenten skickar in ekonomisk och konstnärlig redovisning.
+            
+                // 10000017 = Sätt Ekonomisk redovisning som klar (button => bool + date)
+                // 02000001 = Ekonomisk redovisning klar
+                // 02000002 = Ekonomisk redovisning datum
+            
+                // 10000018 = Sätt Konstnärlig redovisning som klar (button => bool + date)
+                // 03000001 = Konstnärlig redovisning klar
+                // 03000002 = Konstnärlig redovisning datum
+                            
+                UpdateList = new List<ApplicationControlDto>();
+                var ctlEconomy = SelectedApplication!.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("02000001"));
+                var setEconomyReportCompleteControl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000017"));
+                if (setEconomyReportCompleteControl is not null && ctlEconomy?.Value.ToLower() != "true")
+                {
+                    setEconomyReportCompleteControl.ControlTypeId = 20;
+                    setEconomyReportCompleteControl.Color = "success";
+                    setEconomyReportCompleteControl.Confirm = true;
+                    UpdateList.Add(setEconomyReportCompleteControl);
+                }
+                            
+                var ctlArt = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("03000001"));
+                var setArtReportCompleteControl = SelectedApplication.Controls.FirstOrDefault(x => x.UniqueId.ToString().StartsWith("10000018"));
+                if (setArtReportCompleteControl is not null && ctlArt?.Value.ToLower() != "true")
+                {
+                    setArtReportCompleteControl.ControlTypeId = 20;
+                    setArtReportCompleteControl.Color = "success";
+                    setArtReportCompleteControl.Confirm = true;
+                    UpdateList.Add(setArtReportCompleteControl);
+                }
+
+                break;
+            }
+        }
+    }
+    
+    private string CalculateUpdateDate(string currentDate, string newDate)
+    {
+        _ = DateTime.TryParse(currentDate, out var cDate);
+        _ = DateTime.TryParse(newDate, out var nDate);
+        if (nDate < DateTime.UtcNow) nDate = DateTime.UtcNow;
+        return nDate > cDate ? nDate.ToString("yyyy-MM-dd") : cDate.ToString("yyyy-MM-dd");
+    }
+
+    private class ControlList
+    {
+        public int Id { get; set; } = 0;
+        public string Text { get; set; } = string.Empty;
+        public bool Disabled { get; set; } = false;
+        public List<ApplicationControlDto> Controls { get; set; } = [];
+    }
+
+    private static string ControlRenderSize(ApplicationControlDto control, string baseSize, string bigSize, string maxSize)
+    {
+        return control.ControlTypeId switch
+        {
+            1 => baseSize,
+            2 => baseSize,
+            3 => baseSize,
+            4 => baseSize,
+            5 => baseSize,
+            6 => baseSize,
+            7 => baseSize,
+            8 => baseSize,
+            9 => bigSize,
+            10 => bigSize,
+            11 => bigSize,
+            12 => bigSize,
+            13 => baseSize,
+            14 => bigSize,
+            15 => maxSize,
+            _ => baseSize
+        };
+    }
+
+}

@@ -1,0 +1,144 @@
+@using System.Text.Json
+@using System.Text.RegularExpressions
+@using AppAdmin.Resources
+@inject SharedService SharedService
+
+<div class="application-segment">
+    <fieldset>
+        <legend class="application-segment-fieldset-legend">@Control.Labels[Index]</legend>
+        <div class="application-sub-label" style="display: @ShowSubLabel">@Control.SubLabels[Index]</div>
+        <div class="application-segment-header">
+            <div class="application-segment-main">
+                <div class="application-segment">
+                    <label class="application-label">@LocalizationService.StringFromResource("ListboxNameEmailPhonenumberGenderSegment-1")<br/>
+                        <TelerikTextBox @bind-Value="Name"/>
+                    </label>
+                </div>
+                <div class="application-segment">
+                    <label class="application-label">@LocalizationService.StringFromResource("ListboxNameEmailPhonenumberGenderSegment-2")<br/>
+                        <TelerikTextBox @bind-Value="Email"/>
+                    </label>
+                </div>
+                <div class="application-segment">
+                    <label class="application-label">@LocalizationService.StringFromResource("ListboxNameEmailPhonenumberGenderSegment-3")<br/>
+                        <TelerikTextBox @bind-Value="Phonenumber"/>
+                    </label>
+                </div>
+            </div>
+            <div class="application-segment-radio">
+                <TelerikButton Enabled="@Enabled" Title="Lägg till" @onclick="OnAdd" >@LocalizationService.StringFromResource("ListboxNameEmailPhonenumberGenderSegment-4")</TelerikButton>
+            </div>
+        </div>
+        <div class="application-segment application-segment-fieldset-legend">
+            <TelerikRadioGroup Data="@Genders" @bind-Value="@Gender" Layout="RadioGroupLayout.Horizontal" />
+        </div>
+        <div class="application-segment">
+            <TelerikListView Data="ListViewValues" Class="application-segment-listview" OnDelete="@OnListViewDelete" @ref="@ListViewRef">
+                <Template>
+                    <div class="application-segment-listview-items">
+                        <div class="application-segment-listview-item">@context.Name</div>
+                        <div class="application-segment-listview-item">@context.Phonenumber</div>
+                        <div class="application-segment-listview-item">@context.Email</div>
+                        <div class="application-segment-listview-item-small">@context.Gender</div>
+                        <div class="application-segment-listview-item-last">
+                            <ListViewCommandButton Command="Delete" ThemeColor="@ThemeConstants.Button.ThemeColor.Error" Icon="@Telerik.SvgIcons.SvgIcon.Trash" />
+                        </div>
+                    </div>
+                </Template>
+            </TelerikListView>
+        </div>
+    </fieldset>
+</div>
+
+@code 
+{
+    [Parameter] public ApplicationControlDto Control { get; set; } = new();
+    [Parameter] public EventCallback<ApplicationControlDto> OnControlChanged { get; set; }
+    private TelerikListView<ListboxNameEmailPhonenumberGenderDto> ListViewRef { get; set; } = new();
+    private List<ListboxNameEmailPhonenumberGenderDto>? ListViewValues { get; set; } = [];
+    private List<string> Genders { get; set; } = default!;
+    private string Name { get; set; } = string.Empty;
+    private string Email { get; set; } = string.Empty;
+    private string Phonenumber { get; set; } = string.Empty;
+    private string Gender { get; set; } = string.Empty;
+    private string ShowSubLabel => Control.SubLabels.Any(x => x.Length > 0) ? "block" : "none";
+    private int Index { get; set; } = 0;
+    private bool Enabled { get; set; } = true;
+
+    private void ResetValues()
+    {
+        Name = string.Empty;
+        Email = string.Empty;
+        Phonenumber = string.Empty; 
+    }
+
+    protected override void OnInitialized()
+    {
+        Index = SharedService.IndexByCulture();
+        if (Control.Labels.Count == 1) Index = 0;
+        ListViewValues!.Clear();
+        Control.DataSource = Regex.Unescape(Control.DataSource);
+        var dataSource = JsonSerializer.Deserialize<List<string>>(Control.DataSource);
+        if (dataSource is not null)
+        {
+            Genders = dataSource;
+            Gender = Genders.First();
+        }
+
+        ResetValues();
+        Control.Value = Regex.Unescape(Control.Value);
+        if (!string.IsNullOrWhiteSpace(Control.Value))
+        {
+            ListViewValues = JsonSerializer.Deserialize<List<ListboxNameEmailPhonenumberGenderDto>>(Control.Value);
+        }
+            
+        Enabled = true;
+    }
+
+    private async Task Save()
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        Control.Value = JsonSerializer.Serialize(ListViewValues);
+        await OnControlChanged.InvokeAsync(Control);
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnAdd()
+    {
+        if (ListViewValues is not null)
+        {
+            ListViewValues.Add(new ListboxNameEmailPhonenumberGenderDto()
+            {
+                Name = Name,
+                Email = Email,
+                Phonenumber = Phonenumber,
+                Gender = Gender
+            });
+
+            ResetValues();
+
+            await Save();
+            
+            ListViewRef.Rebind();
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnListViewDelete(ListViewCommandEventArgs arg)
+    {
+        if (arg.Item is not null && ListViewValues is not null)
+        {
+            ListViewValues.Remove((ListboxNameEmailPhonenumberGenderDto)arg.Item);
+
+            await Save();
+
+            ListViewRef.Rebind();
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+}

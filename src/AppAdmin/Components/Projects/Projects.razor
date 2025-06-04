@@ -1,0 +1,1600 @@
+@using System.Diagnostics
+@using AppAdmin.State
+@using ClosedXML.Excel
+@using global::Shared.Extensions
+@using global::Shared.GridLayouts.DTOs
+@using global::Shared.GridLayouts.Services
+@using global::Shared.OpenAi.Entities
+@using global::Shared.Projects.DTOs
+@using Microsoft.CodeAnalysis.Elfie.Serialization
+@using Telerik.Blazor.Components.Grid
+@using Telerik.Documents.SpreadsheetStreaming
+@using System.Linq
+
+@inject SharedService SharedService
+@inject ProjectService ProjectService
+@inject UserService UserService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+@inject GridLayoutService GridLayoutService
+
+<style>
+    .k-animation-container {
+        z-index: 15000 !important;
+    }
+
+    .droppis .k-animation-container {
+        z-index: 15000 !important;
+    }
+
+    .droppis {
+        z-index: 15000 !important;
+    }
+    .k-animation-container {
+        margin-top: 15px !important;
+        cursor: pointer !important;
+    }
+    .k-table-td {
+        height: 11px !important;
+        vertical-align: top !important;
+        cursor: pointer !important;
+    }
+    .k-table-row {
+        height: 11px !important;
+        cursor: pointer !important;
+    }
+    .k-column-list-wrapper .k-actions .k-button + .k-button {
+        display: none;
+    }
+</style>
+
+<h5>@LocalizationService.StringFromResource("Projects-1")</h5>
+<p>@LocalizationService.StringFromResource("Projects-2")</p>
+<p>@LocalizationService.StringFromResource("Projects-3")</p>
+
+<Spacer Height="30px" />
+
+
+@if (LoaderVisible)
+{
+    <TelerikLoader Visible="@LoaderVisible"
+                   Size="@ThemeConstants.Loader.Size.Large"
+                   ThemeColor="@ThemeConstants.Loader.ThemeColor.Tertiary"
+                   Type="@LoaderType.ConvergingSpinner" />
+}
+else
+{
+    <TelerikGrid Data="ProjectList"
+                 OnRowClick="ViewRowProjectHandler"
+                 Pageable="true"
+                 Sortable="true"
+                 Groupable="false"
+                 Reorderable="true"
+                 Resizable="true"
+                 ShowColumnMenu="true"
+                 FilterMode="Telerik.Blazor.GridFilterMode.FilterRow"
+                 PageSize="8"
+                 @ref="GridRef"
+                 OnStateInit="@( (GridStateEventArgs<ProjectSearchResultDto> args) => OnGridStateInit(args) )"
+                 OnStateChanged="@( (GridStateEventArgs<ProjectSearchResultDto> args) => OnGridStateChanged(args) )">
+        <GridSettings>
+            <GridColumnMenuSettings>
+                <GridColumnMenuChooser>
+                    <Template>
+                        @{
+                            var columns = context.Columns;
+                            foreach (var column in columns)
+                            {
+                                <div style="border: solid 1px red">
+                                    <GridColumnMenuChooserItem Title="@column.DisplayTitle" ColumnId="@column.Id" />
+                                </div>
+                            }
+                        }
+                    </Template>
+                </GridColumnMenuChooser>
+            </GridColumnMenuSettings>
+        </GridSettings>
+        <GridToolBarTemplate>
+            <div style="display: flex; width: 100%;">
+                <div style="display:flex; flex-direction: row; justify-content: flex-start; height: 30px; gap: 10px; width: 80%;">
+                    <TelerikButton OnClick="DownloadExcelFile" Class="green" Icon="@SvgIcon.FileExcel">@LocalizationService.StringFromResource("Projects-147")</TelerikButton>
+                    <TelerikButton OnClick="OnStandardView" Class="blue" Icon="@SvgIcon.Star">@LocalizationService.StringFromResource("Projects-148")</TelerikButton>
+                    <TelerikButton OnClick="OnEconomyView" Class="yellow" Icon="@SvgIcon.Dollar">@LocalizationService.StringFromResource("Projects-149")</TelerikButton>
+                    <TelerikButton OnClick="OnProductionView" Class="orange" Icon="@SvgIcon.FileProgramming">@LocalizationService.StringFromResource("Projects-150")</TelerikButton>
+                    @if (SavedViews.Count > 0)
+                    {
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <TelerikDropDownList @bind-Value="SelectedView"
+                                                 DefaultText="Välj en vy"
+                                                 Data="@SavedViews"
+                                                 TextField="@nameof(GridLayoutDto.Title)"
+                                                 ValueField="@nameof(GridLayoutDto.Id)"
+                                                 OnChange="OnLoadView"
+                                                 Width="300px">
+                                <DropDownListSettings>
+                                    <DropDownListPopupSettings Height="auto" MaxHeight="800px" MinHeight="75px"/>
+                                </DropDownListSettings>
+                                <ValueTemplate>
+                                    <span data-permanent style="font-weight: bold;">Vald vy: @context.Title</span>
+                                </ValueTemplate>
+                                <ItemTemplate>
+                                    @if (@context.Id == -1) // 👈 Separator, ej klickbar
+                                    {
+                                        <div style="text-align: center; color: gray; font-weight: bold; cursor: default;">
+                                            @context.Title
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div style="padding: 5px 10px; cursor: pointer;"
+                                             onmouseout="this.style.backgroundColor='transparent'">
+                                            @context.Title
+                                        </div> <!-- 👈 Riktiga valbara objekt -->
+                                    }
+                                </ItemTemplate>
+                            </TelerikDropDownList>
+
+                            @if (CanDeleteView)
+                            {
+                                <TelerikButton OnClick="@OnDeleteView" Class="red">
+                                    Radera vy
+                                </TelerikButton>
+                            }
+                        </div>
+                    }
+                    </div>
+                <div style="display:flex; flex-direction: row; justify-content: right; height: 30px; gap: 10px; width: 20%;">
+                    @if (ViewChanged)
+                    {
+                        <TelerikButton OnClick="OnSaveView" Class="color_number_eight" Icon="@SvgIcon.Save">Spara denna vy</TelerikButton>
+                    }
+                    <TelerikButton OnClick="OnResetView" Class="red" Icon="@SvgIcon.Cancel">@LocalizationService.StringFromResource("Projects-151")</TelerikButton>
+                </div>
+            </div>
+        </GridToolBarTemplate>
+        <GridExport>
+            <GridExcelExport FileName="@LocalizationService.StringFromResource("Projects-146")" AllPages="true" OnBeforeExport="@OnExcelBeforeExport" />
+        </GridExport>
+        <GridAggregates>
+            <GridAggregate Field=@nameof(ProjectSearchResultDto.Id) Aggregate="@GridAggregateType.Count" />
+        </GridAggregates>
+        <GridColumns>
+            <GridColumn Field="@nameof(ProjectSearchResultDto.Title)" Title="@LocalizationService.StringFromResource("Projects-4")" Id="title-column-id" Width="16%">
+                <Template>
+                    @{
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: column">
+                            <div><b>@item.Number</b></div>
+                            @if (item.Title.Length > 35)
+                            {
+                                <div>@item.Title[..35] ...</div>
+                            }
+                            else
+                            {
+                                <div>@item.Title</div>
+                            }
+                        </div>
+                    }
+                </Template>
+                <FooterTemplate>
+                    @{
+                        var headCount = (int?)context?.AggregateResults
+                            .FirstOrDefault(r => r.AggregateMethodName == "Count" && r.Member == nameof(ProjectSearchResultDto.Id))?.Value;
+                    }
+                    @LocalizationService.StringFromResource("Projects-145") @headCount
+                </FooterTemplate>
+            </GridColumn>
+            <GridColumn Field="@nameof(ProjectSearchResultDto.ProjectManager)" Title="@LocalizationService.StringFromResource("Projects-6")" Width="12%" Id="projectmanager-column-id">
+                <Template>
+                    @{
+                        var item = (ProjectSearchResultDto)context;
+                        <div>&nbsp;</div>
+                        <div>@(item.ProjectManager != "" ? item.ProjectManager : @LocalizationService.StringFromResource("Projects-7"))</div>
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-11")" Id="application-program-column-id" >
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.SchemaNames[index]</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-12")" Id="application-status-column-id" >
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">
+                                    <TelerikChip Class="@CalculateColor(x.StatusId)"
+                                                 Text="@AppState.Statuses.FirstOrDefault(s => s.OrganizationStatusIdentifier == x.StatusId)?.Names[index]">
+                                    </TelerikChip>
+                                </div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-13")" Id="application-applied-column-id" >
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.CreatedDate.ToString("yyyy-MM-dd")</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <!-- Ej synliga vid start -->
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-122")" Id="application-productionyear-column-id" Visible="false" >
+                <HeaderTemplate>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>@LocalizationService.StringFromResource("Projects-122")</span>
+                        <span @onclick="@(() => OpenChartFor("ProductionYear"))"
+                            title="@LocalizationService.StringFromResource("Projects-156")"
+                            style="font-size: 16px; cursor: pointer; margin-left: 6px;">
+                            📊
+                        </span>
+                    </div>
+                </HeaderTemplate>
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.ProductionYear.ToString()</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-123")" Id="application-totalbudget-column-id" Visible="false" >
+                <HeaderTemplate>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>@LocalizationService.StringFromResource("Projects-123")</span>
+                        <span @onclick="@(() => OpenChartFor("TotalBudget"))"
+                              title="@LocalizationService.StringFromResource("Projects-156")"
+                              style="font-size: 16px; cursor: pointer; margin-left: 6px;">
+                            📊
+                        </span>
+                    </div>
+                </HeaderTemplate>
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.TotalBudget.ToString("C")</div>
+                            </div>
+                        }
+                    }
+                </Template>
+                <FooterTemplate>
+                    @{
+                        var totalBudget = ProjectList.Sum(x => x.Applications.Sum(x => x.TotalBudget));
+                    }
+                    @LocalizationService.StringFromResource("Projects-144") @totalBudget.ToString("C")
+                </FooterTemplate>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-124")" Id="application-reportedspend-column-id" Visible="false" >
+                <HeaderTemplate>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>@LocalizationService.StringFromResource("Projects-124")</span>
+                        <span @onclick="@(() => OpenChartFor("ReportedSpend"))"
+                              title="@LocalizationService.StringFromResource("Projects-156")"
+                              style="font-size: 16px; cursor: pointer; margin-left: 6px;">
+                            📊
+                        </span>
+                    </div>
+                </HeaderTemplate>
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.ReportedSpend.ToString("C")</div>
+                            </div>
+                        }
+                    }
+                </Template>
+                <FooterTemplate>
+                    @{
+                        var totalReportedSpend = ProjectList.Sum(x => x.Applications.Sum(x => x.ReportedSpend));
+                    }
+                    @LocalizationService.StringFromResource("Projects-143") @totalReportedSpend.ToString("C")
+                </FooterTemplate>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-125")" Id="application-spendrequirement-column-id" Visible="false" >
+                <HeaderTemplate>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>@LocalizationService.StringFromResource("Projects-125")</span>
+                        <span @onclick="@(() => OpenChartFor("SpendRequirement"))"
+                              title="@LocalizationService.StringFromResource("Projects-156")"
+                              style="font-size: 16px; cursor: pointer; margin-left: 6px;">
+                            📊
+                        </span>
+                    </div>
+                </HeaderTemplate>
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.SpendRequirement.ToString("C")</div>
+                            </div>
+                        }
+                    }
+                </Template>
+                <FooterTemplate>
+                    @{
+                        var totalSpendRequirement = ProjectList.Sum(x => x.Applications.Sum(x => x.SpendRequirement));
+                    }
+                    @LocalizationService.StringFromResource("Projects-142") @totalSpendRequirement.ToString("C")
+                </FooterTemplate>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-126")" Id="application-ourcontribution-column-id" Visible="false" >
+                <HeaderTemplate>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>@LocalizationService.StringFromResource("Projects-126")</span>
+                        <span @onclick="@(() => OpenChartFor("OurContribution"))"
+                              title="@LocalizationService.StringFromResource("Projects-156")"
+                              style="font-size: 16px; cursor: pointer; margin-left: 6px;">
+                            📊
+                        </span>
+                    </div>
+                </HeaderTemplate>
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.OurContribution.ToString("C")</div>
+                            </div>
+                        }
+                    }
+                </Template>
+                <FooterTemplate>
+                    @{
+                        var totalContribution = ProjectList.Sum(x => x.Applications.Sum(x => x.OurContribution));
+                    }
+                    @LocalizationService.StringFromResource("Projects-141") @totalContribution.ToString("C")
+                </FooterTemplate>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-127")" Id="application-signedcontractdate-column-id" Visible="false" >
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.SignedContractDate.ToString("yyyy-MM-dd")</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-128")" Id="application-recordinglocation-column-id" Visible="false" >
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.RecordingLocation</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-129")" Id="application-recordingdays-column-id" Visible="false" >
+                <HeaderTemplate>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>@LocalizationService.StringFromResource("Projects-129")</span>
+                        <span @onclick="@(() => OpenChartFor("RecordingDays"))"
+                              title="@LocalizationService.StringFromResource("Projects-156")"
+                              style="font-size: 16px; cursor: pointer; margin-left: 6px;">
+                            📊
+                        </span>
+                    </div>
+                </HeaderTemplate>
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.RecordingDays</div>
+                            </div>
+                        }
+                    }
+                </Template>
+                <FooterTemplate>
+                    @{
+                        var totalDays = ProjectList.Sum(x => x.Applications.Sum(x => x.RecordingDays));
+                    }
+                    @LocalizationService.StringFromResource("Projects-140") @totalDays.ToString()
+                </FooterTemplate>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-130")" Id="application-recordingperiodstart-column-id" Visible="false" >
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.RecordingPeriodStart.ToString("yyyy-MM-dd")</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-131")" Id="application-recordingperiodend-column-id" Visible="false">
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.RecordingPeriodEnd.ToString("yyyy-MM-dd")</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-132")" Id="application-applicationyear-column-id" Visible="false">
+                <HeaderTemplate>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>@LocalizationService.StringFromResource("Projects-132")</span>
+                        <span @onclick="@(() => OpenChartFor("ApplicationYear"))"
+                              title="@LocalizationService.StringFromResource("Projects-156")"
+                              style="font-size: 16px; cursor: pointer; margin-left: 6px;">
+                            📊
+                        </span>
+                    </div>
+                </HeaderTemplate>
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.ApplicationYear</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-133")" Id="application-premiereyear-column-id" Visible="false">
+                <HeaderTemplate>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>@LocalizationService.StringFromResource("Projects-133")</span>
+                        <span @onclick="@(() => OpenChartFor("PremiereYear"))"
+                              title="@LocalizationService.StringFromResource("Projects-156")"
+                              style="font-size: 16px; cursor: pointer; margin-left: 6px;">
+                            📊
+                        </span>
+                    </div>
+                </HeaderTemplate>
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.PremiereYear</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-134")" Id="application-recordingcomment-column-id" Visible="false">
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.RecordingComment</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-135")" Id="application-distributor-column-id" Visible="false">
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.Distributor</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-136")" Id="application-producersummary-column-id" Visible="false">
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.ProducerSummary</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-137")" Id="application-writersummary-column-id" Visible="false">
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.WriterSummary</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-138")" Id="application-directorsummary-column-id" Visible="false">
+                <Template>
+                    @{
+                        var index = SharedService.IndexByCulture();
+                        var item = (ProjectSearchResultDto)context;
+                        <div style="display: flex; flex-direction: row">
+                            <div><b>&nbsp;</b></div>
+                        </div>
+                        foreach (var x in item.Applications)
+                        {
+                            <div style="display: flex; flex-direction: row">
+                                <div style="line-height: 24px">@x.DirectorSummary</div>
+                            </div>
+                        }
+                    }
+                </Template>
+            </GridColumn>
+            <GridColumn Title="@LocalizationService.StringFromResource("Projects-139")" Id="application-totalfinancialinformation-column-id" Visible="false" Width="430px">
+                <Template>
+                    <div style="text-align: right;">
+                        @{
+                            var item = (ProjectSearchResultDto)context;
+                            var totalBudget = new List<object>() { (object)item.Applications.Sum(x => x.TotalBudget) };
+                            var reportedSpend = new List<object>() { (object)item.Applications.Sum(x => x.ReportedSpend) };
+                            var spendRequirement = new List<object>() { (object)item.Applications.Sum(x => x.SpendRequirement) };
+                            var ourContribution = new List<object>() { (object)item.Applications.Sum(x => x.OurContribution) };
+
+                            <TelerikChart Height="200px" Width="430px">
+                                <ChartSeriesItems>
+                                    <ChartSeries Type="ChartSeriesType.Column" Name=@LocalizationService.StringFromResource("Projects-123") Data="@totalBudget">
+                                    </ChartSeries>
+                                    <ChartSeries Type="ChartSeriesType.Column" Name=@LocalizationService.StringFromResource("Projects-124") Data="@reportedSpend">
+                                    </ChartSeries>
+                                    <ChartSeries Type="ChartSeriesType.Column" Name=@LocalizationService.StringFromResource("Projects-125") Data="@spendRequirement">
+                                    </ChartSeries>
+                                    <ChartSeries Type="ChartSeriesType.Column" Name=@LocalizationService.StringFromResource("Projects-126") Data="@ourContribution">
+                                    </ChartSeries>
+                                </ChartSeriesItems>
+
+                                <ChartValueAxes>
+                                    <ChartValueAxis>
+                                        <ChartValueAxisLabels Format="{0:C0}"></ChartValueAxisLabels>
+                                    </ChartValueAxis>
+                                </ChartValueAxes>
+
+                                <ChartLegend Position="ChartLegendPosition.Right">
+                                </ChartLegend>
+                            </TelerikChart>
+                        }
+                    </div>
+                </Template>
+            </GridColumn>
+            <!-------------------------->
+            <GridColumn Field="@nameof(ProjectSearchResultDto.OrganizationName)" Title="@LocalizationService.StringFromResource("Projects-9")" Width="15%" Id="organization-column-id">
+                <Template>
+                    @{
+                        var item = (ProjectSearchResultDto)context;
+                        <div>&nbsp;</div>
+                        <div>@item.OrganizationName</div>
+                    }
+                </Template>
+            </GridColumn>
+            <GridCommandColumn Context="item" Width="110px">
+                <div style="display: flex; flex-direction: row">
+                    <div><b>&nbsp;</b></div>
+                </div>
+                <GridCommandButton Icon="@SvgIcon.Eye" OnClick="ViewButtonProjectHandler" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Projects-10")</GridCommandButton>
+            </GridCommandColumn>
+        </GridColumns>
+    </TelerikGrid>
+}
+
+<TelerikWindow @bind-Visible="@ChartDialogVisible"
+               Width="900px"
+               Height="600px"
+               Modal="true">
+    <WindowTitle>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <h3 style="margin: 0; font-size: 1.2rem;">@GetTitleByField(SelectedChartField)</h3>
+            <button @onclick="() => ChartDialogVisible = false"
+                    title="@LocalizationService.StringFromResource("Dialog_Close")"
+                    style="background: none; border: none; cursor: pointer;">
+                <span class="k-icon k-i-close" style="color: red; font-size: 20px;"></span>
+            </button>
+        </div>
+    </WindowTitle>
+    <WindowContent>
+        <ProjectsChartWindow ProjectList="@ProjectList" Field="@SelectedChartField"/>
+    </WindowContent>
+</TelerikWindow>
+
+
+@code {
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public string? SearchPhrase { get; set; } = string.Empty;
+    [Parameter] public int ProjectId { get; set; } = 0;
+    [Parameter] public int ApplicationId { get; set; } = 0;
+    [Parameter] public int DocumentId { get; set; } = 0;
+    [Parameter] public int AmountOfResult { get; set; } = 2500;
+    [Parameter] public int TabIndex { get; set; } = 0;
+    [Parameter] public int TabItem { get; set; } = 0;
+    
+    private List<ProjectSearchResultDto> ProjectList { get; set; } = [];
+    private int SelectedProjectId { get; set; } = 0;
+    private int SelectedApplicationId { get; set; } = 0;
+    private int SelectedDocumentId { get; set; } = 0;
+    private int SelectedIndex { get; set; } = 0;
+    private int SelectedItem { get; set; } = 0;
+    private TelerikGrid<ProjectSearchResultDto> GridRef { get; set; } = default!;
+    private bool LoaderVisible { get; set; } = false;
+    private List<GridColumnState> SelectedColumns { get; set; } = [];
+    
+    private bool ChartDialogVisible { get; set; }
+    private string SelectedChartField { get; set; } = "";
+
+    private string GridName { get; set; } = "Projects";
+    private bool ViewChanged { get; set; } = false;
+    private List<GridLayoutDto> SavedViews { get; set; } = [];
+    private int SelectedView { get; set; } = 0;
+    private string CurrentUser { get; set; } = string.Empty;
+    private bool CanDeleteView => SavedViews.FirstOrDefault(x => x.Id == SelectedView)?.UserName == CurrentUser;
+    
+    private bool DialogVisible { get; set; }
+    private TelerikDialog TelerikDialogInstance { get; set; } = null!;
+    private string ViewName { get; set; } = string.Empty;
+
+    private void OnSaveView()
+    {
+        DialogVisible = true;
+    }
+    
+    private async Task SaveView()
+    {
+        var gridState = GridRef.GetState();
+        var savedView = await GridLayoutService.SaveGridStateAsync(CurrentUser, GridName, ViewName, gridState, CancellationToken.None);
+        if (!savedView.IsOk) return;
+        
+        DialogVisible = false;
+        ViewChanged = false;
+        ViewName = string.Empty;
+        
+        await LoadViews();
+    }
+    
+    private async Task OnLoadView()
+    {
+        var loadedView = await GridLayoutService.LoadGridStateFromViewIdAsync(SelectedView, CancellationToken.None);
+        if (!loadedView.IsOk) return;
+        
+        await LocalStorage.SetItemAsync("userPreference", loadedView.Value);
+        SelectedColumns = loadedView.Value.ColumnStates.ToList();
+        
+        await GridRef.SetStateAsync(loadedView.Value);
+    }
+    
+    private async Task OnDeleteView()
+    {
+        var deletedView = await GridLayoutService.DeleteGridStateAsync(SelectedView, CancellationToken.None);
+        if (!deletedView.IsOk) return;
+        
+        var state = new GridState<ProjectSearchResultDto>();  //Creating a new empty state
+        await GridRef.SetStateAsync(state);  //Setting the state to the Grid*/
+        await LocalStorage.SetItemAsync("userPreference", state);
+        SelectedColumns = new List<GridColumnState>();
+        ViewChanged = false;
+        DialogVisible = false;
+        ViewName = string.Empty;
+        SelectedView = 0;
+        
+        await LoadViews();
+    }
+    
+
+    private void Refresh(int projectId)
+    {
+        Console.WriteLine($@"[Projects] ProjectId: {projectId}");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        switch (ProjectId)
+        {
+            case > 0 when ApplicationId > 0 && DocumentId > 0:
+                NavigationManager.NavigateTo($"/project/{ProjectId}/application/{ApplicationId}/document/{DocumentId}", false);
+                SelectedProjectId = ProjectId;
+                SelectedApplicationId = ApplicationId;
+                SelectedDocumentId = DocumentId;
+                SelectedIndex = 0;
+                break;
+            case > 0 when ApplicationId > 0 && TabIndex > 0 && TabItem > 0:
+                NavigationManager.NavigateTo($"/project/{ProjectId}/application/{ApplicationId}/tabindex/{TabIndex}/tabitem/{TabItem}", false);
+                SelectedProjectId = ProjectId;
+                SelectedApplicationId = ApplicationId;
+                SelectedDocumentId = 0;
+                SelectedIndex = TabIndex;
+                SelectedItem = TabItem;
+                break;
+            case > 0 when ApplicationId > 0 && TabIndex > 0:
+                NavigationManager.NavigateTo($"/project/{ProjectId}/application/{ApplicationId}/tabindex/{TabIndex}", false);
+                SelectedProjectId = ProjectId;
+                SelectedApplicationId = ApplicationId;
+                SelectedDocumentId = 0;
+                SelectedIndex = TabIndex;
+                break;
+            case > 0 when ApplicationId > 0:
+                NavigationManager.NavigateTo($"/project/{ProjectId}/application/{ApplicationId}", false);
+                SelectedProjectId = ProjectId;
+                SelectedApplicationId = ApplicationId;
+                SelectedDocumentId = 0;
+                SelectedIndex = 0;
+                break;
+            case > 0:
+                NavigationManager.NavigateTo($"/project/{ProjectId}", false);
+                SelectedProjectId = ProjectId;
+                SelectedApplicationId = 0;
+                SelectedDocumentId = 0;
+                SelectedIndex = 0;
+                break;
+            default:
+            {
+                await Load();
+                SelectedProjectId = 0;
+                SelectedApplicationId = 0;
+                SelectedDocumentId = 0;
+                SelectedIndex = 0;
+                break;
+            }
+        }
+    }
+
+    private async Task Load()
+    {
+        LoaderVisible = true;
+        
+        await LoadViews();
+        
+        var projects = new List<ProjectSearchResultDto>();
+        
+        Console.WriteLine("[Projects] Load()");
+        Console.WriteLine("[Projects] SearchPhrase: " + SearchPhrase);
+        
+        if (SearchPhrase is null || SearchPhrase.Length <= 0)
+        {
+            Console.WriteLine("[Projects] Get Favorites");
+            var favoritesResult = await UserService.FavoritesAsync(AppState.User.Id, new CancellationToken());
+            if (!favoritesResult.IsOk) return;
+
+            if (favoritesResult.Value.Any())
+            {
+                Console.WriteLine("[Projects] Peforming IdSearchAsync with Favorites");
+                projects = await ProjectService.IdSearchAsync(favoritesResult.Value, new CancellationToken());
+            }
+            else
+            {
+                Console.WriteLine("[Projects] Performing SemanticSearchAsync with latest");
+                projects = await ProjectService.SemanticSearchAsync("latest", AmountOfResult, new CancellationToken());
+            }
+        }
+        else if (SearchPhrase.CountWords() > 2)
+        {
+            Console.WriteLine("[Projects] Performing OpenAiSearchAsync with SearchPhrase");
+            projects = await ProjectService.OpenAiSearchAsync(SearchPhrase, AmountOfResult, new CancellationToken());
+        }
+        else
+        {
+            Console.WriteLine("[Projects] Performing SemanticSearchAsync with SearchPhrase");
+            projects = await ProjectService.SemanticSearchAsync(SearchPhrase, AmountOfResult, new CancellationToken());
+        }
+        
+        Console.WriteLine("[Projects] Projects count: " + projects.Count);
+                
+        ProjectList = projects;
+        
+        LoaderVisible = false;
+    }
+
+    private async Task LoadViews()
+    {
+        CurrentUser = AppState.User.FullName;
+
+        var savedViews = await GridLayoutService.GetAllAsync(CurrentUser, GridName, CancellationToken.None);
+        if (!savedViews.IsOk) return;
+
+        var myViews = savedViews.Value
+            .Where(x => x.UserName == CurrentUser)
+            .OrderBy(x => x.Title)
+            .ToList();
+
+        var otherViews = savedViews.Value
+            .Where(x => x.UserName != CurrentUser)
+            .OrderBy(x => x.Title)
+            .ToList();
+
+        var groupedList = new List<GridLayoutDto>();
+
+        if (myViews.Any())
+        {
+            groupedList.AddRange(myViews);
+        }
+
+        if (myViews.Any() && otherViews.Any()) // Endast lägg till separator om båda sektionerna finns
+        {
+            groupedList.Add(new GridLayoutDto { Id = -1, Title = "──────────", UserName = "" }); // 👈 Separator
+        }
+
+        if (otherViews.Any())
+        {
+            groupedList.AddRange(otherViews);
+        }
+
+        SavedViews = groupedList;
+
+        // 👇 Välj första riktiga vyn automatiskt
+        SelectedView = SavedViews.FirstOrDefault(x => x.Id != -1)?.Id ?? 0;
+    }
+
+    private void ViewButtonProjectHandler(GridCommandEventArgs args)
+    {
+        if (args.Item is not ProjectSearchResultDto item) return;
+
+        SelectedProjectId = item.Id;
+        
+        if (SearchPhrase is not null && SearchPhrase.Length > 0)
+        {
+            NavigationManager.NavigateTo($"/project/{SelectedProjectId}/searchphrase/{SearchPhrase}", false);
+        }
+        else
+        {
+            NavigationManager.NavigateTo($"/project/{SelectedProjectId}", false);
+        }
+    }
+
+    private void ViewRowProjectHandler(GridRowClickEventArgs args)
+    {
+        if (args.Item is not ProjectSearchResultDto item) return;
+
+        SelectedProjectId = item.Id;
+        
+        if (SearchPhrase is not null && SearchPhrase.Length > 0)
+        {
+            NavigationManager.NavigateTo($"/project/{SelectedProjectId}/searchphrase/{SearchPhrase}", false);
+        }
+        else
+        {
+            NavigationManager.NavigateTo($"/project/{SelectedProjectId}", false);
+        }
+    }
+    
+    private async Task OnGridStateInit(GridStateEventArgs<ProjectSearchResultDto> args)
+    {
+        try
+        {
+            var state = await LocalStorage.GetItemAsync<GridState<ProjectSearchResultDto>>("userPreference");
+            if (state != null)
+            {
+                args.GridState = state;
+                SelectedColumns = state.ColumnStates.ToList();
+            }
+        }
+        catch
+        {
+            // JSInterop cannot be used during pre-rendering, so the code above will throw.
+            // Once the app initializes, it will work fine.
+        }
+    }
+
+    private async Task OnGridStateChanged(GridStateEventArgs<ProjectSearchResultDto> args)
+    {
+        await LocalStorage.SetItemAsync("userPreference", args.GridState);
+        SelectedColumns = args.GridState.ColumnStates.ToList();
+        ViewChanged = true;
+    }
+
+    private void OnExcelBeforeExport(GridBeforeExcelExportEventArgs args)
+    {
+        var index = 0;
+        args.Columns.RemoveAt(index);
+        args.Columns.Insert(index, new GridExcelExportColumn()
+        {
+            Title = "",
+            Field = nameof(ProjectSearchResultDto.Number),
+            Width = "120px"
+        });
+        index++;
+        
+        args.Columns.RemoveAt(index);
+        args.Columns.Insert(index, new GridExcelExportColumn()
+        {
+            Title = @LocalizationService.StringFromResource("Projects-4"),
+            Field = nameof(ProjectSearchResultDto.Title),
+            Width = "300px"
+        });
+        index++;
+        
+        // Här ska vi kolla om kolumnen finns i SelectedColumns
+        // Om den finns så ska den läggas till i ExcelExport
+        if (SelectedColumns.Any(x => x.Field == nameof(ProjectSearchResultDto.ProjectManager)))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-6"),
+                Field = nameof(ProjectSearchResultDto.ProjectManager),
+                Width = "170px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-program-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-11"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-status-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-12"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-applied-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-13"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-productionyear-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-122"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-totalbudget-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-123"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-reportedspend-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-124"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-spendrequirement-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-125"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-ourcontribution-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-126"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-signedcontractdate-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-127"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-recordinglocation-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-128"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-recordingdays-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-129"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-recordingperiodstart-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-130"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-recordingperiodend-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-131"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-applicationyear-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-132"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-premiereyear-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-133"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-recordingcomment-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-134"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-distributor-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-135"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-producersummary-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-136"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-writersummary-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-137"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        if (SelectedColumns.Any(x => x.Id == "application-directorsummary-column-id"))
+        {
+            args.Columns.RemoveAt(index);
+            args.Columns.Insert(index, new GridExcelExportColumn()
+            {
+                Title = @LocalizationService.StringFromResource("Projects-138"),
+                Field = nameof(ProjectSearchResultDto.Applications),
+                Width = "300px"
+            });
+            index++;
+        }
+        
+        // Set IsCancelled to true if you want to prevent exporting
+        args.IsCancelled = false;
+    }
+    
+    private async Task OnProjectClickBack(string? searchPhrase)
+    {
+        SearchPhrase = searchPhrase?.Length > 0 ? searchPhrase : null;
+        SelectedProjectId = 0;
+        SelectedApplicationId = 0;
+        SelectedDocumentId = 0;
+        SelectedIndex = 0;
+        
+        await Load();
+
+        //await InvokeAsync(StateHasChanged);
+    }
+
+    private string CalculateColor(int statusId)
+    {
+        return statusId switch
+        {
+            1 => "white",
+            2 => "white",
+            3 => "white",
+            4 or 24 => "yellow",
+            5 => "orange",
+            6 or 19 => "red",
+            7 or 23 => "green",
+            
+            8 => "color_numer_one",
+            9 => "color_number_two",
+            10 => "color_number_three",
+            11 => "color_number_four",
+            12 => "color_number_five",
+            13 or 22 => "color_number_six",
+            14 => "color_number_seven",
+            15 => "color_number_eight",
+            
+            16 => "silver",
+            17 => "silver",
+            18 => "silver",
+            
+            20 => "purple",
+            21 => "silver",
+            _ => "primary"
+        };
+        /*
+         14,15,20
+         4-
+        +--+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|Id|Names                                                                                                                                                                                                                                                                                                                                                                                                                                  |
++--+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|1 |["Default","Standard","Default","Default","Predeterminado","Par d\u00E9faut","Predefinito","Standard"]                                                                                                                                                                                                                                                                                                                                 |
+|2 |["Ok","Ok","Ok","Ok","Ok","Ok","Ok","Ok"]                                                                                                                                                                                                                                                                                                                                                                                              |
+|3 |["Obehandlad","Unprocessed","Ubehandlet","Unbehandelt","No procesado","Non trait\u00E9","Non elaborato","Ubehandlet"]                                                                                                                                                                                                                                                                                                                  |
+|4 |["Ej komplett","Incomplete","Ufuldst\u00E6ndig","Unvollst\u00E4ndig","Incompleto","Incomplet","Incompleto","Ufullstendig"]                                                                                                                                                                                                                                                                                                             |
+|5 |["Inf\u00F6r beslut","Pending Decision","Afventer beslutning","Vor Entscheidung","Pendiente de decisi\u00F3n","En attente de d\u00E9cision","In attesa di decisione","Venter p\u00E5 avgj\u00F8relse"]                                                                                                                                                                                                                                 |
+|6 |["Avslag","Rejected","Afvist","Abgelehnt","Rechazado","Rejet\u00E9","Rifiutato","Avvist"]                                                                                                                                                                                                                                                                                                                                              |
+|7 |["FIV Produktionsbeslut","FIV Production Decision","FIV Produktionsbeslutning","FIV Produktionsentscheidung","Decisi\u00F3n de producci\u00F3n del FIV","D\u00E9cision de production du FIV","Decisione di produzione FIV","FIV produksjonsbeslutning"]                                                                                                                                                                                |
+|8 |["Avtalsprocess","Contract Process","Aftaleproces","Vertragsprozess","Proceso de contrato","Processus de contrat","Processo contrattuale","Kontraktprosess"]                                                                                                                                                                                                                                                                           |
+|9 |["Avtalsprocess klar","Contract Process Completed","Aftaleproces afsluttet","Vertragsprozess abgeschlossen","Proceso de contrato completado","Processus de contrat termin\u00E9","Processo contrattuale completato","Kontraktprosess fullf\u00F8rt"]                                                                                                                                                                                   |
+|10|["Rough Cut klar/Godk\u00E4nd arbetskopia klar","Rough Cut Ready/Approved Work Copy Ready","Klar klipning / Godkendt arbejdskopi klar","Rohschnitt fertig / Genehmigte Arbeitskopie fertig","Corte preliminar listo / Copia de trabajo aprobada lista","Montage brut pr\u00EAt / Copie de travail approuv\u00E9e pr\u00EAte","Montaggio grezzo pronto / Copia di lavoro approvata pronta","Rough Cut klar / Godkjent arbeidskopi klar"]|
+|11|["Final cut / DCP klar","Final Cut/DCP Ready","Endelig klip / DCP klar","Endschnitt / DCP fertig","Corte final / DCP listo","Montage final / DCP pr\u00EAt","Montaggio finale / DCP pronto","Final cut / DCP klar"]                                                                                                                                                                                                                    |
+|12|["Spendredovisning klar","Spend Report Ready","Udgiftsrapport klar","Ausgabenbericht fertig","Informe de gastos listo","Rapport de d\u00E9penses pr\u00EAt","Rapporto di spesa pronto","Utgiftsrapport klar"]                                                                                                                                                                                                                          |
+|13|["Spendredovisning godk\u00E4nd","Spend Report Approved","Udgiftsrapport godkendt","Ausgabenbericht genehmigt","Informe de gastos aprobado","Rapport de d\u00E9penses approuv\u00E9","Rapporto di spesa approvato","Utgiftsrapport godkjent"]                                                                                                                                                                                          |
+|14|["Slutredovisning godk\u00E4nd","Final Report Approved","Slutrapport godkendt","Abschlussbericht genehmigt","Informe final aprobado","Rapport final approuv\u00E9","Rapporto finale approvato","Sluttrapport godkjent"]                                                                                                                                                                                                                |
+|15|["PR material mottaget","PR Material Received","PR-material modtaget","PR-Material erhalten","Material de prensa recibido","Mat\u00E9riaux de RP re\u00E7us","Materiale PR ricevuto","PR-materiale mottatt"]                                                                                                                                                                                                                           |
+|16|["Avklarat","Completed","Afsluttet","Abgeschlossen","Completado","Termin\u00E9","Completato","Avklart"]                                                                                                                                                                                                                                                                                                                                |
+|17|["Avklarat utan PR material","Completed Without PR Material","Afsluttet uden PR-materiale","Abgeschlossen ohne PR-Material","Completado sin material de prensa","Termin\u00E9 sans mat\u00E9riel de RP","Completato senza materiale PR","Fullf\u00F8rt uten PR-materiale"]                                                                                                                                                             |
+|18|["Avklarad projektutveckling","Completed Project Development","Afsluttet projektudvikling","Abgeschlossene Projektentwicklung","Desarrollo de proyecto completado","D\u00E9veloppement de projet termin\u00E9","Sviluppo del progetto completato","Avsluttet prosjektutvikling"]                                                                                                                                                       |
+|19|["Deleted","Raderad","Slettet","Gel\u00F6scht","Eliminado","Supprim\u00E9","Eliminato","Slettet"]                                                                                                                                                                                                                                                                                                                                      |
+|20|["Historia","History","Historie","Geschichte","Historia","Histoire","Storia","Historie"]                                                                                                                                                                                                                                                                                                                                               |
+|21|["Avslutad utan samproduktion","Completed Without Co-production","Afsluttet uden medproduktion","Abgeschlossen ohne Koproduktion","Terminado sin coproducci\u00F3n","Termin\u00E9 sans coproduction","Completato senza coproduzione","Avsluttet uten samproduksjon"]                                                                                                                                                                   |
+|22|["Spendredovisning och slutredovisning godk\u00E4nd","Spend Report and Final Report Approved","Udgiftsrapport og slutrapport godkendt","Ausgabenbericht und Abschlussbericht genehmigt","Informe de gastos e informe final aprobados","Rapport de d\u00E9penses et rapport final approuv\u00E9s","Rapporto di spesa e rapporto finale approvati","Utgiftsrapport og sluttrapport godkjent"]                                            |
+|23|["\u00C5tg\u00E4rdat","Resolved","L\u00F8st","Behoben","Resuelto","R\u00E9solu","Risolto","L\u00F8st"]                                                                                                                                                                                                                                                                                                                                 |
+|24|["Ej l\u00E4st","Unread","Ul\u00E6st","Ungelesen","No le\u00EDdo","Non lu","Non letto","Ulest"]                                                                                                                                                                                                                                                                                                                                        |
++--+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+*/
+
+    }
+
+    private async Task OnResetView()
+    {
+        var state = new GridState<ProjectSearchResultDto>();  //Creating a new empty state
+        await GridRef.SetStateAsync(state);  //Setting the state to the Grid*/
+        await LocalStorage.SetItemAsync("userPreference", state);
+        SelectedColumns = new List<GridColumnState>();
+        ViewChanged = false;
+        SelectedView = 0;
+    }
+
+    private async Task OnStandardView()
+    {
+        if (GridRef != null)
+        {
+            var gridState = GridRef.GetState();
+
+            foreach (var state in gridState.ColumnStates)
+            {
+                if (state.Index is 0 or 1 or 2 or 3 or 4 or 23)
+                {
+                    state.Visible = true;
+                }
+                else
+                {
+                    state.Visible = false;
+                }
+            }
+
+            await GridRef.SetStateAsync(gridState);
+        }
+    }
+
+    private async Task OnEconomyView()
+    {
+        if (GridRef != null)
+        {
+            var gridState = GridRef.GetState();
+
+            foreach (var state in gridState.ColumnStates)
+            {
+                if (state.Index is 0 or 2 or 5 or 6 or 7 or 8 or 9)
+                {
+                    state.Visible = true;
+                }
+                else
+                {
+                    state.Visible = false;
+                }
+            }
+
+            await GridRef.SetStateAsync(gridState);
+        }
+    }
+
+    private async Task OnProductionView()
+    {
+        if (GridRef != null)
+        {
+            var gridState = GridRef.GetState();
+
+            foreach (var state in gridState.ColumnStates)
+            {
+                if (state.Index is 0 or 5 or 16 or 18 or 19 or 20 or 21)
+                {
+                    state.Visible = true;
+                }
+                else
+                {
+                    state.Visible = false;
+                }
+            }
+
+            await GridRef.SetStateAsync(gridState);
+        }
+    }
+
+    private async Task DownloadExcelFile()
+    {
+        var projects = ProjectList;
+        var excelData = await ExportToExcel(projects);
+        var base64 = Convert.ToBase64String(excelData);
+
+        await JS.InvokeVoidAsync("saveFile", base64, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{LocalizationService.StringFromResource("Projects-146")}.xlsx");
+    }
+    
+    private async Task<byte[]> ExportToExcel(List<ProjectSearchResultDto> projects)
+    {
+        using var workbook = new XLWorkbook();
+        var worksheet = workbook.Worksheets.Add(LocalizationService.StringFromResource("Projects-146"));
+        var gridState = GridRef.GetState();
+        var columnIndex = 0;
+        
+        // Sätt rubriker för kolumnerna
+        if (gridState.ColumnStates.Count(x => x.Visible == true) < 1)
+        {
+            await OnStandardView();
+            gridState = GridRef.GetState();
+        }
+        foreach (var state in gridState.ColumnStates)
+        {
+            if (state.Visible != true) continue;
+            
+            columnIndex++;
+            
+            if (columnIndex == 1)
+            {
+                var data = ColumnTitleById(state.Id);
+                worksheet.Cell(1, columnIndex).Value = data.Split(';')[1];
+                worksheet.Cell(1, columnIndex+1).Value = data.Split(';')[0];
+                worksheet.Cell(1, columnIndex).Style.Font.Bold = true; 
+                worksheet.Cell(1, columnIndex+1).Style.Font.Bold = true; 
+                
+                for (var i = 0; i < projects.Count; i++)
+                {
+                    var values = RowValueById(state.Id, projects[i]);
+                    worksheet.Cell(i + 2, columnIndex).Value = values.Split(';')[1];
+                    worksheet.Cell(i + 2, columnIndex+1).Value = values.Split(';')[0];
+                }
+                
+                columnIndex++;
+            }
+            else
+            {
+                worksheet.Cell(1, columnIndex).Value = ColumnTitleById(state.Id);
+                worksheet.Cell(1, columnIndex).Style.Font.Bold = true; 
+                
+                for (var i = 0; i < projects.Count; i++)
+                {
+                    worksheet.Cell(i + 2, columnIndex).Value = RowValueById(state.Id, projects[i]);
+                    worksheet.Cell(i + 2, columnIndex).Style.Alignment.WrapText = true;
+                }
+            }
+        }
+
+        // Justera alla celler till toppen och auto-fit kolumner
+        worksheet.Rows().Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
+        worksheet.Columns().AdjustToContents();
+        
+        // Skapa en tabell runt datan (A1 till sista kolumn och rad)
+        var dataRange = worksheet.RangeUsed(); // Välj hela området med data
+        dataRange?.CreateTable();               // Skapa tabell
+
+        // Spara filen som byte-array
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        return stream.ToArray();
+    }
+
+    private string RowValueById(string id, ProjectSearchResultDto project)
+    {
+        var ret = "";
+        var index = SharedService.IndexByCulture();
+
+        ret = id switch
+        {
+            "title-column-id" => project.Title + ";" + project.Number,
+            "projectmanager-column-id" => project.ProjectManager,
+            "application-program-column-id" => string.Join("\n", project.Applications.Select(app => app.SchemaNames[index])),
+            "application-status-column-id" => string.Join("\n", project.Applications.Select(app => AppState.Statuses.FirstOrDefault(x => x.OrganizationStatusIdentifier == app.StatusId)?.Names[index])),
+            "application-applied-column-id" => string.Join("\n", project.Applications.Select(app => app.CreatedDate.ToString("yyyy-MM-dd"))),
+            "application-productionyear-column-id" => string.Join("\n", project.Applications.Select(app => app.ProductionYear)),
+            "application-totalbudget-column-id" => string.Join("\n", project.Applications.Select(app => app.TotalBudget.ToString("C"))),
+            "application-reportedspend-column-id" => string.Join("\n", project.Applications.Select(app => app.ReportedSpend.ToString("C"))),
+            "application-spendrequirement-column-id" => string.Join("\n", project.Applications.Select(app => app.SpendRequirement.ToString("C"))),
+            "application-ourcontribution-column-id" => string.Join("\n", project.Applications.Select(app => app.OurContribution.ToString("C"))),
+            "application-signedcontractdate-column-id" => string.Join("\n", project.Applications.Select(app => app.SignedContractDate.ToString("yyyy-MM-dd"))),
+            "application-recordinglocation-column-id" => string.Join("\n", project.Applications.Select(app => app.RecordingLocation)),
+            "application-recordingdays-column-id" => string.Join("\n", project.Applications.Select(app => app.RecordingDays)),
+            "application-recordingperiodstart-column-id" => string.Join("\n", project.Applications.Select(app => app.RecordingPeriodStart.ToString("yyyy-MM-dd"))),
+            "application-recordingperiodend-column-id" => string.Join("\n", project.Applications.Select(app => app.RecordingPeriodEnd.ToString("yyyy-MM-dd"))),
+            "application-applicationyear-column-id" => string.Join("\n", project.Applications.Select(app => app.ApplicationYear)),
+            "application-premiereyear-column-id" => string.Join("\n", project.Applications.Select(app => app.PremiereYear)),
+            "application-recordingcomment-column-id" => string.Join("\n", project.Applications.Select(app => app.RecordingComment)),
+            "application-distributor-column-id" => string.Join("\n", project.Applications.Select(app => app.Distributor)),
+            "application-producersummary-column-id" => string.Join("\n", project.Applications.Select(app => app.ProducerSummary)),
+            "application-writersummary-column-id" => string.Join("\n", project.Applications.Select(app => app.WriterSummary)),
+            "application-directorsummary-column-id" => string.Join("\n", project.Applications.Select(app => app.DirectorSummary)),
+            "organization-column-id" => project.OrganizationName,
+            _ => string.Join("\n", project.Applications.Select(app => AppState.Statuses.FirstOrDefault(x => x.OrganizationStatusIdentifier == app.StatusId)?.Names[index]))
+        };
+
+        return ret;
+    }
+
+    private string ColumnTitleById(string id)
+    {
+        return id switch
+        {
+            "title-column-id" => LocalizationService.StringFromResource("Projects-4") + ";" + LocalizationService.StringFromResource("Settings-6"),
+            "projectmanager-column-id" => LocalizationService.StringFromResource("Projects-6"),
+            "application-program-column-id" => LocalizationService.StringFromResource("Projects-11"),
+            "application-status-column-id" => LocalizationService.StringFromResource("Projects-12"),
+            "application-applied-column-id" => LocalizationService.StringFromResource("Projects-13"),
+            "application-productionyear-column-id" => LocalizationService.StringFromResource("Projects-122"),
+            "application-totalbudget-column-id" => LocalizationService.StringFromResource("Projects-123"),
+            "application-reportedspend-column-id" => LocalizationService.StringFromResource("Projects-124"),
+            "application-spendrequirement-column-id" => LocalizationService.StringFromResource("Projects-125"),
+            "application-ourcontribution-column-id" => LocalizationService.StringFromResource("Projects-126"),
+            "application-signedcontractdate-column-id" => LocalizationService.StringFromResource("Projects-127"),
+            "application-recordinglocation-column-id" => LocalizationService.StringFromResource("Projects-128"),
+            "application-recordingdays-column-id" => LocalizationService.StringFromResource("Projects-129"),
+            "application-recordingperiodstart-column-id" => LocalizationService.StringFromResource("Projects-130"),
+            "application-recordingperiodend-column-id" => LocalizationService.StringFromResource("Projects-131"),
+            "application-applicationyear-column-id" => LocalizationService.StringFromResource("Projects-132"),
+            "application-premiereyear-column-id" => LocalizationService.StringFromResource("Projects-133"),
+            "application-recordingcomment-column-id" => LocalizationService.StringFromResource("Projects-134"),
+            "application-distributor-column-id" => LocalizationService.StringFromResource("Projects-135"),
+            "application-producersummary-column-id" => LocalizationService.StringFromResource("Projects-136"),
+            "application-writersummary-column-id" => LocalizationService.StringFromResource("Projects-137"),
+            "application-directorsummary-column-id" => LocalizationService.StringFromResource("Projects-138"),
+            "organization-column-id" => LocalizationService.StringFromResource("Projects-9"),
+            _ => ""
+        };
+    }
+    
+    private void OpenChartFor(string field)
+    {
+        SelectedChartField = field;
+        ChartDialogVisible = true;
+    }
+    
+    private static string GetTitleByField(string field)
+    {
+        return field switch
+        {
+            "ProductionYear" => @LocalizationService.StringFromResource("Projects-122"),
+            "ApplicationYear" => @LocalizationService.StringFromResource("Projects-132"),
+            "PremiereYear" => @LocalizationService.StringFromResource("Projects-133"),
+            "RecordingDays" => @LocalizationService.StringFromResource("Projects-129"),
+            "TotalBudget" => @LocalizationService.StringFromResource("Projects-123"),
+            "ReportedSpend" => @LocalizationService.StringFromResource("Projects-124"),
+            "SpendRequirement" => @LocalizationService.StringFromResource("Projects-125"),
+            "OurContribution" => @LocalizationService.StringFromResource("Projects-126"),
+            _ => "Title"
+        };
+    }
+}

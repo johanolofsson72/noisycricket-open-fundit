@@ -1,0 +1,233 @@
+@page "/"
+
+@attribute [Authorize(Policy = "Admin")]
+
+@rendermode @(new InteractiveServerRenderMode(false))
+
+@using System.Text.RegularExpressions
+@using global::Shared.Statistics.Enums
+@using Newtonsoft.Json
+@using AppAdmin.Components.Statistics
+@using AppAdmin.State
+
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage SessionStorage
+@inject UserService UserService
+@inject LocalStorage LocalStorage
+@inject IJSRuntime JS
+@inject BrowserService BrowserService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@LocalizationService.StringFromResource("Home-1")</PageTitle>
+
+<Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+
+    <TelerikRootComponent>
+        <TelerikTileLayout @ref="@TileLayoutInstance"
+                           Columns="6"
+                           Class="tiles"
+                           Width="100%"
+                           Height="110vh"
+                           RowHeight="7.5vw"
+                           Reorderable="true"
+                           Resizable="false" OnResize="@OnResize" OnReorder="@OnReOrder">
+            <TileLayoutItems>
+                @if (User is not null)
+                {
+                @foreach (var statistic in User.Statistics.OrderBy(x => x.StatisticIdentifier))
+                {
+                    statistic.Name = Regex.Unescape(statistic.Name);
+                    statistic.Description = Regex.Unescape(statistic.Description);
+                    statistic.Value = Regex.Unescape(statistic.Value);
+                    var value = JsonConvert.DeserializeObject<StatisticRenderDto>(statistic.Value) ?? new StatisticRenderDto();
+
+                    <TileLayoutItem Class="tiles" HeaderText="@LocalizationService.StringFromResource("Statistics-" + @statistic.Description)" ColSpan="@statistic.Columns" RowSpan="@statistic.Rows">
+                        <Content>
+                            <div @onclick="@(() => OnStatisticDelete(@statistic.StatisticIdentifier))"><TelerikSvgIcon Icon="@SvgIcon.XCircle" Size="@ThemeConstants.SvgIcon.Size.Large" Class="delete-icon"/></div>
+                            @{
+                            switch (statistic.Description)
+                            {
+                            case "TotalBudgetThisYear":
+                            <TotalBudgetThisYear TotalBudget="@decimal.Parse(value.SingleRowOneItemValue == "" ? "0" : value.SingleRowOneItemValue, CultureInfo.InvariantCulture)"/>
+                            break;
+                            case "TotalBudgetLastYear":
+                            <TotalBudgetLastYear TotalBudget="@decimal.Parse(value.SingleRowOneItemValue == "" ? "0" : value.SingleRowOneItemValue, CultureInfo.InvariantCulture)"/>
+                            break;
+                            case "OurContributionThisYear":
+                            <OurContributionThisYear TotalBudget="@decimal.Parse(value.SingleRowOneItemValue == "" ? "0" : value.SingleRowOneItemValue, CultureInfo.InvariantCulture)"/>
+                            break;
+                            case "OurContributionLastYear":
+                            <OurContributionLastYear TotalBudget="@decimal.Parse(value.SingleRowOneItemValue == "" ? "0" : value.SingleRowOneItemValue, CultureInfo.InvariantCulture)"/>
+                            break;
+                            case "SupportedProjectsLastYear":
+                            <SupportedProjectsLastYear TotalBudget="@decimal.Parse(value.SingleRowOneItemValue == "" ? "0" : value.SingleRowOneItemValue, CultureInfo.InvariantCulture)"/>
+                            break;
+                            case "SupportedProjectsThisYear":
+                            <SupportedProjectsThisYear TotalBudget="@decimal.Parse(value.SingleRowOneItemValue == "" ? "0" : value.SingleRowOneItemValue, CultureInfo.InvariantCulture)"/>
+                            break;
+                            case "LatestIncomingMessages":
+                            <LatestIncomingMessages Data="@(value.ManyRowsThreeItems is null ? [] : value.ManyRowsThreeItems )"/>
+                            break;
+                            case "LatestOutgoingMessages":
+                            <LatestOutgoingMessages Data="@(value.ManyRowsThreeItems is null ? [] : value.ManyRowsThreeItems )"/>
+                            break;
+                            case "LatestIncomingDocuments":
+                            <LatestIncomingDocuments Data="@(value.ManyRowsSixItems is null ? [] : value.ManyRowsSixItems )"/>
+                            break;
+                            case "LatestInternalDocuments":
+                            <LatestInternalDocuments Data="@(value.ManyRowsSixItems is null ? [] : value.ManyRowsSixItems )"/>
+                            break;
+                            case "ProductionCompanySupportedProjects":
+                            <ProductionCompanySupportedProjects Data="@value.ManyRowsTwoItems"/>
+                            break;
+                            case "ProducerGenders":
+                            <ProducerGenders Data="@value.ManyRowsOneItem"/>
+                            break;
+                            case "DirectorGenders":
+                            <DirectorGenders Data="@value.ManyRowsOneItem"/>
+                            break;
+                            case "ActivityTheLastThreeYears":
+                            <ActivityTheLastThreeYears Data="@value.ManyRowsTwoItems"/>
+                            break;
+                            }
+                            }
+                        </Content>
+                    </TileLayoutItem>
+                    }
+                }
+            </TileLayoutItems>
+        </TelerikTileLayout>
+    </TelerikRootComponent>
+</Animate>
+
+
+@code 
+{
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
+    private OrganizationDto? Organization { get; set; } = null!;
+    private int UserId { get; set; } = 4;
+    private UserDto? User { get; set; } = null;
+    private TelerikTileLayout? TileLayoutInstance { get; set; }
+    private TileLayoutState? SavedState { get; set; }
+    private string StateStorageKey { get; set; } = "fundit-home-tile-layout-state";
+    
+    private readonly Lock _lockObject = new Lock();
+    private DateTime _lastExecuted = DateTime.MinValue;
+    private static Timer _debounceTimer = default!;
+    private const double DebounceIntervalMs = 1000;
+
+    private void HandlePropertyChanged(StatePropertyChangedArgs args)
+    {
+        lock (_lockObject)
+        {
+            _debounceTimer?.Dispose();
+        
+            _debounceTimer = new Timer((state) =>
+            {
+                lock (_lockObject)
+                {
+                    if ((DateTime.UtcNow - _lastExecuted).TotalMilliseconds < DebounceIntervalMs)
+                        return;
+
+                    _lastExecuted = DateTime.UtcNow;
+                    ExecutePropertyJob(args);
+                }
+            }, null, (int)DebounceIntervalMs, Timeout.Infinite);
+        }
+    }
+
+    private void ExecutePropertyJob(StatePropertyChangedArgs args)
+    {
+        var propertyName = args.PropertyName;
+        var propertyValue = args.NewValue;
+
+        Console.WriteLine("Property changed: " + propertyName + " value: " + propertyValue);
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        BrowserService.Init(JS);
+        
+        var result = await SessionStorage.GetAsync<bool>("HasRefreshedOnce");
+
+        if (!result.Success || result.Value == false)
+        {
+            await SessionStorage.SetAsync("HasRefreshedOnce", true);
+            await Task.Delay(500);
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+        
+        Organization = AppState.Organization;
+        User = AppState.User;
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var state = await LocalStorage.GetItemAsync<TileLayoutState>(StateStorageKey);
+        if (state != null && TileLayoutInstance != null)
+        {
+            TileLayoutInstance.SetState(state);
+        }
+        
+    }
+    
+    private async Task SaveState()
+    {
+        var state = TileLayoutInstance?.GetState();
+        await LocalStorage.SetItemAsync(StateStorageKey, state);
+    }
+
+    private async Task LoadState()
+    {
+        TileLayoutState? storedState = await LocalStorage.GetItemAsync<TileLayoutState>(StateStorageKey);
+        if (storedState != null)
+        {
+            TileLayoutInstance?.SetState(storedState);
+        }
+    }
+
+    private async Task OnReOrder(TileLayoutReorderEventArgs obj)
+    {
+        await SaveState();
+    }
+
+    private async Task OnResize(TileLayoutResizeEventArgs obj)
+    {
+        await SaveState();
+    }
+
+    private async Task OnStatisticDelete(int id)
+    {
+        if (User != null)
+        {
+            var item = User.Statistics.FirstOrDefault(x => x.StatisticIdentifier == id);
+            if (item is null) return;
+            User.Statistics.Remove(item);
+        }
+
+        if (User != null)
+        {
+            var updateUserResult = await UserService.UpdateUserAsync(UserId, 
+                new UpdateUserDto()
+                {
+                    StatusId = User.StatusId,
+                    FirstName = User.FirstName,
+                    LastName = User.LastName,
+                    Addresses = User.Addresses,
+                    PhoneNumbers = User.PhoneNumbers,
+                    Organizations = User.Organizations,
+                    Statistics = User.Statistics,
+                    Favorites = User.Favorites
+                }, new CancellationToken());
+
+            if (!updateUserResult.IsOk)
+            {
+                Console.WriteLine(updateUserResult.Error);
+                return;
+            }
+        }
+
+        StateHasChanged();
+    }
+}

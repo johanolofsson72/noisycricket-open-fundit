@@ -1,0 +1,87 @@
+@using System.Configuration
+
+@inject IConfiguration Configuration
+
+@inject BrowserService BrowserService
+
+<TelerikChart @ref="Chart" RenderAs="RenderingMode.SVG" Transitions="true" Height="12vw">
+    <ChartSeriesItems>
+        <ChartSeries Type="ChartSeriesType.Line" Name="@DateTime.UtcNow.AddYears(-2).Year.ToString()" Data="@Values.Take(12)">
+            <ChartSeriesLabels Position="ChartSeriesLabelsPosition.Left"
+                               Visible="true" Format="{0}"
+                               Background="transparent"/>
+        </ChartSeries>
+        <ChartSeries Type="ChartSeriesType.Line" Name="@DateTime.UtcNow.AddYears(-1).Year.ToString()" Data="@Values.Skip(12).Take(12)">
+            <ChartSeriesLabels Position="ChartSeriesLabelsPosition.Above"
+                               Visible="true" Format="{0}"
+                               Background="transparent"/>
+        </ChartSeries>
+        <ChartSeries Type="ChartSeriesType.Line" Name="@DateTime.UtcNow.Year.ToString()" Data="@Values.Skip(24).Take(12)">
+            <ChartSeriesLabels Position="ChartSeriesLabelsPosition.Right"
+                               Visible="true" Format="{0}"
+                               Background="transparent"/>
+        </ChartSeries>
+    </ChartSeriesItems>
+
+    <ChartCategoryAxes>
+        <ChartCategoryAxis Categories="@xAxisItems"></ChartCategoryAxis>
+    </ChartCategoryAxes>
+    <ChartLegend Position="ChartLegendPosition.Bottom">
+    </ChartLegend>
+</TelerikChart>
+
+@code {
+    [Parameter] public List<List<string>> Data { get; set; } = [];
+    private List<object> Values { get; set; } = [];
+    private object[] xAxisItems = [@LocalizationService.StringFromResource("Statistics-Januari"), @LocalizationService.StringFromResource("Statistics-Februari"), @LocalizationService.StringFromResource("Statistics-Mars"), @LocalizationService.StringFromResource("Statistics-April"), @LocalizationService.StringFromResource("Statistics-Maj"), @LocalizationService.StringFromResource("Statistics-Juni"), @LocalizationService.StringFromResource("Statistics-Juli"), @LocalizationService.StringFromResource("Statistics-Augusti"), @LocalizationService.StringFromResource("Statistics-September"), @LocalizationService.StringFromResource("Statistics-Oktober"), @LocalizationService.StringFromResource("Statistics-November"), @LocalizationService.StringFromResource("Statistics-December")];
+    private TelerikChart Chart { get; set; } = null!;
+
+    protected override void OnInitialized() {
+        // subscribe to browser width change
+        BrowserService.Resize += UpdatedBrowserRefreshComponent!;
+    }
+    
+    protected override void OnParametersSet()
+    {
+        Values = [];
+        
+        if (Configuration.GetValue<bool>("DemoMode"))
+        {
+            Values = Enumerable.Repeat((object)0, 36).ToList();
+            for (var i = 0; i < Values.Count; i++)
+            {
+                Values[i] = new Bogus.Faker().Random.Int(0, 3);
+            }
+        }
+        else
+        {
+            var sum = Data.Take(12).Select(x => Convert.ToInt32(x[1])).Sum();
+            foreach (var dataRow in Data.Take(12))
+            {
+                //Values.Add(System.Math.Round((Convert.ToDecimal(dataRow[1]) / sum) * 100));
+                Values.Add(System.Math.Round((Convert.ToDecimal(dataRow[1]))));
+            }
+        
+            sum = Data.Skip(12).Take(12).Select(x => Convert.ToInt32(x[1])).Sum();
+            foreach (var dataRow in Data.Skip(12).Take(12))
+            {
+                //Values.Add(System.Math.Round((Convert.ToDecimal(dataRow[1]) / sum) * 100));
+                Values.Add(System.Math.Round((Convert.ToDecimal(dataRow[1]))));
+            }
+        
+            sum = Data.Skip(24).Take(12).Select(x => Convert.ToInt32(x[1])).Sum();
+            foreach (var dataRow in Data.Skip(24).Take(12))
+            {
+                //Values.Add(System.Math.Round((Convert.ToDecimal(dataRow[1]) / sum) * 100));
+                Values.Add(System.Math.Round((Convert.ToDecimal(dataRow[1]))));
+            }
+        }
+
+        StateHasChanged();
+    }
+    
+    protected void UpdatedBrowserRefreshComponent(object sender, int width) {
+        Chart.Refresh();
+    }
+
+}

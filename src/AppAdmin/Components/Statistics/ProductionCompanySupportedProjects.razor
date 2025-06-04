@@ -1,0 +1,92 @@
+@using global::Shared.Global.Services
+
+@inject BrowserService BrowserService
+@inject IConfiguration Configuration
+
+<TelerikChart @ref="Chart" Height="12vw" RenderAs="RenderingMode.SVG" Transitions="true" Width="23vw" >
+    <ChartSeriesItems>
+        <ChartSeries Type="ChartSeriesType.Donut"
+                     Data="@DonutData"
+                     Field="@nameof(Donut.SegmentValue)"
+                     ExplodeField="@nameof(Donut.IsSeparated)"
+                     CategoryField="@nameof(Donut.SegmentName)">
+            <ChartSeriesLabels Position="ChartSeriesLabelsPosition.Center"
+                               Visible="true"
+                               Background="transparent">
+            </ChartSeriesLabels>
+        </ChartSeries>
+    </ChartSeriesItems>
+    <ChartLegend Position="ChartLegendPosition.Right" />
+</TelerikChart>
+
+@code 
+{
+    [Parameter] public List<List<string>> Data { get; set; } = [];
+    private List<Donut> DonutData { get; set; } = [];
+    private TelerikChart Chart { get; set; } = null!;
+
+    protected override void OnInitialized() {
+        // subscribe to browser width change
+        BrowserService.Resize += UpdatedBrowserRefreshComponent!;
+    }
+    
+    protected override void OnParametersSet()
+    {
+        DonutData = [];
+        var i = 0;
+        Data = new List<List<string>>()
+        {
+            new List<string>()
+            {
+                "Film Sweden",
+                "7"
+            },
+            new List<string>()
+            {
+                "Movie & Us",
+                "6"
+            },
+            new List<string>()
+            {
+                "Green Film",
+                "5"
+            },
+            new List<string>()
+            {
+                "Box",
+                "3"
+            },
+            new List<string>()
+            {
+                "Movie Man",
+                "3"
+            }
+        };
+        foreach (var dataRow in Data)
+        {
+            var company = dataRow[0];
+            _ = int.TryParse(dataRow[1], out var projects);
+            DonutData.Add(new Donut()
+            {
+                SegmentName = company,
+                SegmentValue = projects,
+                IsSeparated = i == 0
+            });
+            i++;
+        }
+        StateHasChanged();
+    }
+    
+    protected void UpdatedBrowserRefreshComponent(object sender, int width) {
+        Chart.Refresh();
+    }
+    
+    public class Donut
+    {
+        public string SegmentName { get; set; } = string.Empty;
+        public double SegmentValue { get; set; }
+        public bool ShouldShowInLegend { get; set; } = true;
+        public bool IsSeparated { get; set; } = false;
+    }
+    
+}

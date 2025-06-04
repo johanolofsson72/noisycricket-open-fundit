@@ -1,0 +1,94 @@
+@using System.Net
+@using global::Shared.Extensions
+
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+
+@if (Items.Any())
+{
+<ol>
+    @foreach (var item in Items)
+    {
+        <li>
+            @if (item.ProjectId == "1")
+            {
+                <a href="/projects">
+                    <div style="display: flex; flex-direction: row; cursor: pointer;">
+                        <div style="width: 1.9vw; margin-top: -1px;"><TelerikSvgIcon Icon="@SvgIcon.File" Size="@ThemeConstants.SvgIcon.Size.Large" ThemeColor="@ThemeConstants.Window.ThemeColor.Primary"/></div>
+                        <div style="width: 6vw; font-style: italic; font-size: 0.85vw;">@item.Date</div>
+                        <div style="width: 15vw; font-size: 0.85vw;">@item.Company</div>
+                        <div style="font-size: 0.85vw;">@item.Title</div>
+                    </div>
+                </a>
+            }
+            else
+            {
+                <a href="/projects/@item.ProjectId/applications/@item.ApplicationId/documents/@item.DocumentId">
+                    <div style="display: flex; flex-direction: row; cursor: pointer;">
+                        <div style="width: 1.9vw; margin-top: -1px;"><TelerikSvgIcon Icon="@SvgIcon.File" Size="@ThemeConstants.SvgIcon.Size.Large" ThemeColor="@ThemeConstants.Window.ThemeColor.Primary"/></div>
+                        <div style="width: 6vw; font-style: italic; font-size: 0.85vw;">@item.Date</div>
+                        <div style="width: 15vw; font-size: 0.85vw;">@item.Company</div>
+                        <div style="font-size: 0.85vw;">@item.Title</div>
+                    </div>
+                </a>
+            }
+        </li>
+    }
+</ol>
+}
+
+@code 
+{
+    [Parameter] public List<List<string>> Data { get; set; } = [];
+    private List<(string Title, string Company, string Date, string ProjectId, string ApplicationId, string DocumentId)> Items { get; set; } = [];
+
+    protected override void OnParametersSet()
+    {
+        Items = [];
+        if (!Data.Any())
+        {
+            Data = new List<List<string>>()
+            {
+                new List<string>()
+                {
+                    "Film Trossen AB",
+                    "Beslut.pdf",
+                    "2022-01-22",
+                    "1",
+                    "1",
+                    "1"
+                },
+                new List<string>()
+                {
+                    "Green Film",
+                    "Handläggarensbedömning.pdf",
+                    "2022-02-12",
+                    "1",
+                    "1",
+                    "1"
+                },
+                new List<string>()
+                {
+                    "Film Trossen AB",
+                    "Handläggarensbedömning.pdf",
+                    "2022-02-10",
+                    "1",
+                    "1",
+                    "1"
+                }
+            }; 
+        }
+        foreach (var dataRow in Data)
+        {
+            var company = WebUtility.HtmlDecode(dataRow[0].TruncateAtWord(32, true));
+            var title = WebUtility.HtmlDecode(dataRow[1].TruncateAtWord(27, true));
+            _ = System.DateTime.TryParse(dataRow[2], out var date);
+            var projectId = dataRow[3];
+            var applicationId = dataRow[4];
+            var documentId = dataRow[5];
+
+            var dataValues = (title, company, date.ToString("yyyy-MM-dd"), projectId, applicationId, documentId);
+            Items.Add(dataValues);
+        }
+    }
+}

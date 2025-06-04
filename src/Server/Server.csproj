@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Configurations>Debug;Release;Demo</Configurations>
+        <Platforms>AnyCPU</Platforms>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CrystalQuartz.AspNetCore" Version="7.2.0-beta" />
+        <PackageReference Include="Google.Apis.Drive.v3" Version="1.69.0.3703" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.3">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="9.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.3">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="9.3.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
+        <PackageReference Include="Quartz" Version="3.14.0" />
+        <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.14.0" />
+        <PackageReference Include="Quartz.Extensions.Hosting" Version="3.14.0" />
+        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.1.11" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Shared\Shared.csproj" />
+        <ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Data\Db\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="OpenNLP">
+            <HintPath>..\TextSummarizer\OpenNLP.dll</HintPath>
+        </Reference>
+        <Reference Include="PageRank">
+            <HintPath>..\TextSummarizer\PageRank.dll</HintPath>
+        </Reference>
+        <Reference Include="SharpEntropy">
+            <HintPath>..\TextSummarizer\SharpEntropy.dll</HintPath>
+        </Reference>
+        <Reference Include="TextSummarizer">
+            <HintPath>..\TextSummarizer\TextSummarizer.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="certs\certificate.pfx">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>

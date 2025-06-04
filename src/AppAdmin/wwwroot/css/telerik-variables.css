@@ -1,0 +1,193 @@
+/* Enhanced CSS Custom Properties for Dark Mode Support */
+/* This file extends the existing CSS variables to support dark mode transitions */
+
+:root {
+    /* Existing variables (keeping compatibility) */
+    --main-color: #0e6ec9;
+    --secondary-color: #009ffd;
+    --tertiary-color: #03a9f4;
+    --info-color: #0e6ec9;
+    --success-color: #9bc53d;
+    --warning-color: #fde74c;
+    --error-color: #c3423f;
+    --dark-color: #424242;
+    --light-color: #ebebeb;
+    --main-p-color: #000000;
+    --delete-color: darkred;
+    --light-green: #b6f5aa;
+    --dark-green: darkgreen;
+
+    /* New dark mode aware variables */
+    --telerik-bg-color: #ffffff;
+    --telerik-text-color: #000000;
+    --telerik-border-color: #e5e7eb;
+    --telerik-hover-bg: #f3f4f6;
+    --telerik-selected-bg: #e0e7ff;
+    --telerik-header-bg: #f9fafb;
+    --telerik-alt-row-bg: #f8fafc;
+}
+
+/* Dark mode variables */
+.dark {
+    --main-color: #3b82f6;
+    --secondary-color: #06b6d4;
+    --tertiary-color: #0ea5e9;
+    --info-color: #3b82f6;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
+    --dark-color: #1f2937;
+    --light-color: #374151;
+    --main-p-color: #f9fafb;
+    --delete-color: #dc2626;
+    --light-green: #065f46;
+    --dark-green: #10b981;
+
+    /* Dark mode Telerik variables */
+    --telerik-bg-color: #1f2937;
+    --telerik-text-color: #f9fafb;
+    --telerik-border-color: #374151;
+    --telerik-hover-bg: #374151;
+    --telerik-selected-bg: #1e40af;
+    --telerik-header-bg: #111827;
+    --telerik-alt-row-bg: #111827;
+}
+
+/* Apply CSS variables to Telerik components for smooth transitions */
+.k-grid,
+.k-grid-header,
+.k-grid-content,
+.k-grid-table {
+    background-color: var(--telerik-bg-color) !important;
+    color: var(--telerik-text-color) !important;
+    border-color: var(--telerik-border-color) !important;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.k-grid-header .k-header {
+    background-color: var(--telerik-header-bg) !important;
+    color: var(--telerik-text-color) !important;
+    border-color: var(--telerik-border-color) !important;
+}
+
+.k-grid tbody tr {
+    background-color: var(--telerik-bg-color) !important;
+    color: var(--telerik-text-color) !important;
+    border-color: var(--telerik-border-color) !important;
+    transition: background-color 0.2s ease;
+}
+
+.k-grid tbody tr:hover {
+    background-color: var(--telerik-hover-bg) !important;
+}
+
+.k-grid tbody tr.k-alt {
+    background-color: var(--telerik-alt-row-bg) !important;
+}
+
+.k-grid tbody tr.k-alt:hover {
+    background-color: var(--telerik-hover-bg) !important;
+}
+
+.k-grid tbody tr.k-selected {
+    background-color: var(--telerik-selected-bg) !important;
+    color: #ffffff !important;
+}
+
+/* Apply to other Telerik components */
+.k-button {
+    background-color: var(--telerik-hover-bg) !important;
+    color: var(--telerik-text-color) !important;
+    border-color: var(--telerik-border-color) !important;
+    transition: all 0.2s ease;
+}
+
+.k-button:hover {
+    background-color: var(--telerik-border-color) !important;
+}
+
+.k-button.k-primary {
+    background-color: var(--main-color) !important;
+    border-color: var(--main-color) !important;
+    color: #ffffff !important;
+}
+
+.k-textbox,
+.k-input,
+.k-dropdown,
+.k-combobox {
+    background-color: var(--telerik-bg-color) !important;
+    color: var(--telerik-text-color) !important;
+    border-color: var(--telerik-border-color) !important;
+    transition: all 0.2s ease;
+}
+
+.k-popup,
+.k-list-container {
+    background-color: var(--telerik-bg-color) !important;
+    border-color: var(--telerik-border-color) !important;
+}
+
+.k-list-item {
+    color: var(--telerik-text-color) !important;
+    transition: background-color 0.2s ease;
+}
+
+.k-list-item:hover,
+.k-list-item.k-selected {
+    background-color: var(--telerik-hover-bg) !important;
+}
+
+.k-card {
+    background-color: var(--telerik-bg-color) !important;
+    border-color: var(--telerik-border-color) !important;
+    transition: all 0.2s ease;
+}
+
+.k-card-header {
+    background-color: var(--telerik-header-bg) !important;
+    color: var(--telerik-text-color) !important;
+    border-color: var(--telerik-border-color) !important;
+}
+
+.k-card-title {
+    color: var(--main-color) !important;
+}
+
+.k-panelbar {
+    background-color: var(--telerik-bg-color) !important;
+    border-color: var(--telerik-border-color) !important;
+}
+
+.k-panelbar .k-item {
+    background-color: var(--telerik-bg-color) !important;
+    color: var(--telerik-text-color) !important;
+    border-color: var(--telerik-border-color) !important;
+    transition: background-color 0.2s ease;
+}
+
+.k-panelbar .k-item:hover {
+    background-color: var(--telerik-hover-bg) !important;
+}
+
+.k-listview {
+    background-color: var(--telerik-bg-color) !important;
+    color: var(--telerik-text-color) !important;
+    border-color: var(--telerik-border-color) !important;
+}
+
+.k-listview .k-listview-item {
+    background-color: var(--telerik-bg-color) !important;
+    color: var(--telerik-text-color) !important;
+    border-color: var(--telerik-border-color) !important;
+    transition: background-color 0.2s ease;
+}
+
+.k-listview .k-listview-item:hover {
+    background-color: var(--telerik-hover-bg) !important;
+}
+
+.k-svg-icon {
+    color: var(--telerik-text-color) !important;
+    transition: color 0.2s ease;
+}

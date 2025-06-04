@@ -1,0 +1,111 @@
+@using System.Text.Json
+@using AppClient.State
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Microsoft.AspNetCore.Identity
+@using SQLitePCL
+@rendermode @(new InteractiveServerRenderMode(false))
+@implements IDisposable
+@inject NavigationManager NavigationManager
+@inject ProtectedLocalStorage ProtectedLocalStorage
+
+<header class="border-b border-gray-200 dark:border-gray-800 pr-3">
+    <div class="flex flex-wrap items-center">
+        <div class="flex flex-grow flex-shrink flex-nowrap justify-end items-center">
+            <nav class="relative flex flex-grow">
+                <ul class="flex flex-wrap items-center justify-end w-full m-0">
+                    <AuthorizeView>
+                        <Authorized>
+                            <li>
+                                <div class="relative">
+                                    <div>
+                                        <a href="Account/Manage"
+                                           class="bg-white dark:bg-black rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 lg:p-2 lg:rounded-md lg:hover:bg-gray-50 dark:lg:hover:bg-gray-900 dark:ring-offset-black" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                                            <span class="hidden ml-3 text-gray-700 dark:text-gray-300 text-sm font-medium lg:block">
+                                                <span class="sr-only">Open user menu for </span>
+                                                <span style="font-size: small">@LocalizationService.StringFromResource("Header-7")</span> <span style="font-size: small; color: #0e6ec9">@AppState?.User.FullName</span>, <span style="font-size: small">@LocalizationService.StringFromResource("Header-8")</span> 
+                                            </span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </li>
+                            @*<li class="mr-3 relative flex flex-wrap just-fu-start m-0">
+                                <div class="mx-3 relative">
+                                    <div>
+                                        Inloggad som: <a href="/Account/Manage">@AppState?.User.FullName</a>
+                                    </div>
+                                </div>
+                            </li>*@
+                            <li class="mr-3 relative flex flex-wrap just-fu-start m-0">
+                                <form action="Account/Logout" method="post">
+                                    <AntiforgeryToken/>
+                                    <input type="hidden" name="ReturnUrl" value="@currentUrl"/>
+                                    <SecondaryButton type="submit" style="margin: 5px !important;">
+                                        @LocalizationService.StringFromResource("Header-3")
+                                    </SecondaryButton>
+                                </form>
+                            </li>
+                        </Authorized>
+                        <Authorizing>
+                            <li class="relative flex flex-wrap just-fu-start m-0" style="margin: 5px !important;">
+                                <NavLink href="/Account/Login" class="m-2 mr-4">
+                                    <SecondaryButton style="margin: 5px !important;">
+                                        @LocalizationService.StringFromResource("Header-4")
+                                    </SecondaryButton>
+                                </NavLink>
+                            </li>
+                        </Authorizing>
+                        <NotAuthorized>
+                            <li class="relative flex flex-wrap just-fu-start m-0" style="margin: 5px !important;">
+                                <NavLink href="/Account/Login" class="m-2 mr-4">
+                                    <SecondaryButton style="margin: 5px !important;">
+                                        @LocalizationService.StringFromResource("Header-4")
+                                    </SecondaryButton>
+                                </NavLink>
+                            </li>
+                        </NotAuthorized>
+                    </AuthorizeView>
+
+                    <li class="relative flex flex-wrap just-fu-start m-0">
+                        <DarkModeToggleLite/>
+                    </li>
+
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+@code {
+    [CascadingParameter] public required AppState AppState { get; set; }
+    private string? currentUrl;
+    private string SearchPhrase { get; set; } = string.Empty;
+    private int AmountOfResult { get; set; } = 50;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+    private void SearchChanged(object obj)
+    {
+        NavigationManager.NavigateTo("projects?SearchPhrase=" + SearchPhrase + "&AmountOfResult=" + AmountOfResult, false);
+    }
+
+    private void AmountChangedHandlerAsync(bool value)
+    {
+        AmountOfResult = value ? 50 : 1000;
+    }
+
+}

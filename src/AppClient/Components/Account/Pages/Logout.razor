@@ -1,0 +1,27 @@
+@page "/Account/Logout"
+
+<PageTitle>@LocalizationService.StringFromResource("Account-20")</PageTitle>
+
+<div class="mt-8 mx-auto max-w-lg">
+    <div>
+        <Heading1>@LocalizationService.StringFromResource("Account-20")</Heading1>
+        <p class="my-4">@LocalizationService.StringFromResource("Account-21")</p>
+    </div>
+</div>
+
+
+@code {
+
+    [CascadingParameter]
+    private HttpContext httpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (HttpMethods.IsGet(httpContext.Request.Method))
+        {
+            // Clear the existing external cookie to ensure a clean login process
+            await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+    }
+
+}

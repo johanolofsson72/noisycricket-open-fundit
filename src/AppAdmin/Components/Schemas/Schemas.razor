@@ -1,0 +1,1931 @@
+@using AppAdmin.Components.Settings
+@using global::Shared.Controls.DTOs
+@using global::Shared.Controls.Entities
+@using SQLitePCL
+
+
+@rendermode @(new InteractiveServerRenderMode(false))
+
+@inject SchemaService SchemaService
+@inject OrganizationService OrganizationService
+@inject SharedService SharedService
+
+<style>   
+    div.k-grid tbody tr{     
+        height: 40px !important;
+        white-space: nowrap!important;
+    }
+    div.k-grid th a, .k-virtual-scrollable-wrap td {
+        white-space: nowrap!important;
+    }
+    #grid th a, .k-virtual-scrollable-wrap td {
+      white-space: nowrap!important;
+    }
+</style>
+
+<h5>@LocalizationService.StringFromResource("Schemas-1")</h5>
+
+<Spacer Height="30px" />
+
+<TelerikGrid Data="@SchemaList" class="dark:bg-black"
+             @ref="@SchemasGridRef"
+             ConfirmDelete="true"
+             EditMode="@GridEditMode.Inline"
+             OnEdit="@SchemaEditHandler"
+             OnUpdate="@SchemaUpdateHandler"
+             OnDelete="@SchemaDeleteHandler"
+             OnCreate="@SchemaCreateHandler"
+             OnRowExpand="@OnSchemaExpand">
+    <GridToolBarTemplate>
+        <GridCommandButton Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Schemas-2")</GridCommandButton>
+    </GridToolBarTemplate>
+    <DetailTemplate Context="schemaItem">
+        @{
+            <TelerikTabStrip>
+                <TabStripTab Title="@LocalizationService.StringFromResource("Schemas-3")">
+                    <TelerikGrid Data="@ControlList"
+                                 @ref="@ControlsGridRef"
+                                 ConfirmDelete="true"
+                                 EditMode="@GridEditMode.Popup"
+                                 OnDelete="@ControlDeleteHandler"
+                                 OnModelInit="@(() => new SchemaControlDto())">
+                        <GridToolBarTemplate>
+                            <GridCommandButton Enabled="@Enabled" Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Schemas-4")</GridCommandButton>
+                        </GridToolBarTemplate>
+                        <GridSettings>
+                            <GridPopupEditSettings Width="550px" MaxHeight="95vh" MaxWidth="95vw"></GridPopupEditSettings>
+                            <GridPopupEditFormSettings Context="schemaControlContext">
+                                <FormTemplate>
+                                    @{
+                                        SchemaControlEditItem = (schemaControlContext.Item as SchemaControlDto)!;
+                                        if (SchemaControlEditItem is null) return;
+                                        
+                                        <TelerikForm Model="@SchemaControlEditItem"
+                                                     ColumnSpacing="20px"
+                                                     Columns="2"
+                                                     ButtonsLayout="@FormButtonsLayout.Stretch"
+                                                     OnValidSubmit="@ControlUpdateHandler">
+                                            <FormItems>
+                                                
+                                                
+                                                <FormItem Field="@nameof(SchemaControlDto.Labels)" LabelText="@LocalizationService.StringFromResource("Schemas-5")">
+                                                    <Template>
+                                                        @{
+                                                            var index = SharedService.IndexByCulture();
+                                                            <label>@LocalizationService.StringFromResource("Schemas-5")</label>
+                                                            <TelerikTextBox @bind-Value="@SchemaControlEditItem.Labels[index]"></TelerikTextBox>
+                                                        }
+                                                    </Template>
+                                                </FormItem>
+                                                
+                                                <FormItem Field="@nameof(SchemaControlDto.SubLabels)" LabelText="@LocalizationService.StringFromResource("Schemas-6")">
+                                                    <Template>
+                                                        @{
+                                                            var index = SharedService.IndexByCulture();
+                                                            <label>@LocalizationService.StringFromResource("Schemas-6")</label>
+                                                            <TelerikTextBox @bind-Value="@SchemaControlEditItem.SubLabels[index]"></TelerikTextBox>
+                                                        }
+                                                    </Template>
+                                                </FormItem>
+                                                <FormItem Field="@nameof(SchemaControlDto.ControlTypeName)" LabelText="@LocalizationService.StringFromResource("Schemas-7")">
+                                                    <Template>
+                                                        @{
+                                                            <label>@LocalizationService.StringFromResource("Schemas-7")</label>
+                                                            <TelerikDropDownList Data="@ControlTypes"
+                                                                                 TextField="@nameof(OrganizationControlTypeDto.Name)"
+                                                                                 ValueField="@nameof(OrganizationControlTypeDto.OrganizationControlTypeIdentifier)"
+                                                                                 @bind-Value="@SchemaControlEditItem.ControlTypeId">
+                                                            </TelerikDropDownList>
+                                                        }
+                                                    </Template>
+                                                </FormItem>
+                                                
+                                                <FormItem Field="@nameof(SchemaControlDto.ControlValueType)" LabelText="@LocalizationService.StringFromResource("Schemas-8")"></FormItem>
+                                                <FormItem Field="@nameof(SchemaControlDto.BaseStructure)" LabelText="@LocalizationService.StringFromResource("Schemas-9")"></FormItem>
+                                                <FormItem Field="@nameof(SchemaControlDto.Css)" LabelText="@LocalizationService.StringFromResource("Schemas-10")"></FormItem>
+                                                
+                                                <FormItem Field="@nameof(SchemaControlDto.Placeholders)" LabelText="@LocalizationService.StringFromResource("Schemas-11")">
+                                                    <Template>
+                                                        @{
+                                                            var index = SharedService.IndexByCulture();
+                                                            <label>@LocalizationService.StringFromResource("Schemas-11")</label>
+                                                            <TelerikTextBox @bind-Value="@SchemaControlEditItem.Placeholders[index]"></TelerikTextBox>
+                                                        }
+                                                    </Template>
+                                                </FormItem>
+                                                
+                                                <FormItem Field="@nameof(SchemaControlDto.DataSource)" LabelText="@LocalizationService.StringFromResource("Schemas-12")"></FormItem>
+                                                <FormItem Field="@nameof(SchemaControlDto.ApplicationFormPage)" LabelText="@LocalizationService.StringFromResource("Schemas-13")"></FormItem>
+                                                <FormItem Field="@nameof(SchemaControlDto.ApplicationFormOrder)" LabelText="@LocalizationService.StringFromResource("Schemas-14")"></FormItem>
+
+                                                <FormItem>
+                                                    <Template>
+                                                        <label for="sectionOnForm">@LocalizationService.StringFromResource("Schemas-15")</label>
+                                                        <TelerikDropDownList Data="@Sections.Where(x => x.OrganizationSectionIdentifier > 1).ToList()"
+                                                                             TextField="@nameof(OrganizationSectionDto.Names)"
+                                                                             ValueField="@nameof(OrganizationSectionDto.OrganizationSectionIdentifier)"
+                                                                             @bind-Value="@SchemaControlEditItem.ApplicationFormSectionId"
+                                                                             Id="sectionOnForm">
+                                                            <ItemTemplate>
+                                                                @{
+                                                                    var index = SharedService.IndexByCulture();
+                                                                    @context.Names[index];
+                                                                }
+                                                            </ItemTemplate>
+                                                            <ValueTemplate>
+                                                                @{
+                                                                    var index = SharedService.IndexByCulture();
+                                                                    @context.Names[index];
+                                                                }
+                                                            </ValueTemplate>
+                                                        </TelerikDropDownList>
+                                                    </Template>
+                                                </FormItem>
+                                                <FormItem>
+                                                    <Template>
+                                                        <label for="sectionOnAdmin">@LocalizationService.StringFromResource("Schemas-16")</label>
+                                                        <TelerikDropDownList Data="@Sections.Where(x => x.OrganizationSectionIdentifier > 1).ToList()"
+                                                                             TextField="@nameof(OrganizationSectionDto.Names)"
+                                                                             ValueField="@nameof(OrganizationSectionDto.OrganizationSectionIdentifier)"
+                                                                             @bind-Value="@SchemaControlEditItem.ApplicationSectionId"
+                                                                             Id="sectionOnAdmin">
+                                                            <ItemTemplate>
+                                                                @{
+                                                                    var index = SharedService.IndexByCulture();
+                                                                    @context.Names[index];
+                                                                }
+                                                            </ItemTemplate>
+                                                            <ValueTemplate>
+                                                                @{
+                                                                    var index = SharedService.IndexByCulture();
+                                                                    @context.Names[index];
+                                                                }
+                                                            </ValueTemplate>
+                                                        </TelerikDropDownList>
+                                                    </Template>
+                                                </FormItem>
+
+                                                <FormItem Field="@nameof(SchemaControlDto.VisibleOnApplicationForm)" LabelText="@LocalizationService.StringFromResource("Schemas-17")"></FormItem>
+                                                <FormItem Field="@nameof(SchemaControlDto.ApplicationFormRequired)" LabelText="@LocalizationService.StringFromResource("Schemas-18")"></FormItem>
+                                            </FormItems>
+                                            <FormButtons>
+                                                <TelerikButton Enabled="@Enabled" Icon="@nameof(SvgIcon.Save)">@LocalizationService.StringFromResource("Schemas-19")</TelerikButton>
+                                                <TelerikButton Enabled="@Enabled" Icon="@nameof(SvgIcon.Cancel)" ButtonType="@ButtonType.Button" @onclick="ControlCancelHandler">@LocalizationService.StringFromResource("Schemas-20")</TelerikButton>
+                                            </FormButtons>
+                                        </TelerikForm>
+                                    }
+                                </FormTemplate>
+                            </GridPopupEditFormSettings>
+                        </GridSettings>
+                        <GridColumns>
+                            <GridColumn Field="@nameof(SchemaControlDto.Labels)" Title="@LocalizationService.StringFromResource("Schemas-5")" Width="25%">
+                                <Template>
+                                    @{
+                                        var index = SharedService.IndexByCulture();
+                                        var item = context as SchemaControlDto;
+                                        <span>
+    @if (item != null)
+    {
+        @item.Labels[index]
+    }
+</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                            <GridColumn Field="@nameof(SchemaControlDto.SubLabels)" Title="@LocalizationService.StringFromResource("Schemas-6")" Width="0px">
+                                <Template>
+                                    @{
+                                        var index = SharedService.IndexByCulture();
+                                        var item = context as SchemaControlDto;
+                                        <span>@item?.SubLabels[index]</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                            <GridColumn Field="@nameof(SchemaControlDto.ControlTypeName)" Title="@LocalizationService.StringFromResource("Schemas-7")" Width="20%" />
+                            <GridColumn Field="@nameof(SchemaControlDto.ControlValueType)" Title="@LocalizationService.StringFromResource("Schemas-8")" Width="0px" />
+                            <GridColumn Field="@nameof(SchemaControlDto.BaseStructure)" Title="@LocalizationService.StringFromResource("Schemas-9")" Width="0px" />
+                            <GridColumn Field="@nameof(SchemaControlDto.Css)" Title="@LocalizationService.StringFromResource("Schemas-10")" Width="0px" />
+                            <GridColumn Field="@nameof(SchemaControlDto.Placeholders)" Title="@LocalizationService.StringFromResource("Schemas-11")" Width="0px">
+                                <Template>
+                                    @{
+                                        var index = SharedService.IndexByCulture();
+                                        var item = context as SchemaControlDto;
+                                        <span>@item?.Placeholders[index]</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                            <GridColumn Field="@nameof(SchemaControlDto.DataSource)" Title="@LocalizationService.StringFromResource("Schemas-12")" Width="0px" />
+                            <GridColumn Field="@nameof(SchemaControlDto.ApplicationFormPage)" Title="@LocalizationService.StringFromResource("Schemas-13")" Width="8%" />
+                            <GridColumn Field="@nameof(SchemaControlDto.ApplicationFormOrder)" Title="@LocalizationService.StringFromResource("Schemas-14")" Width="8%" />
+                            <GridColumn Field="@nameof(SchemaControlDto.ApplicationFormSectionId)" Title="@LocalizationService.StringFromResource("Schemas-15")" Width="10%"  >
+                                <Template>
+                                    @{
+                                        var index = SharedService.IndexByCulture();
+                                        var item = context as SchemaControlDto;
+                                        <span>@(Sections.FirstOrDefault(x => x.OrganizationSectionIdentifier == item?.ApplicationFormSectionId)?.Names[index])</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                            <GridColumn Field="@nameof(SchemaControlDto.ApplicationSectionId)" Title="@LocalizationService.StringFromResource("Schemas-16")" Width="10%" >
+                                <Template>
+                                    @{
+                                        var index = SharedService.IndexByCulture();
+                                        var item = context as SchemaControlDto;
+                                        <span>@(Sections.FirstOrDefault(x => x.OrganizationSectionIdentifier == item?.ApplicationSectionId)?.Names[index])</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                            <GridColumn Field="@nameof(SchemaControlDto.VisibleOnApplicationForm)" Title="@LocalizationService.StringFromResource("Schemas-17")" Width="8%">
+                                <Template>
+                                    @{
+                                        var item = context as SchemaControlDto;
+                                        <span>@(item != null && item.VisibleOnApplicationForm ? @LocalizationService.StringFromResource("Schemas-29") : @LocalizationService.StringFromResource("Schemas-30"))</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                            <GridColumn Field="@nameof(SchemaControlDto.ApplicationFormRequired)" Title="@LocalizationService.StringFromResource("Schemas-18")" Width="8%">
+                                <Template>
+                                    @{
+                                    var item = context as SchemaControlDto;
+                                    <span>@(item != null && item.ApplicationFormRequired ? @LocalizationService.StringFromResource("Schemas-29") : @LocalizationService.StringFromResource("Schemas-30"))</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                            <GridColumn Field="@nameof(SchemaControlDto.Order)" Width="0px"  />
+                            <GridCommandColumn Width="200px">
+                                <GridCommandButton Enabled="@Enabled" Command="Edit" Icon="@SvgIcon.Pencil" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Schemas-21")</GridCommandButton>
+                                <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Schemas-22")</GridCommandButton>
+                            </GridCommandColumn>
+                        </GridColumns>
+                    </TelerikGrid>
+                </TabStripTab>
+                <TabStripTab Title="@LocalizationService.StringFromResource("Schemas-23")">
+                    <TelerikGrid Data="@EventList"
+                                 @ref="@EventsGridRef"
+                                 ConfirmDelete="true"
+                                 EditMode="@GridEditMode.Popup"
+                                 OnUpdate="@EventUpdateHandler"
+                                 OnDelete="@EventDeleteHandler"
+                                 OnCreate="@EventCreateHandler"
+                                 OnRowExpand="@OnSchemaEventExpand">
+                        <GridToolBarTemplate>
+                            <GridCommandButton Enabled="@Enabled" Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Schemas-24")</GridCommandButton>
+                        </GridToolBarTemplate>
+                        <DetailTemplate Context="actionItem">
+                            @{
+                                <TelerikGrid Data="@ActionList"
+                                             @ref="@ActionsGridRef"
+                                             ConfirmDelete="true"
+                                             EditMode="@GridEditMode.Popup"
+                                             OnDelete="@ActionDeleteHandler">
+                                    <GridToolBarTemplate>
+                                        <GridCommandButton Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Schemas-34")</GridCommandButton>
+                                    </GridToolBarTemplate>
+                                    <GridSettings>
+                                        <GridPopupEditSettings Width="550px" MaxHeight="95vh" MaxWidth="95vw"></GridPopupEditSettings>
+                                        <GridPopupEditFormSettings Context="formContext">
+                                            <FormTemplate>
+                                                @{
+                                                    SchemaEventActionEditItem = formContext.Item as SchemaEventActionDto;
+                                                    Console.WriteLine("SchemaEventActionEditItem: " + SchemaEventActionEditItem);
+                                                    
+                                                    
+                                                    if (SchemaEventActionEditItem is null) return;
+                                                    <TelerikForm Model="@SchemaEventActionEditItem"
+                                                                 ColumnSpacing="20px"
+                                                                 Columns="2"
+                                                                 ButtonsLayout="@FormButtonsLayout.Stretch"
+                                                                 OnValidSubmit="@ActionUpdateHandler">
+                                                        <FormItems>
+                                                            @switch (SchemaEventActionEditItem.ActionTypeId)
+                                                            {
+                                                                case 0 or 1:
+                                                                    <FormItem Field="ActionType" LabelText="@LocalizationService.StringFromResource("Schemas-35")">
+                                                                        <Template>
+                                                                            @{
+                                                                                <label>@LocalizationService.StringFromResource("Schemas-35")</label>
+                                                                                <TelerikDropDownList Data="@ActionTypes.Where(x => x.OrganizationActionTypeIdentifier > 1).ToList()"
+                                                                                                     TextField="@nameof(OrganizationActionTypeDto.Names)"
+                                                                                                     ValueField="@nameof(OrganizationActionTypeDto.OrganizationActionTypeIdentifier)" Context="pop"
+                                                                                                     @bind-Value="@CreatedActionTypeId" Width="500px">
+                                                                                    <ItemTemplate>
+                                                                                        @{
+                                                                                        var index = SharedService.IndexByCulture();
+                                                                                        @pop.Names[index];
+                                                                                        }
+                                                                                    </ItemTemplate>
+                                                                                    <ValueTemplate>
+                                                                                        @{
+                                                                                        var index = SharedService.IndexByCulture();
+                                                                                        @pop.Names[index];
+                                                                                        }
+                                                                                    </ValueTemplate>
+                                                                                </TelerikDropDownList>
+                                                                            }
+                                                                        </Template>
+                                                                    </FormItem>
+                                                                    break;
+                                                                case 2:
+                                                                    <FormGroup>
+                                                                        <FormItem Field="ReceiverRole" LabelText="@LocalizationService.StringFromResource("Schemas-36")">
+                                                                            <Template>
+                                                                                @{
+                                                                                    <label>@LocalizationService.StringFromResource("Schemas-36")</label>
+                                                                                    <TelerikDropDownList Data="@ClaimTypes.Where(x => x.OrganizationClaimTypeIdentifier > 1).ToList()"
+                                                                                                         TextField="@nameof(OrganizationClaimTypeDto.Names)"
+                                                                                                         ValueField="@nameof(OrganizationClaimTypeDto.OrganizationClaimTypeIdentifier)" Context="pop"
+                                                                                                         @bind-Value="@SchemaEventActionEditItem.ReceiverClaimTypeId">
+                                                                                        <ItemTemplate>
+                                                                                            @{
+                                                                                            var index = SharedService.IndexByCulture();
+                                                                                            @pop.Names[index];
+                                                                                            }
+                                                                                        </ItemTemplate>
+                                                                                        <ValueTemplate>
+                                                                                            @{
+                                                                                            var index = SharedService.IndexByCulture();
+                                                                                            @pop.Names[index];
+                                                                                            }
+                                                                                        </ValueTemplate>
+                                                                                    </TelerikDropDownList>
+                                                                                }
+                                                                            </Template>
+                                                                        </FormItem>
+                                                                        <FormItem Field="SystemMessageDestination" LabelText="@LocalizationService.StringFromResource("Schemas-37")">
+                                                                            <Template>
+                                                                                @{
+                                                                                    <label>@LocalizationService.StringFromResource("Schemas-37")</label>
+                                                                                    <TelerikDropDownList Data="@SystemMessageDestinations.Where(x => x.OrganizationSystemMessageDestinationIdentifier > 1).ToList()"
+                                                                                                         TextField="@nameof(OrganizationSystemMessageDestinationDto.Names)"
+                                                                                                         ValueField="@nameof(OrganizationSystemMessageDestinationDto.OrganizationSystemMessageDestinationIdentifier)" Context="pop"
+                                                                                                         @bind-Value="@SchemaEventActionEditItem.SystemMessageDestinationId">
+                                                                                        <ItemTemplate>
+                                                                                            @{
+                                                                                            var index = SharedService.IndexByCulture();
+                                                                                            @pop.Names[index];
+                                                                                            }
+                                                                                        </ItemTemplate>
+                                                                                        <ValueTemplate>
+                                                                                            @{
+                                                                                            var index = SharedService.IndexByCulture();
+                                                                                            @pop.Names[index];
+                                                                                            }
+                                                                                        </ValueTemplate>
+                                                                                    </TelerikDropDownList>
+                                                                                }
+                                                                            </Template>
+                                                                        </FormItem>
+                                                                        <FormItem Field="ReactionDescription" LabelText="@LocalizationService.StringFromResource("Schemas-38")">
+                                                                            <Template>
+                                                                                @{
+                                                                                    <label>@LocalizationService.StringFromResource("Schemas-38")</label>
+                                                                                    <TelerikDropDownList Data="@ReactionTypes.Where(x => x.OrganizationReactionTypeIdentifier > 1).ToList()"
+                                                                                                         TextField="@nameof(OrganizationReactionTypeDto.Names)"
+                                                                                                         ValueField="@nameof(OrganizationReactionTypeDto.OrganizationReactionTypeIdentifier)" Context="pop"
+                                                                                                         @bind-Value="@SchemaEventActionEditItem.ReactionDescriptionId">
+                                                                                        <ItemTemplate>
+                                                                                            @{
+                                                                                            var index = SharedService.IndexByCulture();
+                                                                                            @pop.Names[index];
+                                                                                            }
+                                                                                        </ItemTemplate>
+                                                                                        <ValueTemplate>
+                                                                                            @{
+                                                                                            var index = SharedService.IndexByCulture();
+                                                                                            @pop.Names[index];
+                                                                                            }
+                                                                                        </ValueTemplate>
+                                                                                    </TelerikDropDownList>
+                                                                                }
+                                                                            </Template>
+                                                                        </FormItem>
+                                                                    </FormGroup>
+                                                                    <FormGroup>
+                                                                        <FormItem>
+                                                                            <Template>
+                                                                                <label for="SystemMessage">@LocalizationService.StringFromResource("Schemas-39")</label>
+                                                                                <TelerikTextArea @bind-Value="@SchemaEventActionEditItem.SystemMessage" Id="SystemMessage" Rows="7"></TelerikTextArea>
+                                                                            </Template>
+                                                                        </FormItem>
+                                                                    </FormGroup>
+                                                                    break;
+                                                                case 3:
+                                                                    <FormGroup>
+                                                                        <FormItem Field="ReactionDescription" LabelText="@LocalizationService.StringFromResource("Schemas-38")">
+                                                                            <Template>
+                                                                                @{
+                                                                                    <label>@LocalizationService.StringFromResource("Schemas-38")</label>
+                                                                                    <TelerikDropDownList Data="@ReactionTypes.Where(x => x.OrganizationReactionTypeIdentifier > 1).ToList()"
+                                                                                                         TextField="@nameof(OrganizationReactionTypeDto.Names)"
+                                                                                                         ValueField="@nameof(OrganizationReactionTypeDto.OrganizationReactionTypeIdentifier)" Context="pop"
+                                                                                                         @bind-Value="@SchemaEventActionEditItem.ReactionDescriptionId">
+                                                                                        <ItemTemplate>
+                                                                                            @{
+                                                                                            var index = SharedService.IndexByCulture();
+                                                                                            @pop.Names[index];
+                                                                                            }
+                                                                                        </ItemTemplate>
+                                                                                        <ValueTemplate>
+                                                                                            @{
+                                                                                            var index = SharedService.IndexByCulture();
+                                                                                            @pop.Names[index];
+                                                                                            }
+                                                                                        </ValueTemplate>
+                                                                                    </TelerikDropDownList>
+                                                                                }
+                                                                            </Template>
+                                                                        </FormItem>
+                                                                    </FormGroup>
+                                                                    <FormGroup>
+                                                                        <FormItem>
+                                                                            <Template>
+                                                                                <label for="EmailMessageBody">@LocalizationService.StringFromResource("Schemas-41")</label>
+                                                                                <TelerikTextArea @bind-Value="@SchemaEventActionEditItem.EmailMessageBody" Id="EmailMessageBody" Rows="7"></TelerikTextArea>
+                                                                            </Template>
+                                                                        </FormItem>
+                                                                    </FormGroup>
+                                                                    break;
+                                                                case 4:
+                                                                    <FormItem Field="ChangeStatusTo" LabelText="@LocalizationService.StringFromResource("Schemas-42")">
+                                                                        <Template>
+                                                                            @{
+                                                                                <label>@LocalizationService.StringFromResource("Schemas-42")</label>
+                                                                                <TelerikDropDownList Data="@Statuses.Where(x => x.OrganizationStatusIdentifier > 1).ToList()"
+                                                                                                     TextField="@nameof(OrganizationStatusDto.Names)"
+                                                                                                     ValueField="@nameof(OrganizationStatusDto.OrganizationStatusIdentifier)" Context="pop"
+                                                                                                     @bind-Value="@SchemaEventActionEditItem.ChangeStatusToId" Width="300px">
+                                                                                    <ItemTemplate>
+                                                                                        @{
+                                                                                        var index = SharedService.IndexByCulture();
+                                                                                        @pop.Names[index];
+                                                                                        }
+                                                                                    </ItemTemplate>
+                                                                                    <ValueTemplate>
+                                                                                        @{
+                                                                                        var index = SharedService.IndexByCulture();
+                                                                                        @pop.Names[index];
+                                                                                        }
+                                                                                    </ValueTemplate>
+                                                                                </TelerikDropDownList>
+                                                                            }
+                                                                        </Template>
+                                                                    </FormItem>
+                                                                    break;
+                                                                case 5:
+                                                                    <FormItem>
+                                                                        <Template>
+                                                                            @{
+                                                                                var schemaEventActionEditItem = SchemaEventActionEditItem;
+                                                                            }
+                
+                                                                            @{
+                                                                                var schemaEventMessages = SchemaEventMessages
+                                                                                    .Where(x => x.EventId < schemaEventActionEditItem.SchemaEventIdentifier)
+                                                                                    .ToList();
+                                                                            } 
+                                                                            <label for="SystemMessageIdToDelete">@LocalizationService.StringFromResource("Schemas-43")</label>
+                                                                            <TelerikDropDownList Data="@schemaEventMessages"
+                                                                                                 TextField="@nameof(SchemaEventMessageDto.Message)"
+                                                                                                 ValueField="@nameof(SchemaEventMessageDto.Id)"
+                                                                                                 @bind-Value="@SchemaEventActionEditItem.EventActionCombo"
+                                                                                                 Id="systemMessageIdToDelete" Width="520px">
+                                                                                <ValueTemplate>
+                                                                                    <strong>@LocalizationService.StringFromResource("Schemas-39"):&nbsp;</strong> @context.Message
+                                                                                </ValueTemplate>
+                                                                                <HeaderTemplate>
+                                                                                    <div style="width: 520px; display: flex; flex-direction: row;">
+                                                                                        <div style="width: 35%"><b>&nbsp;&nbsp;@LocalizationService.StringFromResource("Schemas-45")</b></div>
+                                                                                        <div style="width: 29%"><b>@LocalizationService.StringFromResource("Schemas-36")</b></div>
+                                                                                        <div style="width: 25%"><b>@LocalizationService.StringFromResource("Schemas-39")</b></div>
+                                                                                        <div style="width: 10%">&nbsp;</div>
+                                                                                    </div>
+                                                                                </HeaderTemplate>
+                                                                                <ItemTemplate>
+                                                                                    <div style="width: 520px; display: flex; flex-direction: row;">
+                                                                                        <div style="width: 35%">@(EventTypes.FirstOrDefault(x => x.OrganizationEventTypeIdentifier == context.EventTypeId)?.Names)</div>
+                                                                                        <div style="width: 30%">@(ClaimTypes.FirstOrDefault(x => x.OrganizationClaimTypeIdentifier == context.ReceiverId)?.Names)</div>
+                                                                                        <div style="width: 25%">@context.Message</div>
+                                                                                        <div style="width: 10%">&nbsp;</div>
+                                                                                    </div>
+                                                                                </ItemTemplate>
+                                                                                <FooterTemplate>
+                                                                                    <h6>@LocalizationService.StringFromResource("Schemas-48"): @schemaEventMessages.Count()</h6>
+                                                                                </FooterTemplate>
+                                                                                <NoDataTemplate>
+                                                                                    <div class="no-data-template">
+                                                                                        <TelerikSvgIcon Size="@ThemeConstants.SvgIcon.Size.Large" Icon="@SvgIcon.FilesError"></TelerikSvgIcon>
+                                                                                        <p>@LocalizationService.StringFromResource("Schemas-49")</p>
+                                                                                    </div>
+                                                                                </NoDataTemplate>
+                                                                            </TelerikDropDownList>
+                                                                        </Template>
+                                                                    </FormItem>
+                                                                    break;
+                                                            }
+                                                        </FormItems>
+                                                        <FormButtons>
+                                                            <TelerikButton Icon="@nameof(SvgIcon.Save)">@LocalizationService.StringFromResource("Schemas-19")</TelerikButton>
+                                                            <TelerikButton Icon="@nameof(SvgIcon.Cancel)" ButtonType="@ButtonType.Button" @onclick="ActionCancelHandler">@LocalizationService.StringFromResource("Schemas-20")</TelerikButton>
+                                                        </FormButtons>
+                                                    </TelerikForm>
+                                                }
+                                            </FormTemplate>
+                                        </GridPopupEditFormSettings>
+                                    </GridSettings>
+                                    <GridColumns>
+                                        <GridColumn Field="ActionType" Title="@LocalizationService.StringFromResource("Schemas-50")">
+                                            <Template>
+                                                @{
+                                                    var index = SharedService.IndexByCulture();
+                                                    var item = context as SchemaEventActionDto;
+                                                    <span>@(ActionTypes.FirstOrDefault(x => x.OrganizationActionTypeIdentifier == item?.ActionTypeId)?.Names[index])</span>
+                                                }
+                                            </Template>
+                                        </GridColumn>
+                                        <GridColumn Field="ReceiverRole" Title="@LocalizationService.StringFromResource("Schemas-36")">
+                                            <Template>
+                                                @{
+                                                    var index = SharedService.IndexByCulture();
+                                                    var item = context as SchemaEventActionDto;
+                                                    if (item?.ReceiverClaimTypeId != 1)
+                                                    {
+                                                        <span>@(ClaimTypes.FirstOrDefault(x => x.OrganizationClaimTypeIdentifier == item?.ReceiverClaimTypeId)?.Names[index])</span>
+                                                    }
+                                                }
+                                            </Template>
+                                        </GridColumn>
+                                        <GridColumn Field="ChangeStatusTo" Title="@LocalizationService.StringFromResource("Schemas-42")">
+                                            <Template>
+                                                @{
+                                                    var index = SharedService.IndexByCulture();
+                                                    var item = context as SchemaEventActionDto;
+                                                    if (item?.ChangeStatusToId != 1)
+                                                    {
+                                                        <span>@(Statuses.FirstOrDefault(x => x.OrganizationStatusIdentifier == item?.ChangeStatusToId)?.Names[index])</span>
+                                                    }
+                                                }
+                                            </Template>
+                                        </GridColumn>
+                                        <GridCommandColumn Width="90px">
+                                            <GridCommandButton Command="Edit" Icon="@SvgIcon.Pencil" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary"></GridCommandButton>
+                                            <GridCommandButton Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error"></GridCommandButton>
+                                        </GridCommandColumn>
+                                    </GridColumns>
+                                </TelerikGrid>
+                            }
+                        </DetailTemplate>
+                    <GridColumns>
+                        <GridColumn Field="Labels" Title="@LocalizationService.StringFromResource("Schemas-65")">
+                            <EditorTemplate>
+                                @{
+                                    var index = SharedService.IndexByCulture();
+                                    var item = context as SchemaEventDto;
+                                    <TelerikTextBox @bind-Value="item!.Labels[index]"></TelerikTextBox>
+                                }
+                            </EditorTemplate>
+                            <Template>
+                                @{
+                                    var index = SharedService.IndexByCulture();
+                                    var item = context as SchemaEventDto;
+                                    <span>@item?.Labels[index]</span>
+                                }
+                            </Template>
+                        </GridColumn>
+                        <GridColumn Field="Labels" Title="@LocalizationService.StringFromResource("Schemas-66")">
+                            <EditorTemplate>
+                                @{
+                                    var index = SharedService.IndexByCulture();
+                                    var item = context as SchemaEventDto;
+                                    <TelerikTextArea @bind-Value="item!.Description"></TelerikTextArea>
+                                }
+                            </EditorTemplate>
+                            <Template>
+                                @{
+                                    var index = SharedService.IndexByCulture();
+                                    var item = context as SchemaEventDto;
+                                    <span>@item?.Description</span>
+                                }
+                            </Template>
+                        </GridColumn>
+                        <GridColumn Title="@LocalizationService.StringFromResource("Schemas-67")">
+                            <EditorTemplate>
+                                @{
+                                    var item = context as SchemaEventDto;
+                                    <TelerikRadioGroup Data="@Purposes"
+                                                       @bind-Value="@ChosenPurpose"
+                                                       ValueField="@nameof(Purpose.Id)"
+                                                       TextField="@nameof(Purpose.Text)">
+                                    </TelerikRadioGroup>
+                                }
+                            </EditorTemplate>
+                            <Template>
+                                @{
+                                    var item = context as SchemaEventDto;
+                                    if (item!.IsFirstInChain)
+                                    {
+                                        ChosenPurpose = 2;
+                                    }
+                                    else if (item.IsLastInChain)
+                                    {
+                                        ChosenPurpose = 3;
+                                    }
+                                    else if (item.IsStandAlone)
+                                    {
+                                        ChosenPurpose = 4;
+                                    }
+                                    else
+                                    {
+                                        ChosenPurpose = 1;
+                                    }
+                                    <span>
+    @if (Purposes != null)
+    {
+        @Purposes.FirstOrDefault(x => x.Id == ChosenPurpose)!.Text
+    }
+</span>
+                                }
+                            </Template>
+                        </GridColumn>
+                        <GridColumn Field="DependOnEventId" Title="@LocalizationService.StringFromResource("Schemas-68")">
+                            <EditorTemplate>
+                                @{
+                                    var item = context as SchemaEventDto;
+                                    <TelerikDropDownList Data="@EventList"
+                                                         TextField="@nameof(SchemaEventDto.Labels)"
+                                                         ValueField="@nameof(SchemaEventDto.SchemaEventIdentifier)" Context="pop"
+                                                         @bind-Value="@item!.DependOnEventId" Width="500px">
+                                        <ItemTemplate>
+                                            @{
+                                                var index = SharedService.IndexByCulture();
+                                                @pop.Labels[index];
+                                            }
+                                        </ItemTemplate>
+                                        <ValueTemplate>
+                                            @{
+                                                var index = SharedService.IndexByCulture();
+                                                @pop.Labels[index];
+                                            }
+                                        </ValueTemplate>
+                                    </TelerikDropDownList>
+                                }
+                            </EditorTemplate>
+                            <Template>
+                                @{
+                                    var index = SharedService.IndexByCulture();
+                                    var item = context as SchemaEventDto;
+                                    <span>@(EventList.FirstOrDefault(x => x.SchemaEventIdentifier == item?.DependOnEventId)?.Labels[index])</span>
+                                }
+                            </Template>
+                        </GridColumn>
+                        <GridColumn Field="EventType" Title="@LocalizationService.StringFromResource("Schemas-25")">
+                            <EditorTemplate>
+                                @{
+                                var item = context as SchemaEventDto;
+                                <TelerikDropDownList Data="@EventTypes.Where(x => x.OrganizationEventTypeIdentifier > 1).ToList()"
+                                                     TextField="@nameof(OrganizationEventTypeDto.Names)"
+                                                     ValueField="@nameof(OrganizationEventTypeDto.OrganizationEventTypeIdentifier)" Context="pop"
+                                                     @bind-Value="@item!.EventTypeId" Width="500px">
+                                    <ItemTemplate>
+                                        @{
+                                        var index = SharedService.IndexByCulture();
+                                        @pop.Names[index]
+                                        ;
+                                        }
+                                    </ItemTemplate>
+                                    <ValueTemplate>
+                                        @{
+                                        var index = SharedService.IndexByCulture();
+                                        @pop.Names[index]
+                                        ;
+                                        }
+                                    </ValueTemplate>
+                                </TelerikDropDownList>
+                                }
+                            </EditorTemplate>
+                            <Template>
+                                @{
+                                var index = SharedService.IndexByCulture();
+                                var item = context as SchemaEventDto;
+                                <span>@(EventTypes.FirstOrDefault(x => x.OrganizationEventTypeIdentifier == item?.EventTypeId)?.Names[index])</span>
+                                }
+                            </Template>
+                        </GridColumn>
+                        <GridCommandColumn Width="200px">
+                            <GridCommandButton Enabled="@Enabled" Command="Edit" Icon="@SvgIcon.Pencil" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Schemas-21")</GridCommandButton>
+                            <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Schemas-22")</GridCommandButton>
+                        </GridCommandColumn>
+                    </GridColumns>
+                    </TelerikGrid>
+                </TabStripTab>
+                <TabStripTab Title="@LocalizationService.StringFromResource("Schemas-51")">
+                    <TelerikGrid Data="@ProgressList"
+                                 @ref="@ProgressGridRef"
+                                 ConfirmDelete="true"
+                                 EditMode="@GridEditMode.Popup"
+                                 OnCreate="@ProgressCreateHandler"
+                                 OnUpdate="@ProgressUpdateHandler"
+                                 OnEdit="@ProgressEditHandler"
+                                 OnDelete="@ProgressDeleteHandler"
+                                 OnModelInit="@(() => new SchemaProgressDto())">
+                        <GridToolBarTemplate>
+                            <GridCommandButton Enabled="@Enabled" Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Schemas-52")</GridCommandButton>
+                        </GridToolBarTemplate>
+                        <GridColumns>
+                            <GridColumn Title="@LocalizationService.StringFromResource("Schemas-53")">
+                                <EditorTemplate Context="progressItem">
+                                    @{
+                                        var item = progressItem as SchemaProgressDto;
+                                        <span>@item!.SchemaProgressIdentifier</span>
+                                    }
+                                </EditorTemplate>
+                                <Template Context="progressItem">
+                                    @{
+                                        var item = progressItem as SchemaProgressDto;
+                                        <span>@item!.SchemaProgressIdentifier</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                            <GridColumn Title="@LocalizationService.StringFromResource("Schemas-54")">
+                                <EditorTemplate Context="progressItem">
+                                    @{
+                                        var item = progressItem as SchemaProgressDto;
+                                        ProgressId = item!.SchemaProgressIdentifier;
+                                        
+                                        <TelerikNumericTextBox @bind-Value="@item.PercentageOfAmount" />
+                                        <br/><br/>
+                                        <span>@LocalizationService.StringFromResource("Schemas-59")</span>
+                                        <TelerikNumericTextBox @bind-Value="@item.MonthToExpire" />
+                                        
+                                        if (ProgressId > 0)
+                                        {
+                                            <br/><br/>
+                                            <TelerikGrid Data="@ProgressRequirementList"
+                                                         @ref="@ProgressRequirementGridRef"
+                                                         ConfirmDelete="true"
+                                                         EditMode="@GridEditMode.Popup"
+                                                         OnDelete="@ProgressRequirementDeleteHandler">
+                                                <GridToolBarTemplate>
+                                                    <GridCommandButton Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Schemas-55")</GridCommandButton>
+                                                </GridToolBarTemplate>
+                                                <GridSettings>
+                                                    <GridPopupEditSettings Width="550px" MaxHeight="95vh" MaxWidth="95vw"></GridPopupEditSettings>
+                                                    <GridPopupEditFormSettings Context="progressRequirementContext">
+                                                        <FormTemplate>
+                                                            @{
+                                                                if (progressRequirementContext != null)
+                                                                {
+                                                                    SchemaProgressRequirementEditItem = (progressRequirementContext.Item as SchemaProgressRequirementDto)!;
+                                                                }
+
+                                                                if (SchemaProgressRequirementEditItem is null) return;
+     
+                                                                <TelerikForm Model="@SchemaProgressRequirementEditItem"
+                                                                             ColumnSpacing="20px"
+                                                                             Columns="2"
+                                                                             ButtonsLayout="@FormButtonsLayout.Stretch"
+                                                                             OnValidSubmit="@ProgressRequirementUpdateHandler">
+                                                                    <FormItems>
+                                                                        <FormGroup Columns="1">
+                                                                            <FormItem Field="Mil" LabelText="@LocalizationService.StringFromResource("Schemas-35")">
+                                                                                <Template>
+                                                                                    @{
+                                                                                        <label>@LocalizationService.StringFromResource("Schemas-60")</label>
+                                                                                        <TelerikDropDownList Data="@RequirementTypes"
+                                                                                                             TextField="@nameof(OrganizationMilestoneRequirementTypeDto.Names)"
+                                                                                                             ValueField="@nameof(OrganizationMilestoneRequirementTypeDto.OrganizationMilestoneRequirementTypeIdentifier)"
+                                                                                                             Context="pop"
+                                                                                                             @bind-Value="@SchemaProgressRequirementEditItem.MilestoneRequirementTypeId" Width="500px">
+                                                                                            <ItemTemplate>
+                                                                                                @{
+                                                                                                    var index = SharedService.IndexByCulture();
+                                                                                                    @pop.Names[index]
+                                                                                                    ;
+                                                                                                }
+                                                                                            </ItemTemplate>
+                                                                                            <ValueTemplate>
+                                                                                                @{
+                                                                                                    var index = SharedService.IndexByCulture();
+                                                                                                    @pop.Names[index]
+                                                                                                    ;
+                                                                                                }
+                                                                                            </ValueTemplate>
+                                                                                        </TelerikDropDownList>
+                                                                                    }
+                                                                                </Template>
+                                                                            </FormItem>
+                                                                            <FormItem Field="Red" LabelText="@LocalizationService.StringFromResource("Schemas-35")">
+                                                                                <Template>
+                                                                                    @{
+                                                                                        <label>@LocalizationService.StringFromResource("Schemas-61")</label>
+                                                                                        <TelerikDropDownList Data="@DeliveryTypes"
+                                                                                                             TextField="@nameof(OrganizationDocumentDeliveryTypeDto.Names)"
+                                                                                                             ValueField="@nameof(OrganizationDocumentDeliveryTypeDto.OrganizationDocumentDeliveryTypeIdentifier)"
+                                                                                                             Context="pop"
+                                                                                                             @bind-Value="@SchemaProgressRequirementEditItem.DocumentDeliveryTypeId" Width="500px">
+                                                                                            <ItemTemplate>
+                                                                                                @{
+                                                                                                    var index = SharedService.IndexByCulture();
+                                                                                                    @pop.Names[index]
+                                                                                                    ;
+                                                                                                }
+                                                                                            </ItemTemplate>
+                                                                                            <ValueTemplate>
+                                                                                                @{
+                                                                                                    var index = SharedService.IndexByCulture();
+                                                                                                    @pop.Names[index]
+                                                                                                    ;
+                                                                                                }
+                                                                                            </ValueTemplate>
+                                                                                        </TelerikDropDownList>
+                                                                                    }
+                                                                                </Template>
+                                                                            </FormItem>
+                                                                        </FormGroup>
+                                                                    </FormItems>
+                                                                    <FormButtons>
+                                                                        <TelerikButton Icon="@nameof(SvgIcon.Save)">@LocalizationService.StringFromResource("Schemas-19")</TelerikButton>
+                                                                        <TelerikButton Icon="@nameof(SvgIcon.Cancel)" ButtonType="@ButtonType.Button" @onclick="ProgressRequirementCancelHandler">@LocalizationService.StringFromResource("Schemas-20")</TelerikButton>
+                                                                    </FormButtons>
+                                                                </TelerikForm>
+                                                                
+                                                                
+                                                            }
+                                                        </FormTemplate>
+                                                    </GridPopupEditFormSettings>
+                                                </GridSettings>
+                                                <GridColumns>
+                                                    <GridColumn Title="@LocalizationService.StringFromResource("Schemas-56")">
+                                                        <Template>
+                                                            @{
+                                                                var index = SharedService.IndexByCulture();
+                                                                if (context is not SchemaProgressRequirementDto item) return;
+                                                                <span>
+                                                                    @{
+                                                                        OrganizationMilestoneRequirementTypeDto? first = null;
+                                                                        foreach (var x in RequirementTypes)
+                                                                        {
+                                                                            if (x.OrganizationMilestoneRequirementTypeIdentifier == item.MilestoneRequirementTypeId)
+                                                                            {
+                                                                                first = x;
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    @first!.Names[index]
+</span>
+                                                            }
+                                                        </Template>
+                                                    </GridColumn>
+                                                    <GridColumn Title="@LocalizationService.StringFromResource("Schemas-57")">
+                                                        <Template>
+                                                            @{
+                                                                var index = SharedService.IndexByCulture();
+                                                                if (context is not SchemaProgressRequirementDto item) return;
+                                                                <span>@DeliveryTypes.FirstOrDefault(x => x.OrganizationDocumentDeliveryTypeIdentifier == item.DocumentDeliveryTypeId)!.Names[index]</span>
+                                                            }
+                                                        </Template>
+                                                    </GridColumn>
+                                                    <GridCommandColumn Width="200px">
+                                                        <GridCommandButton Command="Edit" Icon="@SvgIcon.Pencil" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Schemas-21")</GridCommandButton>
+                                                        <GridCommandButton Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Schemas-22")</GridCommandButton>
+                                                    </GridCommandColumn>
+                                                </GridColumns>
+                                            </TelerikGrid>
+                                        }
+
+                                    }
+                                </EditorTemplate>
+                                <Template>
+                                    @{
+                                        if (context is not SchemaProgressDto item) return;
+                                        <span>@item.PercentageOfAmount</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                            <GridCommandColumn Width="200px">
+                                <GridCommandButton Enabled="@Enabled" Command="Edit" Icon="@SvgIcon.Pencil" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Schemas-21")</GridCommandButton>
+                                <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Schemas-22")</GridCommandButton>
+                            </GridCommandColumn>
+                        </GridColumns>
+                    </TelerikGrid>
+                </TabStripTab>
+                <TabStripTab Title="@LocalizationService.StringFromResource("Schemas-62")">
+                    <TelerikGrid Data="@SchemaRequiredDocumentList"
+                                 @ref="@SchemaRequiredDocumentGridRef"
+                                 ConfirmDelete="true"
+                                 EditMode="@GridEditMode.Popup"
+                                 OnEdit="@RequiredDocumentEditHandler"
+                                 OnCreate="@RequiredDocumentCreateHandler"
+                                 OnUpdate="@RequiredDocumentUpdateHandler"
+                                 OnDelete="@RequiredDocumentDeleteHandler"
+                                 OnModelInit="@(() => new SchemaRequiredDocumentDto())">
+                        <GridToolBarTemplate>
+                            <GridCommandButton Enabled="@Enabled" Command="Add" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="@SvgIcon.Plus">@LocalizationService.StringFromResource("Schemas-64")</GridCommandButton>
+                        </GridToolBarTemplate>
+                        <GridColumns>
+                            <GridColumn Title="@LocalizationService.StringFromResource("Schemas-63")">
+                                <EditorTemplate Context="progressItem">
+                                    @{
+                                        <TelerikDropDownList Data="@DocumentTypes"
+                                                             TextField="@nameof(OrganizationDocumentTypeDto.Names)"
+                                                             ValueField="@nameof(OrganizationDocumentTypeDto.OrganizationDocumentTypeIdentifier)"
+                                                             Context="pop"
+                                                             @bind-Value="@SchemaRequiredDocument" Width="500px">
+                                            <ItemTemplate>
+                                                @{
+                                                var index = SharedService.IndexByCulture();
+                                                @pop.Names[index]
+                                                ;
+                                                }
+                                            </ItemTemplate>
+                                            <ValueTemplate>
+                                                @{
+                                                var index = SharedService.IndexByCulture();
+                                                @pop.Names[index]
+                                                ;
+                                                }
+                                            </ValueTemplate>
+                                        </TelerikDropDownList>
+                                    }
+                                </EditorTemplate>
+                                <Template>
+                                    @{
+                                        if (context is not SchemaRequiredDocumentDto item) return;
+                                        var index = SharedService.IndexByCulture();
+                                        <span>
+                                            @{
+                                                OrganizationDocumentTypeDto? first = null;
+                                                foreach (var x in DocumentTypes)
+                                                {
+                                                    if (x.OrganizationDocumentTypeIdentifier == item?.RequiredDocumentId)
+                                                    {
+                                                        first = x;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            @first!.Names[index]
+</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                            <GridCommandColumn Width="200px">
+                                <GridCommandButton Enabled="@Enabled" Command="Edit" Icon="@SvgIcon.Pencil" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Schemas-21")</GridCommandButton>
+                                <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Schemas-22")</GridCommandButton>
+                            </GridCommandColumn>
+                        </GridColumns>
+                    </TelerikGrid>
+                </TabStripTab>
+            </TelerikTabStrip>
+        }
+    </DetailTemplate>
+    <GridColumns>
+        <GridColumn Title="Id" Width="5%">
+            <Template>
+                @{
+                    if (context is not SchemaDto item) return;
+                    <span>@item.Id</span>
+                }
+            </Template>
+        </GridColumn>
+        <GridColumn Field="@nameof(SchemaDto.Names)" Title="@LocalizationService.StringFromResource("Schemas-31")">
+            <Template>
+                @{
+                    var item = context as SchemaDto;
+                    <span>@item?.Names[SharedService.IndexByCulture()]</span>
+                }
+            </Template>
+            <EditorTemplate>
+                <TelerikTextBox @bind-Value="@SchemaName"></TelerikTextBox>
+            </EditorTemplate>
+        </GridColumn>
+        <GridColumn Field="@nameof(SchemaDto.ClaimTag)" Title="@LocalizationService.StringFromResource("Schemas-58")">
+            <Template>
+                @{
+                    if (context is not SchemaDto item) return;
+                    <span>@item.ClaimTag</span>
+                }
+            </Template>
+            <EditorTemplate>
+                <TelerikDropDownList Data="@ClaimTypes.Where(x => x.OrganizationClaimTypeIdentifier > 1).ToList()"
+                                     TextField="@nameof(OrganizationClaimTypeDto.Tag)"
+                                     ValueField="@nameof(OrganizationClaimTypeDto.Tag)"
+                                     @bind-Value="@SchemaTag">
+                </TelerikDropDownList>
+            </EditorTemplate>
+        </GridColumn>
+        <GridColumn Field="@nameof(SchemaDto.CreatedDate)" DisplayFormat="{0:D}" Editable="false" Title="@LocalizationService.StringFromResource("Schemas-32")" />
+        <GridColumn Field="@nameof(SchemaDto.UpdatedDate)" DisplayFormat="{0:D}" Editable="false" Title="@LocalizationService.StringFromResource("Schemas-33")" />
+        <GridColumn Field="@nameof(SchemaDto.Enabled)" Title="@LocalizationService.StringFromResource("Schemas-26")" Width="5%">
+            <Template>
+                @{
+                    if (context is not SchemaDto item) return;
+                    <span>@(item.Enabled ? @LocalizationService.StringFromResource("Schemas-29") : @LocalizationService.StringFromResource("Schemas-30"))</span>
+                }
+            </Template>
+        </GridColumn>
+        <GridCommandColumn Width="290px">
+            <GridCommandButton Enabled="@Enabled" Command="Save" Icon="@SvgIcon.Save" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" ShowInEdit="true">@LocalizationService.StringFromResource("Settings-10")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" Command="Edit" Icon="@SvgIcon.Pencil" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">@LocalizationService.StringFromResource("Schemas-21")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" Command="Delete" Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error">@LocalizationService.StringFromResource("Schemas-22")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" Command="Cancel" Icon="@SvgIcon.Cancel" ShowInEdit="true">@LocalizationService.StringFromResource("Schemas-20")</GridCommandButton>
+            <GridCommandButton Enabled="@Enabled" OnClick="SchemaCopyHandler" Icon="@SvgIcon.Copy" ThemeColor="@ThemeConstants.Button.ThemeColor.Success">@LocalizationService.StringFromResource("Schemas-28")</GridCommandButton>
+        </GridCommandColumn>
+    </GridColumns>
+</TelerikGrid>
+
+@code {
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    private int CreatedActionTypeId { get; set; } = 1000;
+    private TelerikGrid<SchemaDto> SchemasGridRef { get; set; } = new();
+    private TelerikGrid<SchemaControlDto> ControlsGridRef { get; set; } = new();
+    private TelerikGrid<SchemaRequiredDocumentDto> SchemaRequiredDocumentGridRef { get; set; } = new();
+    private TelerikGrid<SchemaProgressDto> ProgressGridRef { get; set; } = new();
+    private TelerikGrid<SchemaProgressRequirementDto> ProgressRequirementGridRef { get; set; } = new();
+    private TelerikGrid<SchemaEventDto> EventsGridRef { get; set; } = new();
+    private TelerikGrid<SchemaEventActionDto> ActionsGridRef { get; set; } = new();
+    private List<SchemaDto> SchemaList { get; set; } = [];
+    private List<SchemaControlDto> ControlList { get; set; } = [];
+    private List<SchemaProgressDto> ProgressList { get; set; } = [];
+    private List<SchemaRequiredDocumentDto> SchemaRequiredDocumentList { get; set; } = [];
+    private List<SchemaProgressRequirementDto> ProgressRequirementList { get; set; } = [];
+    private List<SchemaProgressRequirementDto> ProgressRequirementTempList { get; set; } = [];
+    private SchemaProgressDto SchemaProgressEditItem { get; set; } = new();
+    private SchemaRequiredDocumentDto SchemaRequiredDocumentEditItem { get; set; } = new();
+    private SchemaProgressRequirementDto SchemaProgressRequirementEditItem { get; set; } = new();
+    private SchemaControlDto SchemaControlEditItem { get; set; } = new();
+    private List<SchemaEventDto> EventList { get; set; } = [];
+    private List<SchemaEventActionDto> ActionList { get; set; } = [];
+    private SchemaEventActionDto? SchemaEventActionEditItem { get; set; } = new();
+    private List<SchemaEventMessageDto> SchemaEventMessages { get; set; } = [];
+    private int ProgressId { get; set; } = 0;
+    private int ProgressRequirementId { get; set; } = 0;
+    private int ProgressRequirementDeliveryId { get; set; } = 0;
+    private string SchemaName { get; set; } = string.Empty;
+    private string SchemaTag { get; set; } = string.Empty;
+    private int SchemaControlEditItemControlTypeId { get; set; } = 0;
+    private int SchemaRequiredDocument { get; set; } = 0;
+    
+    private List<OrganizationDocumentTypeDto> DocumentTypes { get; set; } = new();
+    private List<OrganizationActionTypeDto> ActionTypes { get; set; } = new();
+    private List<OrganizationSectionDto> Sections { get; set; } = new();
+    private List<OrganizationStatusDto> Statuses { get; set; } = new();
+    private List<OrganizationReactionTypeDto> ReactionTypes { get; set; } = new();
+    private List<OrganizationClaimTypeDto> ClaimTypes { get; set; } = new();
+    private List<OrganizationEventTypeDto> EventTypes { get; set; } = new();
+    private List<OrganizationControlTypeDto> ControlTypes { get; set; } = new();
+    private List<OrganizationSystemMessageDestinationDto> SystemMessageDestinations { get; set; } = new();
+    private List<OrganizationMilestoneRequirementTypeDto> RequirementTypes { get; set; } = new();
+    private List<OrganizationDocumentDeliveryTypeDto> DeliveryTypes { get; set; } = new();
+    private List<Purpose> Purposes { get; set; } = new();
+    private int ChosenPurpose { get; set; } = 1;
+    private bool Enabled { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSchemas();
+        await LoadOrganization();
+        
+        Purposes = new List<Purpose>
+        {
+            new Purpose { Id = 1, Text = @LocalizationService.StringFromResource("Schemas-69") },
+            new Purpose { Id = 2, Text = @LocalizationService.StringFromResource("Schemas-70") },
+            new Purpose { Id = 3, Text = @LocalizationService.StringFromResource("Schemas-71") },
+            new Purpose { Id = 4, Text = @LocalizationService.StringFromResource("Schemas-72") }
+        };
+    }
+    
+    private async Task OnSchemaExpand(GridRowExpandEventArgs args)
+    {
+        if (args.Item is not SchemaDto schema) return;
+        
+        args.ShouldRender = true;
+
+        var desiredState = SchemasGridRef.GetState();
+
+        desiredState.ExpandedItems = new List<SchemaDto> { args.Item as SchemaDto ?? throw new InvalidOperationException() };
+
+        await SchemasGridRef.SetStateAsync(desiredState);
+        
+        LoadControls(schema.Controls.ToList());
+        LoadProgress(schema.Progress.ToList());
+        LoadRequiredDocuments(schema.RequiredDocuments.ToList());
+        LoadEvents(schema.Events.ToList());
+    }
+    
+    private async Task OnSchemaEventExpand(GridRowExpandEventArgs args)
+    {
+        if (args.Item is not SchemaEventDto schemaEvent) return;
+        
+        args.ShouldRender = true;
+
+        var desiredState = EventsGridRef.GetState();
+
+        desiredState.ExpandedItems = new List<SchemaEventDto> { schemaEvent ?? throw new InvalidOperationException() };
+
+        await EventsGridRef.SetStateAsync(desiredState);
+
+        LoadEvents(EventList);
+        LoadActions(schemaEvent.Actions.ToList());
+    }
+    
+
+    private async Task LoadSchemas()
+    {
+        var result = await SchemaService.SchemasAsync();
+
+        if (!result.IsOk) return;
+
+        SchemaList = result.Value.ToList();
+    }
+    
+    private async Task LoadOrganization()
+    {
+        var result = await OrganizationService.OrganizationByIdAsync(1);
+        
+        if (!result.IsOk) return;
+        
+        var organization = result.Value;
+        ActionTypes = organization.ActionTypes;
+        ReactionTypes = organization.ReactionTypes;
+        Sections = organization.Sections;
+        ControlTypes = organization.ControlTypes;
+        Statuses = organization.Statuses;
+        ClaimTypes = organization.ClaimTypes;
+        EventTypes = organization.EventTypes;
+        SystemMessageDestinations = organization.SystemMessageDestinations;
+        RequirementTypes = organization.MilestoneRequirementTypes;
+        DeliveryTypes = organization.DocumentDeliveryTypes;
+        DocumentTypes = organization.DocumentTypes;
+    }
+
+    private void LoadControls(List<SchemaControlDto> controls)
+    {
+        ControlList = controls.Count < 1 ? [] : controls;
+    }
+    
+    private void LoadProgress(List<SchemaProgressDto> progress)
+    {
+        ProgressList = progress.Count < 1 ? [] : progress;
+    }
+    
+    private void LoadRequiredDocuments(List<SchemaRequiredDocumentDto> documents)
+    {
+        SchemaRequiredDocumentList = documents.Count < 1 ? [] : documents;
+    }
+
+    private void LoadProgressRequirements(List<SchemaProgressRequirementDto> requirements)
+    {
+        ProgressRequirementList = requirements.Count < 1 ? [] : requirements;
+    }
+
+    private void LoadEvents(List<SchemaEventDto> events)
+    {
+        EventList = events.Count < 1 ? [] : events;
+        LoadSchemaEventMessages(events);
+    }
+
+    private void LoadSchemaEventMessages(List<SchemaEventDto> events)
+    {
+        var schemaEventMessages = events
+            .SelectMany(e => e.Actions
+                .Where(z => z.SystemMessage != string.Empty)
+                .Select(x => new SchemaEventMessageDto()
+                {
+                    ActionId = x.SchemaEventActionIdentifier,
+                    EventId = e.SchemaEventIdentifier,
+                    EventTypeId = e.EventTypeId,
+                    ReceiverId = x.ReceiverClaimTypeId,
+                    Message = x.SystemMessage
+                }))
+            .ToList();
+        
+        SchemaEventMessages = schemaEventMessages
+            .Where(x => x.Message != string.Empty)
+            .OrderBy(x => x.EventId)
+            .ThenBy(x => x.ActionId)
+            .ToList();
+    }
+
+    private void LoadActions(List<SchemaEventActionDto> actions)
+    {
+        ActionList = actions.Count < 1 ? [] : actions;
+    }
+    
+
+    private void SchemaEditHandler(GridCommandEventArgs obj)
+    {
+        var schema = (SchemaDto)obj.Item;
+        
+        SchemaName = schema.Names[SharedService.IndexByCulture()];
+        SchemaTag = schema.ClaimTag;
+    }
+    
+    private async Task SchemaCopyHandler(GridCommandEventArgs args)
+    {
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var schema = (SchemaDto)args.Item;
+        var result = await SchemaService.CopySchemaAsync(schema.Id, new CancellationToken());
+
+        if (!result.IsOk)
+        {
+            Console.WriteLine(result.Error);
+            ChangeLoaderVisibilityAction(false);
+            return;
+        }
+        
+        await LoadSchemas();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task SchemaUpdateHandler(GridCommandEventArgs args)
+    {
+        var schema = (SchemaDto)args.Item;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        schema.Names[SharedService.IndexByCulture()] = SchemaName;
+        schema.ClaimTag = SchemaTag;
+        
+        var result = await SchemaService.UpdateSchemaAsync(schema.Id, new UpdateSchemaDto()
+        {
+            Names = schema.Names,
+            ClaimTag = schema.ClaimTag,
+            StatusId = 1,
+            Controls = schema.Controls.ToList(),
+            Enabled = schema.Enabled
+        }, new CancellationToken());
+
+        if (!result.IsOk)
+        {
+            ChangeLoaderVisibilityAction(false);
+            return;
+        }
+        
+        await LoadSchemas();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SchemaDeleteHandler(GridCommandEventArgs args)
+    {
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var schema = (SchemaDto)args.Item;
+        var result = await SchemaService.DeleteSchemaAsync(schema.Id, new CancellationToken());
+        
+        if (!result.IsOk)
+        {
+            ChangeLoaderVisibilityAction(false);
+            return;
+        }
+
+        await LoadSchemas();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SchemaCreateHandler(GridCommandEventArgs args)
+    {
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var schema = (SchemaDto)args.Item;
+        
+        schema.Names[SharedService.IndexByCulture()] = SchemaName;
+        schema.ClaimTag = SchemaTag;
+        
+        var result = await SchemaService.CreateSchemaAsync(new CreateSchemaDto()
+        {
+            Names = [SchemaName, "", "", "", "", "", "", ""],
+            ClaimTag = schema.ClaimTag,
+            StatusId = 1,
+            Enabled = schema.Enabled
+        }, new CancellationToken());
+        
+        if (!result.IsOk)
+        {
+            ChangeLoaderVisibilityAction(false);
+            return;
+        }
+        
+        await LoadSchemas();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    
+    private async Task ControlUpdateHandler()
+    {
+        var control = SchemaControlEditItem;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+
+        if (schema is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var controlControlTypeName = ControlTypes.FirstOrDefault(x => x.OrganizationControlTypeIdentifier == control.ControlTypeId)?.Name;
+        if (controlControlTypeName != null) control.ControlTypeName = controlControlTypeName;
+        
+        if (control.SchemaControlIdentifier == 0)
+        {
+            var result = await SchemaService.AddSchemaControlAsync(schema.Id, new AddSchemaControlDto()
+            {
+                SchemaId = schema.Id,
+                Control = control
+            }, new CancellationToken());
+            
+            if (!result.IsOk)
+            {
+                ChangeLoaderVisibilityAction(false);
+                return;
+            }
+            
+            LoadControls(result.Value ?? []);
+        }
+        else
+        {
+            var result = await SchemaService.UpdateSchemaControlAsync(schema.Id, new UpdateSchemaControlDto()
+            {
+                SchemaId = schema.Id,
+                Control = control
+            }, new CancellationToken());
+        
+            if (!result.IsOk)
+            {
+                ChangeLoaderVisibilityAction(false);
+                return;
+            }
+            
+            LoadControls(result.Value ?? []);
+        }
+
+        await ControlExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ControlDeleteHandler(GridCommandEventArgs args)
+    {
+        var control = (SchemaControlDto)args.Item;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+
+        if (control is null || schema is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await SchemaService.DeleteSchemaControlAsync(schema.Id, control.SchemaControlIdentifier, new CancellationToken());
+        
+        LoadControls(result.Value ?? []);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task ControlCancelHandler()
+    {
+        await ControlExitEditAsync();
+    }
+    
+    private async Task ControlExitEditAsync()
+    {
+        var state = ControlsGridRef.GetState();
+        state.OriginalEditItem = null!;
+        state.EditItem = null!;
+        state.InsertedItem = null!;
+        await ControlsGridRef.SetStateAsync(state);
+    }
+    
+
+    private void  ProgressEditHandler(GridCommandEventArgs obj)
+    {
+        var progress = (SchemaProgressDto)obj.Item;
+        
+        LoadProgressRequirements(progress.Requirements);
+    }
+    
+    private async Task ProgressCreateHandler(GridCommandEventArgs obj)
+    {
+        var progress = (SchemaProgressDto)obj.Item;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+        
+        if (schema is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await SchemaService.AddSchemaProgressAsync(schema.Id, new AddSchemaProgressDto()
+        {
+            SchemaId = schema.Id,
+            Progress = progress
+        }, new CancellationToken());
+        
+        LoadProgress(result.Value ?? []);
+        await ProgressExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task ProgressUpdateHandler(GridCommandEventArgs obj)
+    {
+        var progress = (SchemaProgressDto)obj.Item;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+
+        if (schema is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await SchemaService.UpdateSchemaProgressAsync(schema.Id, new UpdateSchemaProgressDto()
+        {
+            SchemaId = schema.Id,
+            Progress = progress,
+            MonthToExpire = progress.MonthToExpire
+        }, new CancellationToken());
+        
+        LoadProgress(result.Value ?? []);
+
+        await ProgressExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ProgressDeleteHandler(GridCommandEventArgs obj)
+    {
+        var progress = (SchemaProgressDto)obj.Item;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+
+        if (progress is null || schema is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await SchemaService.DeleteSchemaProgressAsync(schema.Id, progress.SchemaProgressIdentifier, new CancellationToken());
+        
+        LoadProgress(result.Value ?? []);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task ProgressExitEditAsync()
+    {
+        var state = ProgressGridRef.GetState();
+        state.OriginalEditItem = null!;
+        state.EditItem = null!;
+        state.InsertedItem = null!;
+        await ProgressGridRef.SetStateAsync(state);
+    }
+    
+
+    private async Task ProgressRequirementUpdateHandler(EditContext obj)
+    {
+        var requirement = SchemaProgressRequirementEditItem;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+        var progress = ProgressId;
+
+        if (schema is null || progress == 0) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        if (requirement.SchemaProgressRequirementIdentifier == 0)
+        {
+            var result = await SchemaService.AddSchemaProgressRequirementAsync(schema.Id, progress, new CreateSchemaProgressRequirementDto()
+            {
+                MilestoneRequirementTypeId = requirement.MilestoneRequirementTypeId,
+                DocumentDeliveryTypeId = requirement.DocumentDeliveryTypeId
+            }, new CancellationToken());
+            
+            var updatetedProgress = result.Value;
+            var updatedProgressRequirements = updatetedProgress.FirstOrDefault(x => x.SchemaProgressIdentifier == progress)?.Requirements;
+            
+            LoadProgress(updatetedProgress);
+            LoadProgressRequirements(updatedProgressRequirements ?? []);
+        }
+        else
+        {
+            var result = await SchemaService.UpdateSchemaProgressRequirementAsync(schema.Id, progress, requirement.SchemaProgressRequirementIdentifier, new UpdateSchemaProgressRequirementDto()
+            {
+                MilestoneRequirementTypeId = requirement.MilestoneRequirementTypeId,
+                DocumentDeliveryTypeId = requirement.DocumentDeliveryTypeId
+            }, new CancellationToken());
+        
+            var updatetedProgress = result.Value;
+            var updatedProgressRequirements = updatetedProgress.FirstOrDefault(x => x.SchemaProgressIdentifier == progress)?.Requirements;
+            
+            LoadProgress(updatetedProgress);
+            LoadProgressRequirements(updatedProgressRequirements ?? []);
+        }
+
+        await ProgressRequirementExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ProgressRequirementDeleteHandler(GridCommandEventArgs arg)
+    {
+        var requirement = (SchemaProgressRequirementDto)arg.Item;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+        var progress = ProgressId;
+
+        if (progress == 0 || schema is null || requirement is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await SchemaService.DeleteSchemaProgressRequirementAsync(schema.Id, progress, requirement.SchemaProgressRequirementIdentifier, new CancellationToken());
+        
+        var updatetedProgress = result.Value;
+        var updatedProgressRequirements = updatetedProgress.FirstOrDefault(x => x.SchemaProgressIdentifier == progress)?.Requirements;
+            
+        LoadProgress(updatetedProgress);
+        LoadProgressRequirements(updatedProgressRequirements ?? []);
+        await ProgressRequirementExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task ProgressRequirementCancelHandler()
+    {
+        await ProgressRequirementExitEditAsync();
+    }
+    
+    private async Task ProgressRequirementExitEditAsync()
+    {
+        var state = ProgressRequirementGridRef.GetState();
+        state.OriginalEditItem = null!;
+        state.EditItem = null!;
+        state.InsertedItem = null!;
+        await ProgressRequirementGridRef.SetStateAsync(state);
+    }
+    
+    
+    private void RequiredDocumentEditHandler(GridCommandEventArgs obj)
+    {
+        var requiredDocument = (SchemaRequiredDocumentDto)obj.Item;
+        
+        SchemaRequiredDocument = requiredDocument.RequiredDocumentId;
+    }
+    
+    private async Task RequiredDocumentCreateHandler(GridCommandEventArgs obj)
+    {
+        var requiredDocument = (SchemaRequiredDocumentDto)obj.Item;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+        var requiredDocumentId = SchemaRequiredDocument;
+        
+        if (schema is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await SchemaService.AddSchemaRequiredDocumentAsync(schema.Id, requiredDocumentId, new CancellationToken());
+            
+        LoadRequiredDocuments(result.Value ?? []);
+        await RequiredDocumentsExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RequiredDocumentUpdateHandler(GridCommandEventArgs obj)
+    {
+        var requiredDocument = (SchemaRequiredDocumentDto)obj.Item;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+        var requiredDocumentId = SchemaRequiredDocument;
+
+        if (schema is null || requiredDocumentId == 0) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await SchemaService.UpdateSchemaRequiredDocumentAsync(schema.Id, requiredDocument.RequiredDocumentIdentifier, requiredDocumentId, new CancellationToken());
+        
+        LoadRequiredDocuments(result.Value ?? []);
+        await RequiredDocumentsExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RequiredDocumentDeleteHandler(GridCommandEventArgs obj)
+    {
+        var requiredDocument = (SchemaRequiredDocumentDto)obj.Item;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+
+        if (schema is null || requiredDocument is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await SchemaService.DeleteSchemaRequiredDocumentAsync(schema.Id, requiredDocument.RequiredDocumentIdentifier, new CancellationToken());
+        
+        LoadRequiredDocuments(result.Value ?? []);
+        await RequiredDocumentsExitEditAsync();
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task RequiredDocumentsExitEditAsync()
+    {
+        var state = SchemaRequiredDocumentGridRef.GetState();
+        state.OriginalEditItem = null!;
+        state.EditItem = null!;
+        state.InsertedItem = null!;
+        await SchemaRequiredDocumentGridRef.SetStateAsync(state);
+    }
+    
+    
+    private async Task EventUpdateHandler(GridCommandEventArgs args)
+    {
+        var ev = (SchemaEventDto)args.Item;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+
+        if (ev is null || schema is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        switch (ChosenPurpose)
+        {
+            case 1:
+                ev.IsFirstInChain = false;
+                ev.IsLastInChain = false;
+                ev.IsStandAlone = false;
+                break;
+            case 2:
+                ev.IsFirstInChain = true;
+                ev.IsLastInChain = false;
+                ev.IsStandAlone = false;
+                break;
+            case 3:
+                ev.IsFirstInChain = false;
+                ev.IsLastInChain = true;
+                ev.IsStandAlone = false;
+                break;
+            case 4:
+                ev.IsFirstInChain = false;
+                ev.IsLastInChain = false;
+                ev.IsStandAlone = true;
+                break;
+        }
+        
+        var result = await SchemaService.UpdateSchemaEventAsync(schema.Id, new UpdateSchemaEventDto()
+        {
+            Identifier = ev.SchemaEventIdentifier,
+            Description = ev.Description,
+            Labels = ev.Labels,
+            DependOnEventId = ev.DependOnEventId,
+            IsFirstInChain = ev.IsFirstInChain,
+            IsLastInChain = ev.IsLastInChain,
+            IsStandAlone = ev.IsStandAlone,
+            Order = ev.Order,
+            EventTypeId = ev.EventTypeId,
+            StatusId = ev.StatusId,
+            Actions = ev.Actions
+        }, new CancellationToken());
+        
+        LoadEvents(result.Value ?? []);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task EventDeleteHandler(GridCommandEventArgs args)
+    {
+        var ev = (SchemaEventDto)args.Item;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+
+        if (ev is null || schema is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await SchemaService.DeleteSchemaEventAsync(schema.Id, ev.SchemaEventIdentifier, new CancellationToken());
+        
+        LoadEvents(result.Value ?? []);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task EventCreateHandler(GridCommandEventArgs args)
+    {
+        var ev = (SchemaEventDto)args.Item;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+
+        if (ev is null || schema is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        switch (ChosenPurpose)
+        {
+            case 1:
+                ev.IsFirstInChain = false;
+                ev.IsLastInChain = false;
+                ev.IsStandAlone = false;
+                break;
+            case 2:
+                ev.IsFirstInChain = true;
+                ev.IsLastInChain = false;
+                ev.IsStandAlone = false;
+                break;
+            case 3:
+                ev.IsFirstInChain = false;
+                ev.IsLastInChain = true;
+                ev.IsStandAlone = false;
+                break;
+            case 4:
+                ev.IsFirstInChain = false;
+                ev.IsLastInChain = false;
+                ev.IsStandAlone = true;
+                break;
+        }
+        
+        var result = await SchemaService.AddSchemaEventAsync(schema.Id, new AddSchemaEventDto()
+        {
+            EventTypeId = ev.EventTypeId,
+            Description = ev.Description,
+            Labels = ev.Labels,
+            DependOnEventId = ev.DependOnEventId,
+            IsFirstInChain = ev.IsFirstInChain,
+            IsLastInChain = ev.IsLastInChain,
+            IsStandAlone = ev.IsStandAlone
+        }, new CancellationToken());
+        
+        LoadEvents(result.Value ?? []);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    
+    private async Task ActionUpdateHandler()
+    {
+        var action = SchemaEventActionEditItem;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+        var ev = EventsGridRef.GetState().ExpandedItems.FirstOrDefault();
+        var eventId = 0;
+        var actionId = 0;
+
+        if (schema is null || ev is null || SchemaEventActionEditItem is null || action is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+
+        if (action.EventActionCombo.Contains("-"))
+        {
+            eventId = Convert.ToInt32(action.EventActionCombo[..action.EventActionCombo.IndexOf("-", StringComparison.Ordinal)]);
+            actionId = Convert.ToInt32(action.EventActionCombo[(action.EventActionCombo.IndexOf("-", StringComparison.Ordinal) + 1)..]);
+        }
+        
+        if (SchemaEventActionEditItem.SchemaEventActionIdentifier != 0)
+        {
+            var result = await SchemaService.UpdateSchemaEventActionAsync(schema.Id, ev.SchemaEventIdentifier, new UpdateSchemaEventActionDto()
+            {
+                Identifier = action.SchemaEventActionIdentifier,
+                StatusId = action.StatusId,
+                ActionTypeId = action.ActionTypeId,
+                ExecutionDate = action.ExecutionDate,
+                ReceiverClaimTypeId = action.ReceiverClaimTypeId,
+                SystemMessage = action.SystemMessage,
+                SystemMessageDestinationId = action.SystemMessageDestinationId,
+                SystemMessagesCreated = action.SystemMessagesCreated,
+                DocumentLink = action.DocumentLink,
+                EmailMessageBody = action.EmailMessageBody,
+                ReactionDescriptionId = action.ReactionDescriptionId,
+                SystemMessageIdToDelete = action.SystemMessageIdToDelete,
+                DeleteEventId = eventId > 0 ? eventId : action.DeleteEventId,
+                DeleteActionId = actionId > 0 ? actionId : action.DeleteActionId,
+                EventActionCombo = action.EventActionCombo,
+                ChangeStatusToId = action.ChangeStatusToId
+            }, new CancellationToken());
+            
+            await ActionExitEditAsync();
+            LoadActions(result.Value ?? []);
+        }
+        else
+        {
+            var result = await SchemaService.AddSchemaEventActionAsync(schema.Id, ev.SchemaEventIdentifier, new AddSchemaEventActionDto()
+            {
+                StatusId = action.StatusId,
+                ActionTypeId = CreatedActionTypeId,
+                ExecutionDate = action.ExecutionDate,
+                ReceiverClaimTypeId = action.ReceiverClaimTypeId,
+                SystemMessage = action.SystemMessage,
+                SystemMessageDestinationId = action.SystemMessageDestinationId,
+                SystemMessagesCreated = action.SystemMessagesCreated,
+                DocumentLink = action.DocumentLink,
+                EmailMessageBody = action.EmailMessageBody,
+                ReactionDescriptionId = action.ReactionDescriptionId,
+                SystemMessageIdToDelete = action.SystemMessageIdToDelete,
+                DeleteEventId = eventId > 0 ? eventId : action.DeleteEventId,
+                DeleteActionId = actionId > 0 ? actionId : action.DeleteActionId,
+                EventActionCombo = action.EventActionCombo,
+                ChangeStatusToId = action.ChangeStatusToId
+            }, new CancellationToken());
+            
+               await ActionExitEditAsync();
+               LoadActions(result.Value ?? []);
+        }
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ActionDeleteHandler(GridCommandEventArgs args)
+    {
+        var action = (SchemaEventActionDto)args.Item;
+        var schema = SchemasGridRef.GetState().ExpandedItems.FirstOrDefault();
+        var ev = EventsGridRef.GetState().ExpandedItems.FirstOrDefault();
+
+        if (ev is null || schema is null) return;
+        
+        Enabled = false;
+        ChangeLoaderVisibilityAction(true);
+        await InvokeAsync(StateHasChanged);
+        
+        var result = await SchemaService.DeleteSchemaEventActionAsync(schema.Id, ev.SchemaEventIdentifier, action.SchemaEventActionIdentifier, new CancellationToken());
+        
+        LoadActions(result.Value ?? []);
+        
+        Enabled = true;
+        ChangeLoaderVisibilityAction(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ActionCancelHandler()
+    {
+        await ActionExitEditAsync();
+    }
+    
+    private async Task ActionExitEditAsync()
+    {
+        var state = ActionsGridRef.GetState();
+        state.OriginalEditItem = null!;
+        state.EditItem = null!;
+        state.InsertedItem = null!;
+        await ActionsGridRef.SetStateAsync(state);
+    }
+
+    public class Purpose
+    {
+        public int Id { get; set; }
+        public string Text { get; set; } = "";
+    }
+
+}

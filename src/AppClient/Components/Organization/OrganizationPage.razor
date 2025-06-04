@@ -1,0 +1,11 @@
+@page "/organization"
+
+@attribute [Authorize(Policy = "User")]
+
+<TelerikRootComponent>
+    <div class="component-page">
+        <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" >
+            <Organization />
+        </Animate>
+    </div>
+</TelerikRootComponent>

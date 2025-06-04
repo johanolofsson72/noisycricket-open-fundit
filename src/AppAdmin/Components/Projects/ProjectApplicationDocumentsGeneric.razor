@@ -1,0 +1,379 @@
+@using global::Shared.Documents.DTOs
+@using global::Shared.Extensions
+@using global::Shared.Milestones.Services
+@using System.IO
+@using AppAdmin.State
+@using Telerik.Windows.Documents.Common.FormatProviders
+@using Telerik.Windows.Documents.Flow.FormatProviders.Docx
+@using Telerik.Windows.Documents.Flow.FormatProviders.Html
+@using Telerik.Windows.Documents.Flow.FormatProviders.Rtf
+@using Telerik.Windows.Documents.Flow.FormatProviders.Txt
+@using Telerik.Windows.Documents.Flow.Model
+
+@inject IJSRuntime JsRuntime
+@inject ApplicationService ApplicationService
+@inject DocumentService DocumentService
+@inject MilestoneService MilestoneService
+@inject SharedService SharedService
+@inject NotificationService NotificationService
+
+<div style='border: 1px solid #f2f2f2; margin: 3px; width: 100%; min-height: 110px; height: 100%; margin-left: 0px; overflow-y: scroll;'>
+    <div style="display: flex; flex-direction: row; margin: 3px;width: 95%">
+        @if (ShowIsSent)
+        {
+            <div style="width: 60%; ">@LocalizationService.StringFromResource("Documents-53")</div>
+            <div style="width: 30%; ">@LocalizationService.StringFromResource("Documents-54")</div>
+            <div style="width: 10%; ">@LocalizationService.StringFromResource("Documents-55")</div>
+        }
+        else if (IsAttachment)
+        {
+            <div style="width: 60%; ">@LocalizationService.StringFromResource("Documents-53")</div>
+            <div style="width: 20%; ">@LocalizationService.StringFromResource("Documents-54")</div>
+            <div style="width: 20%; ">@LocalizationService.StringFromResource("Documents-56")</div>
+        }
+        else if (IsProgress)
+        {
+            <div style="width: 35%; ">@LocalizationService.StringFromResource("Documents-53")</div>
+            <div style="width: 20%; ">@LocalizationService.StringFromResource("Documents-54")</div>
+            <div style="width: 15%; text-align: center;">@LocalizationService.StringFromResource("Documents-57")</div>
+            <div style="width: 20%; ">@LocalizationService.StringFromResource("Documents-58")</div>
+        }
+        else
+        {
+            <div style="width: 70%; ">@LocalizationService.StringFromResource("Documents-53")</div>
+            <div style="width: 30%; ">@LocalizationService.StringFromResource("Documents-54")</div>
+            <div style="width: 0%; ">&nbsp;</div>
+        }
+    </div>
+
+    <TelerikListView Data="ListViewValue" @ref="@ListViewRef">
+        <Template>
+            <div style="display: flex; flex-direction: row; margin: 3px;width: 95%">
+                @if (ShowIsSent)
+                {
+                    if (context.Summarize.Length > 3)
+                    {
+                        <div title="@context.Summarize" @onclick="@(() => DownloadThis(@context))" style='cursor: pointer; width: 60%; margin-top: 3px; color: @((context.IsSigned ? "#008000 !important" : "#ff0000 !important"))'>@context.FileName</div>
+                    }
+                    else
+                    {
+                        <div @onclick="@(() => DownloadThis(@context))" style='cursor: pointer; width: 60%; margin-top: 3px; color: @((context.IsSigned ? "#008000 !important" : "#ff0000 !important"))'>@context.FileName</div>
+                    }
+                    <div style="width: 30%; margin-top: 3px;">@context.CreatedDate.ToString("yyyy-MM-dd")</div>
+                    <div style='width: 10%; margin-top: 3px; color: @((context.IsDelivered ? "#008000 !important" : "#ff0000 !important"))'>@(context.IsDelivered ? @LocalizationService.StringFromResource("Documents-14") : @LocalizationService.StringFromResource("Documents-15"))</div>
+                }
+                else if (IsAttachment)
+                {
+                    var index = SharedService.IndexByCulture();
+                    var data = AppState.DocumentTypes.FirstOrDefault(x => x.OrganizationDocumentTypeIdentifier == context.RequirementTypeId) ?? new OrganizationDocumentTypeDto();
+                    var title = data.Names[index];
+                    var sub = title.Length > 18 ? title.Substring(0, 15) + "..." : title;
+                    if (context.Summarize.Length > 3)
+                    {
+                        <div @onclick="@(() => DownloadThis(@context))" title="@context.Summarize" style="cursor: pointer; width: 60%; margin-top: 3px; color: #1b6ec2;">@context.FileName</div>
+                    }
+                    else
+                    {
+                        <div @onclick="@(() => DownloadThis(@context))" style="cursor: pointer; width: 60%; margin-top: 3px; color: #1b6ec2;">@context.FileName</div>
+                    }
+                    <div style="width: 20%; margin-top: 3px;">@context.CreatedDate.ToString("yyyy-MM-dd")</div>
+                    <div style="width: 20%; " title="@title">@sub</div>
+                }
+                else if (IsProgress)
+                {
+                    if (context.Summarize.Length > 3)
+                    {
+                        <div title="@context.Summarize" @onclick="@(() => DownloadThis(@context))" style='cursor: pointer; width: 35%; margin-top: 3px; color: @(context.Metadata.Where(x => x.Key == "IsApproved").Select(x => x.Value).FirstOrDefault()?.ToString().ToLower() == "true" ? "#008000 !important" : "#ff0000 !important"))'>@context.FileName</div>
+                    }
+                    else
+                    {
+                        <div @onclick="@(() => DownloadThis(@context))" style='cursor: pointer; width: 35%; margin-top: 3px; color: @(context.Metadata.Where(x => x.Key == "IsApproved").Select(x => x.Value).FirstOrDefault()?.ToString().ToLower() == "true" ? "#008000 !important" : "#ff0000 !important"))'>@context.FileName</div>
+                    }
+                    <div style="width: 20%; margin-top: 3px;">@context.CreatedDate.ToString("yyyy-MM-dd")</div>
+                    <div style="width: 15%; text-align: center;">@context.Metadata.Where(x => x.Key == "Index").Select(x => x.Value).FirstOrDefault()</div>
+                    <div style="width: 20%; margin-top: 3px;">@context.Metadata.Where(x => x.Key == "ExpireDate").Select(x => x.Value).FirstOrDefault()</div>
+                }
+                else
+                {
+                    if (context.Summarize.Length > 3)
+                    {
+                        <div @onclick="@(() => DownloadThis(@context))" title="@context.Summarize" style=' cursor: pointer; width: 70%; margin-top: 3px; color: @((context.IsSigned ? "#008000 !important" : "#ff0000 !important"))'>@context.FileName</div>
+                    }
+                    else
+                    {
+                        <div @onclick="@(() => DownloadThis(@context))" style='cursor: pointer; width: 70%; margin-top: 3px; color: @((context.IsSigned ? "#008000 !important" : "#ff0000 !important"))'>@context.FileName</div>
+                    }
+                    <div style="width: 30%; margin-top: 3px;">@context.CreatedDate.ToString("yyyy-MM-dd")</div>
+                    <div style="width: 0%; ">&nbsp;</div>
+                }
+            </div>
+        </Template>
+    </TelerikListView>
+</div>
+<TelerikTooltip TargetSelector="div[title]">
+    <Template>
+        @{
+            var dataAttributes = context.DataAttributes;
+            var title = context.Title;
+            if (title.Length > 3)
+            {
+                <div>
+                    @(new MarkupString(title))
+                </div>
+            }
+        }
+    </Template>
+</TelerikTooltip>
+
+@code 
+{
+    [CascadingParameter] public required AppState AppState { get; set; }
+    [Parameter] public int ApplicationId { get; set; } 
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Ingress { get; set; } = string.Empty;
+    [Parameter] public int RequirementTypeId { get; set; } = 0;
+    [Parameter] public bool IsAttachment { get; set; } = false;
+    [Parameter] public bool IsProgress { get; set; } = false;
+    [Parameter] public bool ShowIsSent { get; set; } = false;
+    [Parameter] public int AssessmentId { get; set; } = 0;
+    [Parameter] public DateTime RefreshVariable { get; set; }
+
+    private ApplicationDto Application { get; set; } = new();
+    private TelerikListView<DocumentDto> ListViewRef { get; set; } = new();
+    private List<DocumentDto> ListViewValue { get; set; } = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        var result = await ApplicationService.ApplicationByIdAsync(ApplicationId, new CancellationToken());
+        if (!result.IsOk) return;
+            
+        Application = result.Value;
+        
+        ListViewValue.Clear();
+        
+        if (IsAttachment)
+        {
+            var requirementIds = Application.RequiredDocuments.Select(x => x.RequiredDocumentId).ToList();
+            
+            foreach (var requirementId in requirementIds)
+            {
+                var documentsResult = await DocumentService.DocumentsByApplicationIdAndDocumentTypeAsync(Application.Id, requirementId, new CancellationToken());
+                if (!documentsResult.IsOk) continue;
+                
+                foreach (var document in documentsResult.Value)
+                {
+                    if (!ListViewValue.Contains(document))
+                        ListViewValue.Add(document);
+                }
+            }
+        }
+        else if (IsProgress)
+        {
+            var milestonesResult = await MilestoneService.MilestonesByApplicationIdAsync(Application.Id, new CancellationToken());
+            if (milestonesResult.IsOk)
+            {
+                foreach (var milestone in milestonesResult.Value)
+                {
+                    foreach (var requirement in milestone.Requirements)
+                    {
+                        if (requirement.DocumentId < 1) continue;
+
+                        var documentResult = await DocumentService.DocumentByIdAsync(requirement.DocumentId, new CancellationToken());
+                        if (!documentResult.IsOk) break;
+                        
+                        if (!ListViewValue.Contains(documentResult.Value))
+                            ListViewValue.Add(documentResult.Value);
+                    }
+                }
+            }
+        }
+        else if (RequirementTypeId == 0)
+        {
+            var requiredDocumentIds = Application.RequiredDocuments
+                .Select(x => x.RequiredDocumentId)
+                .ToList();
+            requiredDocumentIds.AddRange([59, 60, 70, 74]);
+            var documentIds = AppState.DocumentTypes
+                .Where(x => !requiredDocumentIds.Contains(x.OrganizationDocumentTypeIdentifier))
+                .Select(x => x.OrganizationDocumentTypeIdentifier)
+                .ToArray();
+            var documentsResult = await DocumentService.DocumentsByApplicationIdAndRequiredDocumentIdsTypeAsync(Application.Id, documentIds, new CancellationToken());
+            if (documentsResult.IsOk)
+            {
+                foreach (var document in documentsResult.Value)
+                {
+                    if (!ListViewValue.Contains(document))
+                        ListViewValue.Add(document);
+                }
+            }
+        }
+        else if (AssessmentId > 0)
+        {
+            var documentsResult = await DocumentService.DocumentsByApplicationIdAndDocumentTypeAsync(Application.Id, RequirementTypeId, new CancellationToken());
+            if (documentsResult.IsOk)
+            {
+                foreach (var document in documentsResult.Value)
+                {
+                    if (document.Metadata.Any(x => x.Key == "Text2" && x.Value == AssessmentId.ToString()))
+                    {
+                        if (!ListViewValue.Contains(document))
+                            ListViewValue.Add(document);
+                    }
+                }
+            }
+        }
+        else
+        {
+            var documentsResult = await DocumentService.DocumentsByApplicationIdAndDocumentTypeAsync(Application.Id, RequirementTypeId, new CancellationToken());
+            if (documentsResult.IsOk)
+            {
+                foreach (var document in documentsResult.Value)
+                {
+                    if (!ListViewValue.Contains(document))
+                        ListViewValue.Add(document);
+                }
+            }
+        }
+
+        ListViewValue = ListViewValue.OrderBy(x => x.CreatedDate).DistinctBy(x => x.Id).ToList();
+
+        ListViewRef.Rebind();
+        
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task DownloadThis(DocumentDto document)
+    {
+        Console.WriteLine(@"User clicked on: " + document.FileName + @" with path: " + document.Path);
+        try
+        {
+            if (document is { Path: "", Binary.Length: > 0 })
+            {
+                Console.WriteLine($@"Path is empty, but Binary has content");
+                var documentContent = Encoding.UTF8.GetString(document.Binary, 0, document.Binary.Length);
+                await ExportToPdf(documentContent, document.FileName);
+            }
+            else if (!System.IO.File.Exists(document.Path))
+            {
+                Console.WriteLine($@"File does not exist: {document.Path}");
+                return;
+            }
+            else if (document is not { Path: "" })
+            {
+                Console.WriteLine($@"File exists: {document.Path}");
+                var fileStream = System.IO.File.OpenRead(document.Path);
+                using var streamRef = new DotNetStreamReference(stream: fileStream);
+                await JsRuntime.InvokeVoidAsync("downloadFileFromStream", document.FileName, streamRef);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+    
+    private async Task ExportToPdf(string content, string fileName)
+    {
+        // ensure that table cells have inline border styles and are visible in the exported document
+        content = content.Replace("<td>", "<td style=\"border:1px solid #ccc;\">");
+        // call the export service, it will discern the details based on the extension of the exported file we want
+        bool isSuccess = await ExportAndDownloadHtmlContent(content, fileName);
+        // in case here was an issue
+        if (isSuccess == false)
+        {
+            NotificationService.Error("error converting to pdf");
+        }
+    }
+    
+    private async Task<bool> ExportAndDownloadHtmlContent(string htmlContent, string fileName)
+    {
+        try
+        {
+            // prepare a document with the HTML content that we can use for conversion
+            var provider = new HtmlFormatProvider();
+#pragma warning disable CS0618 // Type or member is obsolete
+            var document = provider.Import(htmlContent);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            // get the provider to export and then download the file
+            var exportProvider = ExportFormatProvider(fileName, out var mimeType);
+            byte[] exportFileBytes = null!;
+            using (var ms = new MemoryStream())
+            {
+#pragma warning disable CS0618 // Type or member is obsolete
+                exportProvider.Export(document, ms);
+#pragma warning restore CS0618 // Type or member is obsolete
+                exportFileBytes = ms.ToArray();
+            }
+
+            // download the file in the browser
+            await FileDownloader.Save(JsRuntime, exportFileBytes, mimeType, fileName);
+        }
+        catch
+        {
+            return false;
+        }
+        return true;
+    }
+    
+    private IFormatProvider<RadFlowDocument> ExportFormatProvider(string fileName, out string mimeType)
+    {
+        // we get both the provider and the MIME type to use only one swtich-case
+        IFormatProvider<RadFlowDocument> fileFormatProvider;
+        string extension = Path.GetExtension(fileName);
+        switch (extension)
+        {
+            case ".docx":
+                fileFormatProvider = new DocxFormatProvider();
+                mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                break;
+            case ".rtf":
+                fileFormatProvider = new RtfFormatProvider();
+                mimeType = "application/rtf";
+                break;
+            case ".html":
+                fileFormatProvider = new HtmlFormatProvider();
+                mimeType = "text/html";
+                break;
+            case ".txt":
+                fileFormatProvider = new TxtFormatProvider();
+                mimeType = "text/plain";
+                break;
+            case ".pdf":
+                fileFormatProvider = new pdfProviderNamespace.PdfFormatProvider();
+                mimeType = "application/pdf";
+                break;
+            default:
+                fileFormatProvider = null!;
+                mimeType = string.Empty;
+                break;
+        }
+
+        if (fileFormatProvider == null)
+        {
+            throw new NotSupportedException("The chosen format cannot be exported with the supported providers.");
+        }
+
+        return fileFormatProvider;
+    }
+
+    public static class FileDownloader
+    {
+        public static async Task Save(IJSRuntime jsRuntime, byte[] byteData, string mimeType, string fileName)
+        {
+            if (byteData == null)
+            {
+                await jsRuntime.InvokeVoidAsync("alert", "The byte array provided for Exporting was Null.");
+            }
+            else
+            {
+                await jsRuntime.InvokeVoidAsync("saveFile", Convert.ToBase64String(byteData), mimeType, fileName);
+            }
+        }
+    }
+}

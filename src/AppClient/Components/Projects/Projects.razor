@@ -1,0 +1,207 @@
+@using AppClient.State
+@using global::Shared.Projects.DTOs
+
+@rendermode @(new InteractiveServerRenderMode(false))
+
+@inject ApplicationService ApplicationService
+@inject IConfiguration Configuration
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@inject SharedService SharedService
+@inject UserService UserService
+@inject ProjectService ProjectService
+
+<h5>@LocalizationService.StringFromResource("Applications-49")</h5>
+<p>@LocalizationService.StringFromResource("Applications-50")</p>
+<Spacer Height="50px" />
+<div style=" display: flex; flex-direction:row">
+    <div style="margin: 0px 10px 10px 0px">
+        <label for="p1">@LocalizationService.StringFromResource("Applications-49")</label><br />
+        <TelerikDropDownList Id="p1"
+                             @bind-Value="SelectedProjectId"
+                             Data="@ProjectsList"
+                             TextField="@nameof(ProjectDto.Title)"
+                             ValueField="@nameof(ProjectDto.Id)"
+                             OnChange="@OnProjectChange"
+                             Width="400px">
+            <DropDownListSettings>
+                <DropDownListPopupSettings Height="auto" MaxHeight="800px" MinHeight="75px" />
+            </DropDownListSettings>
+            <HeaderTemplate>
+                <div style="text-align: center; padding: .3em; clear: both;"><strong>@LocalizationService.StringFromResource("Applications-51")</strong></div>
+            </HeaderTemplate>
+            <ValueTemplate>
+                <span data-permanent>@context.Title[0]</span>
+            </ValueTemplate>
+            <ItemTemplate>
+                <span data-permanent>@context.Title[0]</span>
+            </ItemTemplate>
+            <FooterTemplate>
+                <div style="display: flex; flex-direction: row; width: 100%; border-top: 1px solid #258cfb">
+                    <strong>@LocalizationService.StringFromResource("Applications-52") @ProjectsList.Count()</strong>
+                </div>
+            </FooterTemplate>
+            <NoDataTemplate>
+                <div class="no-data-template">
+                    <p>@LocalizationService.StringFromResource("Applications-53")</p>
+                </div>
+            </NoDataTemplate>
+        </TelerikDropDownList>
+    </div>
+    <div style="margin: 0px 10px 10px 0px; visibility: @ShowApplicationComboBox">
+        <div style="display: flex; flex-direction: row">
+            <div style="margin: 26px 10px 10px 0px;">
+                @LocalizationService.StringFromResource("Applications-54")
+            </div>
+            <div>
+                <label for="p1">@LocalizationService.StringFromResource("Applications-31")</label><br />
+                <TelerikDropDownList Id="p2"
+                                     @bind-Value="SelectedProjectApplicationId"
+                                     Data="@ProjectApplicationsList"
+                                     ValueField="ApplicationId"
+                                     TextField="Title"
+                                     OnChange="@OnProjectApplicationChange"
+                                     Width="400px">
+                    <DropDownListSettings>
+                        <DropDownListPopupSettings Height="auto" MaxHeight="800px" MinHeight="75px" />
+                    </DropDownListSettings>
+                    <HeaderTemplate>
+                        <div style="text-align: center; padding: .3em; clear: both;"><strong>@LocalizationService.StringFromResource("Applications-55")</strong></div>
+                    </HeaderTemplate>
+                    <FooterTemplate>
+                        <div style="display: flex; flex-direction: row; width: 100%; border-top: 1px solid #258cfb">
+                            <strong>@LocalizationService.StringFromResource("Applications-56") @ProjectApplicationsList!.Count()</strong>
+                        </div>
+                    </FooterTemplate>
+                    <ValueTemplate>
+                        <div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%;">
+                            <span data-permanent>@context.ApplicationTitle</span>
+                            <span style="margin-left: 10px; font-size: 12px">@context.ApplicationCreatedDate.ToString("yyyy-MM-dd")</span>
+                        </div>
+                    </ValueTemplate>
+                    <ItemTemplate>
+                        <div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%;">
+                            <span data-permanent>@context.ApplicationTitle</span>
+                            <span style="margin-left: 10px; font-size: 12px">@context.ApplicationCreatedDate.ToString("yyyy-MM-dd")</span>
+                        </div>
+                    </ItemTemplate>
+                    <NoDataTemplate>
+                        <div class="no-data-template">
+                            <p>@LocalizationService.StringFromResource("Applications-57")</p>
+                        </div>
+                    </NoDataTemplate>
+                </TelerikDropDownList>
+            </div>
+        </div>
+    </div>
+</div>
+<Spacer Height="30px" />
+@if (SelectedApplication is not null)
+{
+    <ProjectApplication ApplicationId="@SelectedApplication.ApplicationId" TempPath="@TempPath" />
+}
+
+@code {
+    [CascadingParameter] public required AppState AppState { get; set; }
+    TelerikComboBox<ProjectDto, int> ProjectsComboBox { get; set; } = new();
+    TelerikComboBox<ProjectApplicationDto, int> ApplicationsComboBox { get; set; } = new();
+    private ProjectApplicationDto? SelectedApplication { get; set; } = default!;
+    private string ShowApplicationComboBox { get; set; } = "hidden";
+    private List<ProjectDto> ProjectsList { get; set; } = [];
+    private List<ProjectApplicationDto>? ProjectApplicationsList { get; set; } = [];
+    private int SelectedProjectId { get; set; } 
+    private int LastSelectedProjectId { get; set; } 
+    private int SelectedProjectApplicationId { get; set; } 
+    private int LastSelectedProjectApplicationId { get; set; } 
+    private int OrganizationId { get; set; } 
+    private int ProjectManagerId { get; set; }
+    private string TempPath { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AppState.IsInitialized)
+        {
+            OrganizationId = AppState.Organization.Id;
+            
+            await Load();
+        }
+    }
+
+    private async Task Load()
+    {
+        var projectsResult = await ProjectService.ProjectsByOrganizationIdAsync(OrganizationId, new CancellationToken());
+        if (!projectsResult.IsOk)
+        {
+            NotificationService.Error(projectsResult.Error.ToString());
+            return;
+        }
+
+        ProjectsList = projectsResult.Value;
+    }
+
+    private async Task OnProjectChange(object projectId)
+    {
+        SelectedProjectId = (int)projectId;
+
+        if (SelectedProjectId != LastSelectedProjectId)
+        {
+            LastSelectedProjectId = SelectedProjectId;
+
+            ProjectApplicationsList = ProjectsList.FirstOrDefault(x => x.Id == SelectedProjectId)?.Applications.ToList();
+            
+            ShowApplicationComboBox = ProjectApplicationsList != null && ProjectApplicationsList.Any() ? "visible" : "hidden";
+
+            SelectedApplication = null;
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnProjectApplicationChange(object applicationId)
+    {
+        SelectedProjectApplicationId = (int)applicationId;
+
+        if (SelectedProjectApplicationId != LastSelectedProjectApplicationId)
+        {
+            LastSelectedProjectApplicationId = SelectedProjectApplicationId;
+            
+            await LoadApplication(SelectedProjectApplicationId);
+        }
+    }
+
+    private async Task LoadApplication(int applicationId)
+    {
+        if (applicationId < 1) return;
+
+        var result = await ApplicationService.ApplicationByIdAsync(applicationId, new CancellationToken());
+        if (!result.IsOk) return;
+        var application = result.Value;
+
+        if (ProjectApplicationsList != null) SelectedApplication = ProjectApplicationsList.FirstOrDefault(x => x.ApplicationId == SelectedProjectApplicationId);
+
+        TempPath = InitializeTempFileDirectory();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private string InitializeTempFileDirectory()
+    {
+        var tmpBaseFolder = Configuration["DocumentTempFolder"]!;
+        var tmpBaseFolderDirectory = new DirectoryInfo(tmpBaseFolder);
+        var tmp = "tmp" +
+            DateTime.UtcNow.Year +
+            DateTime.UtcNow.Month +
+            DateTime.UtcNow.Day +
+            DateTime.UtcNow.Hour +
+            DateTime.UtcNow.Minute +
+            DateTime.UtcNow.Second;
+
+        if (tmpBaseFolderDirectory.Exists)
+        {
+            tmpBaseFolderDirectory.CreateSubdirectory(tmp);
+        }
+        
+        return Path.Combine(tmpBaseFolder, tmp);
+    }
+
+}

@@ -1,0 +1,42 @@
+@using System.Text.RegularExpressions
+@using AppAdmin.Resources
+@inject SharedService SharedService
+
+<div class="application-segment">
+    <label for="@Control.Id.ToString()" class="application-label">@Control.Labels[Index]<br/>
+        <div class="application-sub-label" style="display: @ShowSubLabel">@Control.SubLabels[Index]</div>
+        <TelerikTimePicker Enabled="@Enabled" Id="@Control.Id.ToString()" Format="@LocalizationService.StringFromResource("HourMinuteNumericTextboxSegment-1")" @bind-Value="Value" OnChange="OnValueChanged"/>
+    </label>
+</div>
+
+@code {
+    [Parameter] public ApplicationControlDto Control { get; set; } = new();
+    [Parameter] public EventCallback<ApplicationControlDto> OnControlChanged { get; set; }
+    private TimeOnly Value { get; set; } = TimeOnly.MinValue;
+    private string ShowSubLabel => Control.SubLabels.Any(x => x.Length > 0) ? "block" : "none";
+    private int Index { get; set; } = 0;
+    private bool Enabled { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        Index = SharedService.IndexByCulture();
+        if (Control.Labels.Count == 1) Index = 0;
+        Control.Value = Regex.Unescape(Control.Value);
+        if (!string.IsNullOrWhiteSpace(Control.Value))
+        {
+            Value = TimeOnly.Parse(Control.Value); 
+        }
+        Enabled = true;
+    }
+
+    private async Task OnValueChanged(object value)
+    {
+        Enabled = false;
+        await InvokeAsync(StateHasChanged);
+        Control.Value = ((TimeOnly)value).ToString();
+        await OnControlChanged.InvokeAsync(Control);
+        Enabled = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

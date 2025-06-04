@@ -1,0 +1,191 @@
+@using System.Net
+@using AppClient.State
+@using EasyCaching.Core
+@using global::Shared.Email.Services
+@using global::Shared.Events.Services
+@using global::Shared.Extensions
+@using global::Shared.Messages.DTOs
+@using global::Shared.Messages.Services
+
+@rendermode @(new InteractiveServerRenderMode(false))
+
+@inject MessageService MessageService
+@inject UserService UserService
+@inject BlazorRenderer BlazorRenderer
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@inject EmailService EmailService
+@inject SharedService SharedService
+@inject EventService EventService
+@inject IEasyCachingProvider Cache
+
+<style>
+    div.k-grid tbody tr{
+        height: 40px !important;
+        white-space: nowrap!important;
+    }
+    div.k-grid th a, .k-virtual-scrollable-wrap td {
+        white-space: nowrap!important;
+    }
+    #grid th a, .k-virtual-scrollable-wrap td {
+        white-space: nowrap!important;
+    }
+    .k-table-td {
+        vertical-align: top !important;
+    }
+    .messgrid {
+        max-height: 37vh;
+    }
+</style>
+
+
+<Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)">
+    <p>@LocalizationService.StringFromResource("Messages-10")</p>
+    <TelerikRootComponent>
+        <div width="100%" style="display: flex; flex-direction: row; justify-content: space-between;">
+            <TelerikSwitch Width="100px" Value="@StatusIsOn" OnLabel="@StatusOn" OffLabel="@StatusOff" ValueChanged="@((bool val) => StatusChangedHandlerAsync(val))"></TelerikSwitch>
+            <SecondaryButton OnClick="Refresh">
+                <i class="fas fa-sync"></i> <!-- Exempel för FontAwesome -->
+            </SecondaryButton>
+        </div>
+        <br/>
+        <TelerikGrid @ref="GridRef"
+                     Class="messgrid"
+                     Data="@Items"
+                     Pageable="true"
+                     PageSize="4"
+                     ConfirmDelete="true"
+                     EditMode="@GridEditMode.Popup"
+                     OnDelete="@OnDelete">
+            <GridColumns>
+                <GridColumn Field="@nameof(SlimMessageDto.SchemaId)" Title="@LocalizationService.StringFromResource("Messages-13")" Width="30%">
+                    <Template>
+                        @{
+                            if (context is not SlimMessageDto item) return;
+                            <span><b>@item.ApplicationTitle</b></span>
+                            <br/>
+                            <span>@SharedService.ValueByCulture(item.SchemaNames)</span>
+                        }
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="@nameof(SlimMessageDto.Title)" Title="@LocalizationService.StringFromResource("Messages-15")" Width="50%">
+                    <Template>
+                        @{
+                            if (context is not SlimMessageDto item) return;
+                            <span style="white-space: normal;">@item.Title.ExtractCommaSeparatedTextFromHtml()</span>
+                        }
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="@nameof(SlimMessageDto.ExpireDate)" Title="@LocalizationService.StringFromResource("Messages-16")" Width="120px">
+                    <Template>
+                        @{
+                            if (context is not SlimMessageDto item) return;
+                            <span>@item.ExpireDate.ToString("yyyy-MM-dd")</span>
+                        }
+                    </Template>
+                </GridColumn>
+                <GridCommandColumn Width="85px">
+                    <GridCommandButton OnClick="@OnGoTo" Icon="@SvgIcon.ArrowLeft" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary"></GridCommandButton>
+                    <GridCommandButton Icon="@SvgIcon.Trash" ThemeColor="@ThemeConstants.Button.ThemeColor.Error" Command="Delete"></GridCommandButton>
+                </GridCommandColumn>
+            </GridColumns>
+        </TelerikGrid>
+    </TelerikRootComponent>
+</Animate>
+
+@code {
+    [CascadingParameter] public required Action<bool> ChangeLoaderVisibilityAction { get; set; }
+    [CascadingParameter] public required AppState AppState { get; set; }
+    private TelerikGrid<SlimMessageDto> GridRef { get; set; } = new();
+    private List<SlimMessageDto> Items { get; set; } = default!;
+    private bool StatusIsOn { get; set; }
+    private string StatusOn { get; set; } = string.Empty;
+    private string StatusOff { get; set; } = string.Empty;
+    private bool ShowDeletedMessages { get; set; } = false;
+    
+    private int UserId { get; set; } = 0;
+    private int StatusId { get; set; } = 3; // 3 = "Ej läst", 19 = "Deleted"
+
+    protected override async Task OnInitializedAsync()
+    {
+        StatusOn = @LocalizationService.StringFromResource("Messages-5");
+        StatusOff = @LocalizationService.StringFromResource("Messages-6");
+
+        UserId = AppState.User.Id;
+        
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var statusId = StatusIsOn ? 19 : 3; // 3 = "Ej läst", 19 = "Deleted"
+        var result = await MessageService.MessagesByUserIdAsync(UserId, statusId, new CancellationToken());
+        
+        if (!result.IsOk) return;
+        
+        Items = result.Value.ToList() ?? [];
+        
+        NotificationService.Info(@LocalizationService.StringFromResource("Messages-11") + $" {Items.Count} " + @LocalizationService.StringFromResource("Messages-12"));
+
+    }
+
+    private async Task StatusChangedHandlerAsync(bool value)
+    {
+        StatusIsOn = value;
+        await LoadData();
+    }
+    
+    private void OnGoTo(GridCommandEventArgs arg)
+    {
+        /*
+        +--+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        |Id|Names                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+        +--+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        |1 |["Default","Standard","Default","Standard","Predeterminado","Par d\u00E9faut","Predefinito","Standard"]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+        |2 |["Ej valt","Not Selected","Ikke valgt","Nicht gew\u00E4hlt","No seleccionado","Non s\u00E9lectionn\u00E9","Non selezionato","Ikke valgt"]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+        |3 |["Producenten ska skicka in datum f\u00F6r inspelningsstart","Producer Must Submit Start Date for Filming","Producenten skal indsende startdato for optagelserne","Produzent muss Startdatum f\u00FCr Dreharbeiten einreichen","El productor debe enviar la fecha de inicio de filmaci\u00F3n","Le producteur doit soumettre la date de d\u00E9but de tournage","Il produttore deve inviare la data di inizio delle riprese","Produsenten m\u00E5 sende inn startdato for innspilling"]                                                                                                                                                                                                                                                                                                                                                     |
+        |4 |["Producenten ska skicka in datum f\u00F6r inspelningsslut","Producer Must Submit End Date for Filming","Producenten skal indsende slutdato for optagelserne","Produzent muss Enddatum f\u00FCr Dreharbeiten einreichen","El productor debe enviar la fecha de finalizaci\u00F3n de filmaci\u00F3n","Le producteur doit soumettre la date de fin de tournage","Il produttore deve inviare la data di fine delle riprese","Produsenten m\u00E5 sende inn sluttdato for innspilling"]                                                                                                                                                                                                                                                                                                                                                         |
+        |5 |["Producenten ska skicka in datum f\u00F6r Svensk, international och festival premi\u00E4r","Producer Must Submit Dates for Swedish, International and Festival Premieres","Producenten skal indsende datoer for svensk, international og festivalpremiere","Produzent muss Daten f\u00FCr schwedische, internationale und Festivalpremieren einreichen","El productor debe enviar las fechas para las premieres sueca, internacional y de festivales","Le producteur doit soumettre les dates pour les premi\u00E8res su\u00E9doises, internationales et de festival","Il produttore deve inviare le date per le prime svedesi, internazionali e festival","Produsenten m\u00E5 sende inn datoer for svensk, internasjonal og festivalpremierer"]                                                                                          |
+        Används ej |6 |["Producenten ska skicka in manus, ekonomi plan, projektbeskrivning och andra dokument","Producer Must Submit Manuscript, Financial Plan, Project Description and Other Documents","Producenten skal indsende manuskript, \u00F8konomiplan, projektbeskrivelse og andre dokumenter","Produzent muss Manuskript, Finanzplan, Projektbeschreibung und andere Dokumente einreichen","El productor debe enviar el manuscrito, el plan financiero, la descripci\u00F3n del proyecto y otros documentos","Le producteur doit soumettre le manuscrit, le plan financier, la description du projet et d\u0027autres documents","Il produttore deve inviare il manoscritto, il piano finanziario, la descrizione del progetto e altri documenti","Produsenten m\u00E5 sende inn manus, \u00F8konomisk plan, prosjektbeskrivelse og andre dokumenter"]|
+        |7 |["Producenten ska skicka in teamlista","Producer Must Submit Team List","Producenten skal indsende holdliste","Produzent muss Teamliste einreichen","El productor debe enviar la lista del equipo","Le producteur doit soumettre la liste de l\u0027\u00E9quipe","Il produttore deve inviare la lista del team","Produsenten m\u00E5 sende inn teamliste"]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+        Används ej |8 |["Producenten ska skicka in faktura f\u00F6r rat 1","Producer Must Submit Invoice for Draft 1","Producenten skal indsende faktura for udkast 1","Produzent muss Rechnung f\u00FCr Entwurf 1 einreichen","El productor debe enviar la factura del borrador 1","Le producteur doit soumettre la facture du brouillon 1","Il produttore deve inviare la fattura per la bozza 1","Produsenten m\u00E5 sende inn faktura for utkast 1"]                                                                                                                                                                                                                                                                                                                                                                                                          |
+        |9 |["Producenten ska skicka in datum f\u00F6r Dcp","Producer Must Submit Date for DCP","Producenten skal indsende dato for DCP","Produzent muss Datum f\u00FCr DCP einreichen","El productor debe enviar la fecha para el DCP","Le producteur doit soumettre la date pour le DCP","Il produttore deve inviare la data per il DCP","Produsenten m\u00E5 sende inn dato for DCP"]                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+        |10|["Producenten ska skicka in artistisk och ekonomisk redovisning","Producer Must Submit Artistic and Financial Accounting","Producenten skal indsende kunstnerisk og \u00F8konomisk opg\u00F8relse","Produzent muss k\u00FCnstlerische und finanzielle Abrechnung einreichen","El productor debe enviar el informe art\u00EDstico y financiero","Le producteur doit soumettre le compte-rendu artistique et financier","Il produttore deve inviare la rendicontazione artistica e finanziaria","Produsenten m\u00E5 sende inn kunstnerisk og \u00F8konomisk rapport"]                                                                                                                                                                                                                                                                        |
+        +--+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        */
+        
+        var item = (SlimMessageDto)arg.Item;
+        
+        if (item is null) return;
+        
+        var reactionType = AppState.ReactionTypes.FirstOrDefault(x => x.OrganizationReactionTypeIdentifier == item.ReactionDescription);
+        var applicationId = item.ApplicationId; 
+        var destination = item.ReactionDescription switch
+        {
+            1 or 2 => $"/reply/{item.Id}/{applicationId}/{item.Title}",
+            3 or 4 or 5 or 6 or 6 or 7 or 8 or 9 or 10 when reactionType is not null => $"/communication/{item.Id}/{applicationId}/{reactionType.OrganizationReactionTypeIdentifier}/{WebUtility.UrlEncode(reactionType.Messages[SharedService.IndexByCulture()])}",
+            _ => $"/reply/{item.Id}/{applicationId}/{item.Title}"
+        };
+        NavigationManager.NavigateTo(destination);
+    }
+
+    private async Task OnDelete(GridCommandEventArgs args)
+    {
+        var item = (SlimMessageDto)args.Item;
+        
+        if (item is null) return;
+        
+        var result = await MessageService.DeleteMessageAsync(item.Id, new CancellationToken());
+        if (!result.IsOk) NotificationService.Error(result.Error.ToString());
+        
+        await LoadData();
+    }
+
+    private async Task Refresh()
+    {
+        await Cache.RemoveByPrefixAsync("Applications", CancellationToken.None);        
+        await Cache.RemoveByPrefixAsync("Projects", CancellationToken.None);      
+        await Cache.RemoveByPrefixAsync("Messages", CancellationToken.None);
+        NavigationManager.NavigateTo("/", true);
+    }
+}
