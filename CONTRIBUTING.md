@@ -2,6 +2,19 @@
 
 Thank you for your interest in contributing to OpenFundit! This document provides guidelines for contributing to the project.
 
+## How to Contribute
+
+### Option 1: For New Contributors (Recommended)
+1. **Fork** this repository to your GitHub account
+2. **Clone** your fork locally: `git clone https://github.com/YOUR-USERNAME/noisycricket-open-fundit.git`
+3. **Create a branch**: `git checkout -b feature/your-feature-name`
+4. **Make your changes** and commit them
+5. **Push** to your fork: `git push origin feature/your-feature-name`
+6. **Create a Pull Request** from your fork to this repository
+
+### Option 2: For Regular Contributors
+If you're a regular contributor, Johan can add you as a collaborator for direct access.
+
 ## Getting Started
 
 1. Fork the repository
@@ -70,8 +83,20 @@ Thank you for your interest in contributing to OpenFundit! This document provide
 - Include steps to reproduce the issue
 - Mention your environment (OS, .NET version, etc.)
 
-## Questions?
+## Questions and Contact
 
-If you have questions about contributing, feel free to open an issue or contact the maintainers.
+### For Contributors
+- **GitHub Issues**: Use for bug reports and feature requests
+- **GitHub Discussions**: Use for questions and general discussion (when enabled)
+- **Email**: Contact Johan at the email listed in the repository
+
+### Becoming a Regular Contributor
+If you make several good contributions and want direct access to the repository, Johan can add you as a collaborator. Just mention this in a pull request or issue!
+
+## Code of Conduct
+
+- Be respectful and inclusive
+- Focus on constructive feedback
+- Help newcomers learn and grow
 
 Thank you for contributing to OpenFundit!
